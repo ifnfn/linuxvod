@@ -191,7 +191,8 @@ int GetRealVolume(INFO *pInfo)
 		EquVolume = pInfo->PlayingSong.VolumeS;
 
 //	printf("EquVolume=%d\n", EquVolume);
-	if (EquVolume != 0) {
+	if (EquVolume != 0) 
+	{
 		tmp = pInfo->volume * (1 + (EquVolume - 50)/50.0);
 //		tmp = pInfo->volume + (EquVolume - 50);	
 //	int tmp = pInfo->volume * (1 - (EquVolume - pInfo->volume) / 100.0);
@@ -201,7 +202,8 @@ int GetRealVolume(INFO *pInfo)
 			tmp = pInfo->minvolume;
 	}
 	else 
-		tmp = pInfo->volume;
+		tmp = 0;
+//		tmp = pInfo->volume;
 	printf("vol =%d, pInfo->volume=%d, RealVolume=%d\n", EquVolume, pInfo->volume, tmp);
 	return tmp;
 }

@@ -118,6 +118,7 @@ class CKtvOption :public CBaseObject
 public:
 	CKtvOption(): font(NULL),sys_value(0),mtv_value(0)
 	{
+		active = false;
 		name = "";
 		title = "";
 		link = "";
@@ -143,8 +144,10 @@ public:
 	long tag;
 	CKtvFont *font;
 	TColor activecolor;
+	TColor color;
 	char tagfilter;
 	TAlign align;
+	bool active;
 
 	int32_t sys_value;
 	char mtv_value;

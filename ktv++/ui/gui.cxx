@@ -76,11 +76,18 @@ void CBaseGui::DrawTextOpt(CKtvOption *opt, CKtvFont *font, bool update)
 {
 	if (opt == NULL) return;
 	pthread_mutex_lock(&CS);
-	if (font)
+	if (font) {
 		SetFont(font);
-	else
+		DrawText(opt->title.data(), opt->rect, opt->align);
+	}
+	else {
+		TColor tmpcolor = opt->font->color;
+		if (opt->active == true)
+			opt->font->color = opt->activecolor;
 		SetFont(opt->font);
-	DrawText(opt->title.data(), opt->rect, opt->align);
+		DrawText(opt->title.data(), opt->rect, opt->align);
+		opt->font->color = tmpcolor;
+	}
 	if (update) Flip(&opt->rect);
 	pthread_mutex_unlock(&CS);
 }
@@ -407,7 +414,6 @@ void CDirectFBGui::SetFont(CKtvFont *font)
 	}
 	DFBCHECK(MtvSurface->SetColor(MtvSurface,font->color.r,font->color.g,font->color.b,font->color.a));
 }
-
 
 void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool unicode)
 {

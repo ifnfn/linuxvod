@@ -726,23 +726,16 @@ void CDataBaseWindow::DrawWindowOpt()
 
 		}
 	}
-	for (i=0; (i<datadb->CurPage.Count) && (i<SongOptCount); i++)
-	{
-		tmp = SongListOpt[i];
-		if (tmp)
-		{
-			TColor tmpcolor = tmp->font->color;
+	for (i=0; (i<datadb->CurPage.Count) && (i<SongOptCount); i++) {
+		if ((tmp = SongListOpt[i])) {
 			tmp->title = datadb->CurPage.RecList[i]->SongName;
 			tmp->font->SetFont(datadb->CurPage.RecList[i]->Charset);
-			if (SongCodeInList(datadb->CurPage.RecList[i]->SongCode)) // 如果已选该
-				tmp->font->color = tmp->activecolor;
+			tmp->active = SongCodeInList(datadb->CurPage.RecList[i]->SongCode);
 			gui->DrawTextOpt(tmp, NULL);
 			tmp->tag = (long)(datadb->CurPage.RecList[i]);
-			tmp->font->color = tmpcolor;
 		}
 	}
-	for (;i<SongOptCount;i++)
-	{
+	for (;i<SongOptCount;i++) {
 		tmp = SongListOpt[i];
 		if (tmp) tmp->tag = 0;
 	}
@@ -930,7 +923,8 @@ bool CWBHWindow::InputProcess(InputEvent *event)
 			{
 				tmp = (MemSongNode *)(event->option->tag);
 				player->NetAddSongToList(tmp); /* MemSongNode */
-				gui->DrawTextOpt(event->option,font);
+				event->option->active = true;
+				gui->DrawTextOpt(event->option, NULL);
 				gui->Flip(&event->option->rect);
 			}
 			return true;
@@ -959,7 +953,8 @@ bool CSongDataWindow::InputProcess(InputEvent *event)
 			{
 				tmp = (MemSongNode *)(event->option->tag);
 				player->NetAddSongToList(tmp); /* MemSongNode */
-				gui->DrawTextOpt(event->option, font);
+				event->option->active = true;
+				gui->DrawTextOpt(event->option, NULL);
 				gui->Flip(&event->option->rect);
 			}
 			return true;

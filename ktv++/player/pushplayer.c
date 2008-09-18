@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 			cmd   = strtok(msg , "?");
 			param = strtok(NULL, "");
 			playcmd = StrToPlayCmd(cmd);
-//			printf("cmd=%s,param=%s, playcmd=%d\n", cmd, param, playcmd);
+			printf("cmd=%s,param=%s, playcmd=%d\n", cmd, param, playcmd);
 			switch (playcmd){
 				case pcAddSong:
 				case pcDelSong:
