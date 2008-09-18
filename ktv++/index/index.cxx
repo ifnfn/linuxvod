@@ -8,6 +8,7 @@
 #include "createindex.h"
 #include "osnet.h"
 #include "strext.h"
+#include "crypt/aes.h"
 
 static CSongIndex songindex;
 static CSingerIndex singerindex;
@@ -147,6 +148,18 @@ static int AddSingerCallBack(void *NotUsed, int argc, char **argv, char **azColN
 	if (argv[2]) strncpy(data.Sex       , ToUTF8(9, argv[2]), ClassLen - 1);
 	if (argv[3]) strncpy(data.PinYin    , argv[3], PinYinLen - 1);
 	singerindex.AddSongData(&data, false);
+	return 0;
+}
+
+static int PasswordCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	char passwd[33] = "";
+	long long password = atoll(argv[1]);
+
+	if (GetPassword(password, passwd, 16) )
+		printf("%s\t%s\n", argv[0], passwd);
+	
+//	printf("%s=%s\n", azColName[0], argv[0]);
 	return 0;
 }
 
@@ -292,9 +305,10 @@ int main(int argc, char **argv)
 	int update = 0;
 	char sqlfile[512]="";
 	int setupdate=0;
+	int show_password=0;
 	char ch;
 	
-	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:c:t:hnlpuv"))!= -1)
+	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:c:t:w:hnlpuv"))!= -1)
 	{
 		switch (ch)
 		{
@@ -343,11 +357,16 @@ int main(int argc, char **argv)
 			case 't':
 				strncpy(fields, optarg, 1023);
 				break;
+			case 'w':
+				show_password = 1;
+				strncpy(fields, optarg, 1023);
+				break;
 			case 'h':
 				printf("Usage: %s [-u] [-q <sqlfile>] [-f <songfile>] [-s <sql command>]\n"
 					"[-a <songdatafile>]\n"
 					"[-b <singerdatafile>]\n" 
 					"[-c <tablename>] [-t <fields>]\n"
+					"[-w <songcode>]\n"
 					"[-d <video>] [-l/-n] [-m] [-v] [-h]\n", argv[0]);
 				exit(0);
 		}
@@ -360,6 +379,16 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	if (show_password) {
+		strcpy(sql, "select code,password from system");
+		if (fields[0] != '*') {
+			strcat(sql, " where code='");
+			strcat(sql, fields);
+			strcat(sql, "'");
+		}
+		sqlite_exec(db, sql, PasswordCallBack, NULL, &zErrMsg);
+		return 0;
+	}
 	if (setupdate) {
 		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
 		exit(1);
@@ -419,8 +448,7 @@ int main(int argc, char **argv)
 		sqlite_close(db);
 		songindex.SaveFile(songfile);
 		singerindex.SaveFile(singerfile);
-		if (print)
-		{
+		if (print) {
 			songindex.printIndex();
 			singerindex.printIndex();
 		}

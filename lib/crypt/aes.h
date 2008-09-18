@@ -42,6 +42,10 @@ typedef struct aeshead {
 	uint8_t    AesKey[16];
 } AesHead;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * initializes an AVAES context
  * @param key_bits 128, 192 or 256
@@ -85,7 +89,10 @@ char *AesEncryptAndBase64(const char *string, const char *passwd);
 char *AesDecryptAndBase64(const char *base_string, const char *passwd);
 char *AesEncryptAndBase64DefaultPwd(const char *string);
 char *AesDecryptAndBase64DefaultPwd(const char *base_string);
-char *GetPassword(long id, char *passwd, int len);
+char *GetPassword(long long id, char *passwd, int len);
 
+#ifdef __cplusplus
+}
+#endif
 #endif 
 

@@ -625,13 +625,13 @@ long GetAesFileSize(struct AesFile *aes)
 	return aes->Head.DataLen;
 }
 
-char *GetPassword(long id, char *passwd, int len)
+char *GetPassword(long long id, char *passwd, int len)
 {
 	char base[256];
 	char md5[33] = {0, }, outkey[33] = {0, };
 
 	if (id != 0) {
-		sprintf(base, "%ld", id * id);
+		sprintf(base, "%lld", id * id);
 		MD5(base, md5, 16);
 		CreateKey(md5, outkey);
 
@@ -651,35 +651,15 @@ char *GetPassword(long id, char *passwd, int len)
 #ifdef TEST
 int main(int argc, char **argv)
 {
-//	char passwd[33] = {0, };
-//	GetPassword(atoi(argv[1]), passwd, 16);
-//	printf("passwd=%s\n", passwd);
-//	return 0;
+	char passwd[33] = {0, };
+	GetPassword(atoll(argv[1]), passwd, 16);
+	printf("passwd=%s\n", passwd);
+	return 0;
 //	printf("AesFile=%d\n", sizeof(AesHead));
 //
 //	AesDecryptFile("a", "b", "cnsczd");
 //	return 0;
 //
-	FILE *fp = fopen("/tmp/file/51190", "rb");
-	if (fp) {
-		printf("fseek 0 SEEK_END\n");
-		fseek(fp, 0, SEEK_END);
-
-		off_t pos, size = ftell(fp);
-		int i;
-		uint8_t buffer[4096];
-		for (i=0;i<10000;i++) {
-			pos = random() % size;
-			fseek(fp, pos, SEEK_SET);
-			int len = fread(buffer, 1, 4096, fp);
-			printf("read %d\n", len);
-		}
-
-		fclose(fp);
-	}
-
-	exit(0);
-		
 
 	if (argv[1][0] == 'e') {
 		AesEncryptFile(argv[2], argv[3], argv[4]);

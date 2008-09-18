@@ -1,7 +1,7 @@
 TOPDIR=../../
 
-LIBS += -static-libgcc -lktv -L../../lib -lsqlite -L.
-CPPFLAGS += -I../ui -I../../lib -O2 -pipe -Werror -Wall
+LIBS += -static-libgcc -lktv -L../../lib -lsqlite -L. -lssl
+CPPFLAGS += -I../ui -I../../lib -O2 -pipe -Werror -Wall -g
 
 BIN=song
 
