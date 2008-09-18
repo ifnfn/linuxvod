@@ -7,6 +7,23 @@
 #include "application.h"
 #include "player.h"
 
+void *KeyReadThread(void *p) // 友员函数，用于线程，功能：按键操作缓冲
+{
+	InputEvent event;
+	if (p == NULL) return NULL;
+	CApplication *cp = (CApplication *)p;
+	int timeout = 800;
+	while( !cp->quit ){
+		memset(&event, 0, sizeof(InputEvent));
+		if (cp->gui->WaitInputEvent(&event, timeout)){
+//			DEBUG_OUT("%c, %d,%d\n", event.k, event.x, event.y);
+			ftime(&cp->gui->opttime);
+			cp->KeyBuffer->KeyIn(event);
+		}
+	}
+	return NULL;
+}
+
 CApplication::CApplication(int argc, char **argv): quit(false)
 {
 	GetTimerManager();
@@ -38,17 +55,7 @@ CApplication::CApplication(int argc, char **argv): quit(false)
 	gui->GraphicInit(argc, argv);
 	CBaseWindow* main = (CBaseWindow*) mytheme->FindWindow(MainFormStr);
 	if (main) main->Show();
-#if 1
-	FILE *fp = fopen("/var/run/player", "r");
-	if (fp) {
-		char buffer[512];
-		memset(buffer, 0, 512);
-		fgets(buffer, 512, fp);
-		if (buffer != 0)
-			ShowMsgBox(buffer, 0);
-		fclose(fp);
-	}
-#endif
+	player->CheckVideoCard();
 }
 
 CApplication::~CApplication()
@@ -117,23 +124,6 @@ void CApplication::run()
 		} else
 			DEBUG_OUT("BACK\n");
 	}
-}
-
-void *KeyReadThread(void *p) // 友员函数，用于线程，功能：按键操作缓冲
-{
-	InputEvent event;
-	if (p == NULL) return NULL;
-	CApplication *cp = (CApplication *)p;
-	int timeout = 800;
-	while( !cp->quit ){
-		memset(&event, 0, sizeof(InputEvent));
-		if (cp->gui->WaitInputEvent(&event, timeout)){
-//			DEBUG_OUT("%c, %d,%d\n", event.k, event.x, event.y);
-			ftime(&cp->gui->opttime);
-			cp->KeyBuffer->KeyIn(event);
-		}
-	}
-	return NULL;
 }
 
 #ifdef CONSOLEINPUT

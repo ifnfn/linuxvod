@@ -3,6 +3,37 @@
 #include "memtest.h"
 #include "timer.h"
 
+static void Delay(uint32_t ms)
+{
+	int was_error;
+	struct timespec elapsed, tv;
+
+	elapsed.tv_sec = ms/1000;
+	elapsed.tv_nsec = (ms%1000)*1000000;
+	do {
+		errno = 0;
+
+		tv.tv_sec = elapsed.tv_sec;
+		tv.tv_nsec = elapsed.tv_nsec;
+		was_error = nanosleep(&tv, &elapsed);
+	} while ( was_error && (errno == EINTR) );
+}
+
+void *TimerTickThread(void *p)
+{
+	CTimerManager *tm = (CTimerManager *)p;
+	while (tm->working) {
+//		pthread_mutex_lock(&tm->CS);
+		for (int i=0; i<tm->count; i++)
+			tm->TimerList[i]->Tick();
+//		pthread_mutex_unlock(&tm->CS);
+		Delay(100);
+//		usleep(50 * 10000);
+	}
+	printf("Exit TimerTickThread.\n");
+	return tm;
+}
+
 void CTimer::Tick(void)
 {
 	Count -= 100;
@@ -93,33 +124,3 @@ bool CTimerManager::KillAllTimer()
 	return true;
 }
 
-static void Delay(uint32_t ms)
-{
-	int was_error;
-	struct timespec elapsed, tv;
-
-	elapsed.tv_sec = ms/1000;
-	elapsed.tv_nsec = (ms%1000)*1000000;
-	do {
-		errno = 0;
-
-		tv.tv_sec = elapsed.tv_sec;
-		tv.tv_nsec = elapsed.tv_nsec;
-		was_error = nanosleep(&tv, &elapsed);
-	} while ( was_error && (errno == EINTR) );
-}
-
-void *TimerTickThread(void *p)
-{
-	CTimerManager *tm = (CTimerManager *)p;
-	while (tm->working) {
-//		pthread_mutex_lock(&tm->CS);
-		for (int i=0; i<tm->count; i++)
-			tm->TimerList[i]->Tick();
-//		pthread_mutex_unlock(&tm->CS);
-		Delay(100);
-//		usleep(50 * 10000);
-	}
-	printf("Exit TimerTickThread.\n");
-	return tm;
-}

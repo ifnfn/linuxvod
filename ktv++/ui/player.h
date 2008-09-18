@@ -24,23 +24,26 @@ public:
 	~CPlayer();
 public:
 	CKtvTheme *theme;
-	void SendPlayerCmdNoRecv(const char *cmd);          // ·¢ËÍÍøÂç²¥·ÅÆ÷ÃüÁî, ÎŞ»Ø¸´ÏûÏ¢
-	void SendPlayerCmdAndRecv(const char *cmd);         // ·¢ËÍÃüÁî²¢ÇÒµÈ»Ø¸´ÏûÏ
+	bool SendPlayerCmdNoRecv(const char *cmd);      // ·¢ËÍÍøÂç²¥·ÅÆ÷ÃüÁî, ÎŞ»Ø¸´ÏûÏ¢
+	bool SendPlayerCmdAndRecv(const char *cmd);     // ·¢ËÍÃüÁî²¢ÇÒµÈ»Ø¸´ÏûÏ¢
 public:
-	SelectSongNode* NetAddSongToList(MemSongNode *rec); // ÏòÒÑµã¸èÇúÁĞ±íÖĞÔö¼Ó¼ÇÂ¼
-	bool NetDelSongFromList(SelectSongNode *rec);       // ´ÓÒÑµã¸èÇúÁĞ±íÖĞÉ¾³ı¼ÇÂ¼
-	int  NetSongIndex(SelectSongNode *rec);             // ÔÚÒÑµã¸èÇúÁĞ±íÖĞµÄË³ĞòºÅ
-	bool NetFirstSong(SelectSongNode *rec,int id);      // ÓÅÏÈ¸èÇú
+	void NetAddSongToList(MemSongNode *rec);        // ÏòÒÑµã¸èÇúÁĞ±íÖĞÔö¼Ó¼ÇÂ¼
+	bool NetDelSongFromList(SelectSongNode *rec);   // ´ÓÒÑµã¸èÇúÁĞ±íÖĞÉ¾³ı¼ÇÂ¼
+	bool NetFirstSong(SelectSongNode *rec, int id); // ÓÅÏÈ¸èÇú
 
-	bool NetSongCodeInList(char *songcode);             // Ö¸¶¨µÄ¸èÇú±àºÅÊÇ·ñÔÚÁĞ±íÖĞ
-	void ReloadSongList();                              // ÖØĞÂ´ÓÍøÂç²¥·ÅÆ÷¶ÁÈ¡¸è±í
-	bool RecvPlayerCmd();                               // ´¦Àí²¥·ÅÆ÷·¢¹ıÀ´µÄÃüÁî
-	bool ReadStrFromPlayer(char *s, int x);             // ¶Á²¥·ÅÆ÷·¢¹ıÀ´µÄ×Ö·û´®
-	int  ReadIntFromPlayer();                           // ¶Á²¥·ÅÆ÷·¢¹ıÀ´µÄ×Ö·û´®
-	void ClearSocketBuf();                              // Çå¿ÕÌ×½Ó×Ö»º³åÇø
+	bool NetSongCodeInList(const char *songcode);   // Ö¸¶¨µÄ¸èÇú±àºÅÊÇ·ñÔÚÁĞ±íÖĞ
+	void ReloadSongList();                          // ÖØĞÂ´ÓÍøÂç²¥·ÅÆ÷¶ÁÈ¡¸è±í
+	bool RecvPlayerCmd();                           // ´¦Àí²¥·ÅÆ÷·¢¹ıÀ´µÄÃüÁî
+	bool ReadStrFromPlayer(char *s, int x);         // ¶Á²¥·ÅÆ÷·¢¹ıÀ´µÄ×Ö·û´®
+	void PlayDisc();                                // ²¥·Å¹âÇı
+	bool CheckVideoCard();                          // ¼ì²é½âÑ¹¿¨
+	int  AddVolume();                               // Ôö¼ÓÒôÁ¿
+	int  DecVolume();                               // ¼õĞ¡ÒôÁ¿
 private:
 	int RecvUdpBuf(int fd, char *msg, int MaxSize, struct sockaddr *ClientAddr);
-	bool RecvSongData(SelectSongNode *rec);             // ½ÓÊÕ²¥·ÅÆ÷·şÎñ·¢»ØµÄ¸èÇú
+	bool RecvSongData(SelectSongNode *rec);         // ½ÓÊÕ²¥·ÅÆ÷·şÎñ·¢»ØµÄ¸èÇú
+	int  ReadIntFromPlayer();                       // ¶Á²¥·ÅÆ÷·¢¹ıÀ´µÄÕûÊı
+	void ClearSocketBuf();                          // Çå¿ÕÌ×½Ó×Ö»º³åÇø
 
 	int sckfd;                 // UDP ¿Í»§¶Ë·¢ËÍÌ×½Ó×Ö
 	int udpsvrfd;              // UDP ·şÎñÌ×½Ó×Ö

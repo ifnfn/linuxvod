@@ -3,8 +3,9 @@ TOPDIR=../../
 LIBS += -ltinyxml -lktv -static-libgcc -L../../lib -L.
 CPPFLAGS += -I../../lib
 BIN = mtv
-
 SRC =
+
+CLEANFILE+=libstdc++.a
 
 ifndef CONFIGDEFINE
 CONFIGDEFINE  =

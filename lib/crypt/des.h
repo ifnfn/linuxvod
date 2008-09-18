@@ -71,6 +71,6 @@ bool CheckPasswd(const char *desfile, char *deskey);
 #ifdef __cplusplus
 }
 #endif
-	
+
 #endif
 

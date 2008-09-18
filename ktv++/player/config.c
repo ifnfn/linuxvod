@@ -16,17 +16,17 @@ int MinVolume         = 0;
 int MaxVolume         = 100;
 int NextDelayTime     = 0;
 char Background[50]   = DATAPATH"/blank.jpg";
-char Fire119[30]      = "99999999,dat";
+char Fire119[30]      = "99999999.dat";
 char DefaultSoundMode = 0; // 默认歌曲的灯光控制模式
 char HiSoundMode      = 1; // Disco歌曲的灯光控制模式
 char Fire119SoundMode = 2; // 火警的灯光控制模式
 bool Advertising      = false;
-bool NoServer         = false;
 bool EnabledSound     = true;
 char TvType[10]       = "PAL";
 int TVis4x3           = 1;
 int OSDCount          = 0;
 char **OSDList        = NULL;
+char Cdrom[10]        = "";
 
 enum tagTrack SongStartAudioTrack   = trDefault;
 enum tagTrack PlayerStartAudioTrack = trMusic;
@@ -53,6 +53,7 @@ char *GetLocalFile(char *code, char *ext) // 查找文件
 	for (i = 0; i < DirCount; ++i) {
 		for (j = 0; j < 5; ++j) {
 			sprintf(filename, "%s/%s.%s", DirList[i], code, extname[j]);
+			printf("filename=%s\n", filename);
 			if (FileExists(filename)) {
 				if (ext)
 					strcpy(ext, extname[j]);
@@ -69,9 +70,9 @@ void ReadPlayIniConfig(char *PlayIni, char *VideoIni)
 	av_register_all();
 	offset_t size;
 	char *SECTION = "setup";
-	char *data = (char *)url_readbuf(PlayIni, &size);
+	unsigned char *data = url_readbuf(PlayIni, &size);
 	if (!data) return;
-	struct ENTRY *ini = OpenIniFileFromMemory((unsigned char*)data, size);
+	struct ENTRY *ini = OpenIniFileFromMemory((unsigned char *)data, size);
 	free(data);
 	if (!ini) return;
 	SongMaxNumber    = ReadInt(ini, SECTION, "SongMaxNumber"   , SongMaxNumber   );
@@ -120,11 +121,12 @@ void ReadPlayIniConfig(char *PlayIni, char *VideoIni)
 	SoundModeCount = ReadKeyValueList(ini, "SoundMode"  , &ModeNames, &ModeCmds);
 	OSDCount       = ReadKeyValueList(ini, "OSD"        , NULL, &OSDList);
 	CloseIniFile(ini);
-	data = (char *)url_readbuf(VideoIni, &size);
+	data = url_readbuf(VideoIni, &size);
 	if (data) {
-		ini = OpenIniFileFromMemory((unsigned char*)data, size);
+		ini = OpenIniFileFromMemory(data, size);
 		free(data);
 		DirCount = ReadKeyValueList(ini, "videopath",   NULL, &DirList);
+		strcpy(Cdrom, ReadString(ini, "cdrom", "cdrom", Cdrom));
 		CloseIniFile(ini);
 	}
 	srand(time(0));

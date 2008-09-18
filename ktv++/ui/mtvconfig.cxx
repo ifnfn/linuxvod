@@ -75,7 +75,7 @@ CMtvConfig::CMtvConfig(const char *root): \
 
 CMtvConfig::~CMtvConfig()
 {
-	if (ThemeList) 
+	if (ThemeList)
 	{
 		for (int i=0;i<PicThemeCount;i++){
 			if (ThemeList[i])
@@ -116,10 +116,10 @@ int CMtvConfig::ReadSoundMode()
 	if (!node) return  0;
 	const char *modename = NULL;
 	TiXmlElement *mode = node->FirstChildElement("mode");
-	while (mode) 
+	while (mode)
 	{
 		modename = mode->Attribute("name");
-		if (modename) 
+		if (modename)
 		{
 			soundmodes = (soundmode_t *)realloc(soundmodes, (modecount+1)*sizeof(soundmode_t));
 			strncpy(soundmodes[modecount].modename, modename, 20);
@@ -135,20 +135,20 @@ int CMtvConfig::ReadKeyDefine()
 {
 	TiXmlNode *node = doc->RootElement();
 	int count = 0;
-	if (node) 
+	if (node)
 	{
 		node = node->FirstChildElement("keys");
-		if (node) 
+		if (node)
 		{
 			const char *keyname = NULL;
 			TiXmlElement *KeyNode = node->FirstChildElement("key");
-			while (KeyNode) 
+			while (KeyNode)
 			{
 				keyname = KeyNode->Attribute("name");
 				if (keyname)
 				{
 					for (int i=0;i<MAX_KEY_STRUCT;i++) {
-						if (strcasecmp(keyname, KeyMaps[i].name) == 0) 
+						if (strcasecmp(keyname, KeyMaps[i].name) == 0)
 						{
 							KeyMaps[i].sys_value = atoi(KeyNode->Attribute("use"));
 							strncpy(KeyMaps[i].title, KeyNode->Attribute("title"), sizeof(KeyMaps[i].title)-1);
@@ -168,17 +168,17 @@ int CMtvConfig::ReadFontDefine()
 {
 	TiXmlNode *node = doc->RootElement();
 	int count = 0;
-	if (node) 
+	if (node)
 	{
 		node = node->FirstChildElement("fonts");
-		if (node) 
+		if (node)
 		{
 			const char *keyname = NULL;
 			const char *charset = NULL;
 			const char *filename= NULL;
 			int value = 0;
 			TiXmlElement *element= node->FirstChildElement();
-			while (element) 
+			while (element)
 			{
 				keyname  = element->Attribute("name");
 				charset  = element->Attribute("charset");
@@ -199,11 +199,11 @@ int CMtvConfig::ReadFontDefine()
 int CMtvConfig::ReadThemeCount()
 {
 	PicThemeCount = 0;
-	if (confignode) 
+	if (confignode)
 	{
 		const char *themename = NULL;
 		TiXmlElement *KeyNode = confignode->FirstChildElement("interface");
-		if (KeyNode) 
+		if (KeyNode)
 		{
 			const char *p = KeyNode->Attribute("default");
 			if (p)
@@ -211,10 +211,10 @@ int CMtvConfig::ReadThemeCount()
 			else
 				defaulttheme = "theme.pug";
 			KeyNode = KeyNode->FirstChildElement("plungin");
-			while (KeyNode) 
+			while (KeyNode)
 			{
 				themename = KeyNode->Attribute("name");
-				if (themename) 
+				if (themename)
 				{
 					ThemeList = (char **)realloc(ThemeList, (PicThemeCount + 1) * sizeof(char *));
 					ThemeList[PicThemeCount] = strdup(themename);
@@ -231,7 +231,7 @@ int CMtvConfig::ReadThemeCount()
 
 const char *CMtvConfig::ReadConfig(char *conf)
 {
-	if (confignode) 
+	if (confignode)
 	{
 		TiXmlElement *KeyNode = confignode->FirstChildElement(conf);
 		if (KeyNode)
@@ -245,17 +245,17 @@ const char *CMtvConfig::ReadConfig(char *conf)
 void CMtvConfig::GetPlayerIP()
 {
 	strcpy(playerip, "127.0.0.1");
-	if (confignode) 
+	if (confignode)
 	{
 		const char *keyname = NULL;
 		TiXmlElement *KeyNode = confignode->FirstChildElement("playergroup");
 
-		if (KeyNode) 
+		if (KeyNode)
 		{
 			char localip[16];
 			GetLocalIP(localip);
 			KeyNode = KeyNode->FirstChildElement("ip");
-			while (KeyNode) 
+			while (KeyNode)
 			{
 				keyname = KeyNode->Attribute("name");
 				if (keyname) {

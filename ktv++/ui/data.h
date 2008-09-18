@@ -33,11 +33,11 @@
 /*============================================================================*/
 // tagMemSongNode 是内存歌曲结构体
 typedef struct tagHeader{
-	long IndexCount;    // 索引数量
-	long DataPosition;  // 数据区位置
-	long PyPosition;    // 拼音区位置
-	long SongCount;     // 记录数量
-	long PYCount;       // 拼音数量
+	long IndexCount;      // 索引数量
+	long DataPosition;    // 数据区位置
+	long PyPosition;      // 拼音区位置
+	long SongCount;       // 记录数量
+	long PYCount;         // 拼音数量
 }Header_t;
 
 typedef struct tagMemSongNode{
@@ -56,12 +56,11 @@ typedef struct tagMemSongNode{
 	char *StreamType;     // 流格式
 }MemSongNode;
 
-
-struct tagMemPinYin {// 内存表中的拼音表
-	char *PinYin;    // 拼音
-	char *WBH;       // 五笔划
-	char Num;        // 字数
-	long SongID;     // 歌曲坐标号
+struct tagMemPinYin {         // 内存表中的拼音表
+	char *PinYin;         // 拼音
+	char *WBH;            // 五笔划
+	char Num;             // 字数
+	long SongID;          // 歌曲坐标号
 };
 
 typedef struct tagSongListNode

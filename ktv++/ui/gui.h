@@ -233,7 +233,7 @@ public:
 	virtual void RestoreFade(RECT rect);
 	virtual void DrawHandWrite(int x1, int y1, int x2, int y2);
 private:
-	int Width, Height;  
+	int Width, Height;
 	HDC hdc;
 #define MOUSE           "/dev/psaux"    /* mouse associated with the screen */
 #define KEYBOARD        "/dev/tty0"     /* keyboard associated with the screen */
@@ -263,10 +263,10 @@ protected:
 	CScreen() {
 #ifdef SDLGUI
 		pGui = new CSDLGui();
-#endif		
+#endif
 #ifdef DIRECTFB
 		pGui = new CDirectFBGui();
-#endif		
+#endif
 #ifdef SPHEGUI
 		pGui = new CSpheGui();
 #endif

@@ -228,7 +228,7 @@ static void GetBinMD5(char *command, const char *BinFile)
 	char md5[33];
 	MD5Final(digest, &context);
 	MDPrint(digest, md5, 16);
-#ifdef SHOWMD5	
+#ifdef SHOWMD5
 	printf("%s: %s\n", BinFile, md5);
 #endif
 	strcat(command, md5);
@@ -292,7 +292,7 @@ bool FindServerHost(char *ServerIP, const char* BinFile)
 		memset(&addr, 0, sizeof(struct sockaddr_in));
 		len=recvfrom(udpfd, msg, 99, 0, (struct sockaddr *)&addr, (socklen_t*)&Addrlen);
 		if (len>=0) msg[len] = 0;
-#ifdef SHOWMD5		
+#ifdef SHOWMD5
 		printf("msg=%s\n", msg);
 #endif
 
@@ -305,7 +305,7 @@ bool FindServerHost(char *ServerIP, const char* BinFile)
 			strcpy(ServerIP, inet_ntoa(addr.sin_addr));
 //			printf("Found Server: %s\n", ServerIP);
 		}
-		else {			
+		else {
 			ServerIP[0] = '\0';
 			len = 0;
 		}
@@ -329,7 +329,7 @@ int SetBlocking(int socket) // 设置非阻塞模式
 }
 
 int CreateStreamUdp(int port)
-{   
+{
 	struct sockaddr_in addr;
 	int udpfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udpfd < 0) {

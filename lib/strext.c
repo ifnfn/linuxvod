@@ -89,26 +89,26 @@ void pathcat(char *url, const char* path, const char *filename)
 	}
 	const char *p = filename;
 	if (filename[0]=='/')
-		p = filename+1;	
+		p = filename+1;
 	strcat(url, p);
 }
 
 int ExtractFilePath(const char *filename, char *path)
-{       
+{
 	strcpy(path, filename);
 	char *p = rindex(path, '/');
 	if (p != NULL)
 		*(p+1) = '\0';
 	return p != NULL;
-}       
-        
-int ExtractFileName(const char *filename, char *file) 
-{       
+}
+
+int ExtractFileName(const char *filename, char *file)
+{
 	char tmp[1024];
 	strcpy(tmp, filename);
 	char *p = rindex(tmp, '/');
 	if (p != NULL)
-	{               
+	{
 		char *p1 = rindex(tmp, '.');
 		if (p1 != NULL)
 			*p1 = '\0';

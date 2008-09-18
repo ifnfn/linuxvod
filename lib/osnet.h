@@ -29,7 +29,7 @@
 #endif
 
 //#define SHOWMD5
-#define CHECKMD5
+//#define CHECKMD5
 
 #define REQUEST_SERVER_MSG "GetMainServer Client:X="
 #define SERVERUDPPORT 8386
@@ -42,7 +42,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 bool GetMacAddr  (char *CardMacAddr);        // 得到网卡号
 bool GetLocalIP  (char *IP);                 // 得到IP地址
 void SetBroadCast(int socket);               // 设置广播
@@ -61,4 +61,4 @@ int GetStreamServer  (int udpfd, char *hosts);
 #ifdef __cplusplus
 }
 #endif
-	
+

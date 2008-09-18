@@ -29,7 +29,7 @@ typedef struct ENTRY {
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 #ifdef LINUX /* Remove CR, on unix systems. */
 	#define INI_REMOVE_CR
 	#define DONT_HAVE_STRUPR
@@ -50,5 +50,5 @@ int    ReadKeyValueList (struct ENTRY *Head, char *pSection, char ***Key, char *
 #ifdef __cplusplus
 }
 #endif
-	
+
 #endif

@@ -278,6 +278,13 @@ private:
 #endif
 
 //==============================================================================
+class COtherWindow: public CBaseWindow
+{
+public:
+	COtherWindow(const char *name): CBaseWindow(name) {}
+	virtual bool InputProcess(InputEvent *event);     // 输入事件处理函数
+};
+//==============================================================================
 class CFoodMenuWindow: public CBaseWindow
 {
 public:

@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 	}
 	char host[30];
 	FindServerHost(host, argv[0]);
-!
 	if ((strlen(host)<= 0)) {
 //		printf("not found server\n");
 		return -1;

@@ -12,12 +12,17 @@
 PlaySongList SelectedList = {0,0,0,NULL};
 
 struct tagCMD {
-	char *cmdstr;
+	const char *cmdstr;
 	PlayCmd cmd;
 };
 
-#define CMDSIZE pcUnknown
+const char *ADDSONG   = "addsong";
+const char *DELSONG   = "delsong";
+const char *FIRSTSONG = "firstsong";
+const char *LISTSONG  = "listsong";
+const char *PLAYSONG  = "playsong";
 
+#define CMDSIZE pcUnknown
 static struct tagCMD CMD[CMDSIZE] = {
 	{"addsong"      , pcAddSong       },
 	{"delsong"      , pcDelSong       },
@@ -43,6 +48,7 @@ static struct tagCMD CMD[CMDSIZE] = {
 	{"runscript"    , pcRunScript     },
 	{"HiSong"       , pcHiSong        },
 	{"MsgBox"	, pcMsgBox	  },
+	{"hwstatus"     , pchwStatus      },
 	{"ReSongDB"	, pcReloadSongDB  },
 };
 
@@ -55,7 +61,7 @@ static pthread_mutex_t count_lock;
 	#define LOCK() pthread_mutex_lock(&mutex)
 	#define UNLOCK() pthread_mutex_unlock(&mutex)
 #else
-	#define LOCK() 
+	#define LOCK()
 	#define UNLOCK()
 #endif
 
@@ -100,63 +106,66 @@ bool StrToSelectSongNode(const char *msg, SelectSongNode *rec)
 {
 	if (msg == NULL) return false;
 	char *tmp = strdup(msg);
-
-	SelectSongNode r;
-	memset(&r, 0, sizeof(SelectSongNode));
-	int i=0;
-	char *p = tmp;
-
-	char *sub = strstr(tmp, ";");
-	while (sub) {
-		*sub = '\0';
-		switch(i) {
-			case 0:  r.ID = atoi(p)         ; break;
-			case 1:  strcpy(r.SongCode, p)  ; break;
-			case 2:  strcpy(r.SongName, p)  ; break;
-			case 3:  r.Charset = atoi(p)    ; break;
-			case 4:  strcpy(r.Language,   p); break;
-			case 5:  strcpy(r.SingerName, p); break;
-			case 6:  r.VolumeK   = atoi(p)  ; break;
-			case 7:  r.VolumeS   = atoi(p)  ; break;
-			case 8:  r.Num       = atoi(p)  ; break;
-			case 9:  r.Klok      = atoi(p)  ; break;
-			case 10: r.Sound     = atoi(p)  ; break;
-			case 11: r.SoundMode = atoi(p)  ; break;
-			case 12: strcpy(r.StreamType, p); break;
+	if (!rec) return false;
+	memset(rec, 0, sizeof(SelectSongNode));
+	char *x = strtok(tmp, "&");
+	while (x) {
+		char *sub = strstr(x, "=");
+		if (!sub)  {
+			x = strtok(NULL, "&");
+			continue;
 		}
-		i++;
-		p = sub + 1;
-	    sub = strstr(p, ";");
+		*sub = '\0';
+		sub++;
+		if (     !strcmp(x, "id"))        rec->ID = atoidef(sub, 0);
+		else if (!strcmp(x, "code"))      strcpy(rec->SongCode, sub);
+		else if (!strcmp(x, "name"))      strcpy(rec->SongName, sub);
+		else if (!strcmp(x, "charset"))   rec->Charset   = atoidef(sub, 0);
+		else if (!strcmp(x, "language"))  strcpy(rec->Language, sub);
+		else if (!strcmp(x, "singer"))    strcpy(rec->SingerName, sub);
+		else if (!strcmp(x, "volk"))      rec->VolumeK   = atoidef(sub, '0');
+		else if (!strcmp(x, "vols"))      rec->VolumeS   = atoidef(sub, '0');
+		else if (!strcmp(x, "num"))       rec->Num       = atoidef(sub, '0');
+		else if (!strcmp(x, "klok"))      rec->Klok      = atoidef(sub, '0');
+		else if (!strcmp(x, "sound"))     rec->Sound     = atoidef(sub, '0');
+		else if (!strcmp(x, "soundmode")) rec->SoundMode = atoidef(sub, '0');
+		else if (!strcmp(x, "type"))      strcpy(rec->StreamType, sub);
+		x = strtok(NULL, "&");
 	}
-#ifdef DEBUG
-	PrintSelectSongNode(*rec);
-#endif
 	free(tmp);
-	if (i >= 12) {
-		*rec = r;
-		return true;
-	}
-	return false;
+	return true;
 }
 
-char *SelectSongNodeToStr(char *cmd, SelectSongNode *rec)  /* 将歌曲结构，转换成字符串 */
+#define STRMCAT(str, s1, s2) { \
+	if (s2) { \
+	char tmpbuf[100]; \
+	sprintf(tmpbuf, s1, s2); \
+	strcat(str, tmpbuf); \
+	} \
+}
+
+char *SelectSongNodeToStr(const char *cmd, SelectSongNode *rec)  /* 将歌曲结构，转换成字符串 */
 {
-	char p[255];
-	sprintf(p, "%s%ld;%s;%s;%d;%s;%s;%d;%d;%d;%d;%d;%d;%s;", cmd,
-		rec->ID,
-		rec->SongCode,
-		rec->SongName,
-		rec->Charset,
-		rec->Language,
-		rec->SingerName,
-		rec->VolumeK,
-		rec->VolumeS,
-		rec->Num,
-		rec->Klok,
-		rec->Sound,
-		rec->SoundMode,
-		rec->StreamType);
-	return strdup(p);
+	char msg[1024];
+	if (cmd)
+		sprintf(msg, "%s?id=%ld", cmd, rec->ID);
+	else
+		sprintf(msg, "id=%ld", rec->ID);
+	STRMCAT(msg, "&code=%s", rec->SongCode);
+	STRMCAT(msg, "&name=%s", rec->SongName);
+	STRMCAT(msg, "&charset=%d", rec->Charset);
+	STRMCAT(msg, "&language=%s", rec->Language);
+	STRMCAT(msg, "&singer=%s", rec->SingerName);
+	STRMCAT(msg, "&volk=%d", rec->VolumeK);
+	STRMCAT(msg, "&vols=%d", rec->VolumeS);
+	STRMCAT(msg, "&num=%d", rec->Num);
+	STRMCAT(msg, "&klok=%d", rec->Klok);
+	STRMCAT(msg, "&sound=%d", rec->Sound);
+	STRMCAT(msg, "&soundmode=%d", rec->SoundMode);
+	STRMCAT(msg, "&type=%s", rec->StreamType);
+	char *p = (char*)malloc(strlen(msg) + 1);
+	strcpy(p, msg);
+	return p;
 }
 
 SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc)   /* 向已点歌曲列表中增加记录 */
@@ -244,7 +253,7 @@ bool FirstSong(SelectSongNode *rec,int id)/* 优先歌曲 */
 	return false;
 }
 
-bool SongCodeInList(char *songcode)
+bool SongCodeInList(const char *songcode)
 {
 	int i;
 	LOCK();

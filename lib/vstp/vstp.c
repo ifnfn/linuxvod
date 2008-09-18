@@ -201,7 +201,7 @@ int ReadUrl(vstp_t *vstp, char *Buffer, int Count)
 {
 	if (vstp == NULL) return 0;
 	if (!vstp->connected) return 0;
-	int readcount = url_fread(vstp->pcontext, (unsigned char *)Buffer, Count);
+	int readcount = url_fread(vstp->pcontext, (unsigned char*)Buffer, Count);
 	if (readcount > 0) {
 		if (vstp->encrypt) {
 			int i;

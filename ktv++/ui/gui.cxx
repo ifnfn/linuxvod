@@ -1030,7 +1030,7 @@ void CSDLGui::UpdateShadow(RECT *rect)
 		if (rect){
 			RECT m = *rect;
 			RECT2SDLRECT(destrect, m);
-			
+
 		}
 		else
 			RECT2SDLRECT(destrect, BG_Rect);
@@ -1142,15 +1142,15 @@ void CSpheGui::GuiRest()
 bool CSpheGui::GraphicInit(int argc, char **argv)
 {
 	printf("CSpheGui::GraphicInit()\n");
-	SP_OpenDisplay();       
-	                        
+	SP_OpenDisplay();
+
 	SP_GetScreenParam(&Width, &Height);
 //	SP_SetViewOrg(40,10);
-//	Width = 720 - 42*2;   
-//	Height = 480 - 15*2;  
+//	Width = 720 - 42*2;
+//	Height = 480 - 15*2;
 	printf("screen:%d x %d\n",Width, Height);
 
-	SP_CreateGlobalDC();    
+	SP_CreateGlobalDC();
 	hdc = SP_GetGlobalDC();
 
 	return true;
@@ -1265,7 +1265,7 @@ void CSpheGui::DrawHandWrite(int x1, int y1, int x2, int y2)
 }
 
 #if 0
-void CSpheGui::ShowSDLSurface(SDL_Surface *surface, RECT ct)	
+void CSpheGui::ShowSDLSurface(SDL_Surface *surface, RECT ct)
 {
 	int i,j;
 	uint32_t color;
@@ -1283,9 +1283,9 @@ void CSpheGui::ShowSDLSurface(SDL_Surface *surface, RECT ct)
 BITMAP *CSpheGui::CreateImageSurface(void *data, size_t length)
 {
 #if 0
-	SDL_RWops *ctx = SDL_RWFromMem(data, length);	
+	SDL_RWops *ctx = SDL_RWFromMem(data, length);
 	return IMG_Load_RW(ctx, false);
-#else	
+#else
 	BITMAP *x =SP_LoadBitmapFromBuffer((char*)data);
 	printf("%ldx%ld,%d\n", x->width, x->height, x->bpp);
 	return x;

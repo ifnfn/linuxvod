@@ -4,8 +4,6 @@
 #include "windowmanage.h"
 #include "list.h"
 
-void *TimerTickThread(void *p);
-
 class CTimer
 {
 public:

@@ -615,7 +615,7 @@ CBaseWindow* CKtvTheme::CreateWindow(const char *winname)
 	else if (!strcasecmp(winname, ClassFormStr))      tmp = new CBaseWindow      (winname);
 	else if (!strcasecmp(winname, WordNumFormStr))    tmp = new CBaseWindow      (winname);
 	else if (!strcasecmp(winname, SelectedFormStr))   tmp = new CSelectedWindow  (winname);
-	else if (!strcasecmp(winname, OtherFormStr))      tmp = new CBaseWindow      (winname);
+	else if (!strcasecmp(winname, OtherFormStr))      tmp = new COtherWindow     (winname);
 	else if (!strcasecmp(winname, PinYinFormStr))     tmp = new CPinYinWindow    (winname);
 	else if (!strcasecmp(winname, MyLoveFormStr))     tmp = new CMyLoveWindow    (winname);
 	else if (!strcasecmp(winname, WBHFormStr))        tmp = new CWBHWindow       (winname);

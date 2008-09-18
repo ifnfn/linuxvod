@@ -32,8 +32,8 @@ void CBaseWindow::LoadTheme(CKtvTheme *ptheme)
 	CurPlayOpt  = FindOption("PlayingSongLabel");
 	NextPlayOpt = FindOption("NextSongLabel"   );
 
-        if (EmptyShadow) {
-                gui->FreeBackground(EmptyShadow);
+	if (EmptyShadow) {
+		gui->FreeBackground(EmptyShadow);
 		EmptyShadow = NULL;
 	}
 	datadb = theme->songdata;
@@ -176,23 +176,26 @@ void CBaseWindow::DrawPlayStatus()
 	}
 }
 
-void CMsgWindow::ShowMsgBox(char *msg, int timeout)
+void CMsgWindow::ShowMsgBox(const char *msg, int timeout)
 {
-	if (box == VOLUME_BOX) Rest();
-	TColor c = {0xFF,0,0, 0xFF};
-	gui->DrawFillRect(msgrect, c);
-	TAlign align = {taCenter, taCenter};
-	gui->SetFont(MsgFont);
-	gui->DrawText(msg, msgrect, align);
-	gui->Flip(&msgrect);
-	if (timeout > 0)
-		StartTimer(MSG_TIMER_ID, timeout);
+	if (msg) {
+		if (box == VOLUME_BOX) CleanMsg();
+		TColor c = {0xFF,0,0, 0xFF};
+		gui->DrawFillRect(msgrect, c);
+		TAlign align = {taCenter, taCenter};
+		gui->SetFont(MsgFont);
+		gui->DrawText(msg, msgrect, align);
+		gui->Flip(&msgrect);
+		if (timeout > 0)
+			StartTimer(MSG_TIMER_ID, timeout);
+	} else 
+		CleanMsg();
 	box = MSG_BOX;
 }
 
 void CMsgWindow::ShowVolume(int volume)
 {
-	if (box == MSG_BOX) Rest();
+	if (box == MSG_BOX) CleanMsg();
 	gui->DrawSoundBar(volume);
 	StartTimer(MSG_TIMER_ID, 3000);
 	box = VOLUME_BOX;
@@ -220,7 +223,7 @@ CMsgWindow::CMsgWindow(const char *name):CKtvWindow(name), MsgFont(NULL), box(NO
 	msgrect.bottom = msgrect.top  + MSGBOX_HEIGHT;
 }
 
-void CMsgWindow::Rest()
+void CMsgWindow::CleanMsg()
 {
 	CBaseWindow *tmp = stack->WindowTop();
 	if (tmp)
@@ -229,12 +232,12 @@ void CMsgWindow::Rest()
 
 void CMsgWindow::TimerWork()
 {
-	Rest();
+	CleanMsg();
 	KillTimer(MSG_TIMER_ID);
 	box = NONE;
 }
 
-void ShowMsgBox(char *msg, int timeout)
+void ShowMsgBox(const char *msg, int timeout)
 {
 	CMsgWindow *tmp = CMsgWindow::GetMsgWindow();
 	if (tmp)

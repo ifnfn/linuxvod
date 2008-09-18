@@ -73,13 +73,43 @@ typedef enum tagPlayCmd {
 	pcRunScript    , // 运行脚本
 	pcMsgBox       ,
 	pcReloadSongDB ,
+	pchwStatus     , // 硬件状态
 	pcUnknown        // 不知名操作
 } PlayCmd;
+
+extern const char *ADDSONG;
+extern const char *DELSONG;
+extern const char *FIRSTSONG;
+extern const char *LISTSONG;
+extern const char *PLAYSONG;
+
+/*
+"setvolume"
+"audioswitch"
+"audio"
+"setmute"
+"playcode"
+"playnext"
+"PauseContinue"
+"addvolume"
+"delvolume"
+"Lock"
+"unlock"
+"replay"
+"osdtext"
+"mac"
+"MaxVolume"
+"119"
+"runscript"
+"HiSong"
+"MsgBox"
+"ReSongDB" 
+*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 inline void NoSongUnlock(void);
 inline void NoSongLock(void);
 void InitSongList(void);
@@ -91,8 +121,8 @@ bool DelSongIndex(int index);                                    /* 删除指定位置
 bool DelSongFromList(SelectSongNode *rec);                       /* 从已点歌曲列表中删除记录        */
 int  SongIndex(SelectSongNode *rec);                             /* 在已点歌曲列表中的顺序号        */
 bool FirstSong(SelectSongNode *rec,int id);                      /* 优先歌曲                        */
-bool SongCodeInList(char *songcode);                             /* 指定的歌曲编号是否在列表中      */
-char *SelectSongNodeToStr(char *cmd, SelectSongNode *rec);       /* 将歌曲结构，转换成字符串        */
+bool SongCodeInList(const char *songcode);                       /* 指定的歌曲编号是否在列表中      */
+char *SelectSongNodeToStr(const char *cmd, SelectSongNode *rec); /* 将歌曲结构，转换成字符串        */
 bool StrToSelectSongNode(const char *msg, SelectSongNode *rec);  /* 将字符串转换成歌曲结构          */
 void PrintSelectSong(void);
 
@@ -100,5 +130,5 @@ void PrintSelectSongNode(SelectSongNode Node);
 #ifdef __cplusplus
 }
 #endif
-	
+
 #endif

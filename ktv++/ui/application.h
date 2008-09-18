@@ -8,9 +8,6 @@
 #include "timer.h"
 
 
-void *KeyReadThread(void *p);
-void *ConsoleInputThread(void *p);
-
 class CKeyFreeTime: public CBaseObject
 {
 public:

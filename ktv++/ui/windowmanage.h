@@ -85,7 +85,7 @@ class CMsgWindow: public CKtvWindow
 {
 public:
 	CKtvFont *MsgFont;
-	void ShowMsgBox(char *msg, int timeout);
+	void ShowMsgBox(const char *msg, int timeout);
 	void ShowVolume(int volume);
 
 	static CMsgWindow *Create(CKtvTheme *ptheme);
@@ -102,10 +102,10 @@ private:
 	} box;
 	RECT msgrect;
 	static CMsgWindow* pMsgWindow;
-	void Rest();
+	void CleanMsg();
 };
 
-void ShowMsgBox(char *msg, int timeout);
+void ShowMsgBox(const char *msg, int timeout);
 void ShowVolumeBox(int volume);
 
 //==============================================================================

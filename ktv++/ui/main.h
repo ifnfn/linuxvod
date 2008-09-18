@@ -3,7 +3,7 @@
 
 #include "application.h"
 
-class CKtvApplication: public CApplication 
+class CKtvApplication: public CApplication
 {
 public:
 	CKtvApplication(int argc, char **argv): CApplication(argc, argv) {}

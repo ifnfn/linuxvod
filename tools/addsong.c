@@ -5,9 +5,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h> 
-#include <errno.h> 
-#include <string.h> 
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include <ustat.h>
 
 #include "sqlite.h"
@@ -34,7 +34,7 @@ static int CreateDistPathList(const char *filename)
 	if (fp)
 	{
 		char buf[1024];
-		while (!feof(fp)) 
+		while (!feof(fp))
 		{
 			if (fgets(buf, 1023, fp) && buf[0] ) {
 				DistPath *tmp = (DistPath*) malloc( sizeof(DistPath) );
@@ -116,7 +116,7 @@ static int fn(const char *file, const struct stat *sb, int flag)
 	static long id = 0;
 	if (id % 200 == 0)
 		fprintf(stderr, ".");
-	id++;   
+	id++;
 	if (flag == FTW_F)
 	{
 		ExtractFilePath(file, path);
@@ -136,7 +136,7 @@ static int fn(const char *file, const struct stat *sb, int flag)
 
 int main(int argc, char *argv[])
 {
-	if(argc != 4)   
+	if(argc != 4)
 	{
 		printf("Usage:addsong <SourcePath> <DataBase> <DiskSizeFile>\n", argv[0]);
 		return -1;
@@ -145,14 +145,14 @@ int main(int argc, char *argv[])
 	sprintf(SourcePath, "%s/install.ini", argv[1]);
 	struct ENTRY *headini = OpenIniFile(SourcePath);
 
-	CreateDistPathList(argv[3]);	
+	CreateDistPathList(argv[3]);
 
 	const char * database = argv[2];
 	sqlite *db = NULL;
 	char *zErrMsg;
 	db = sqlite_open(database, 0, &zErrMsg);
 	if(db == NULL)
-	{	
+	{
 		printf("Error: %s\n", zErrMsg);
 		return -1;
 	}
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 
 			char sql[512];
 			sprintf(sql, "SELECT COUNT(*) FROM system WHERE code='%s';", code);
-			int update = 0;	
+			int update = 0;
 			sqlite_exec(db, sql, UpdateCallBack, &update, NULL);
 			if (update == 1)
 			{
@@ -224,19 +224,19 @@ int main(int argc, char *argv[])
 Language='%s', Class='%s', Singer1='%s', Singer2='%s', Singer3='%s', \
 Singer4='%s', Num='%s', Pinyin='%s', WBH='%s', PlayNum='%s', Klok='%s', \
 Sound='%s', FileSize='%s', isNewSong='%s', VolumeK='%s', \
-VolumeS='%s', VideoType='%s' WHERE Code='%s'", 
+VolumeS='%s', VideoType='%s' WHERE Code='%s'",
 					name, charset, language, classes, singer1, singer2, singer3, \
 					singer4, num, pinyin, wbh, playnum, klok, sound, filesize, \
 					isnewsong, volumek, volumes, videotype, code);
 //				printf("%s\n", sql);
 				sqlite_exec(db, sql, NULL, NULL, NULL);
-			}	
+			}
 			else{
 				sprintf(sql, "INSERT INTO System(Code,Name,Charset,Language,Class,Singer1, \
 Singer2,Singer3,Singer4,Num,Pinyin,WBH,PlayNum,Klok,Sound,FileSize, \
 isNewSong,VolumeK,VolumeS,VideoType)  \
 VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s', \
-'%s','%s','%s','%s','%s','%s');", 
+'%s','%s','%s','%s','%s','%s');",
 					code,name,charset,language,classes,singer1,singer2,singer3,singer4,
 					num,pinyin,wbh,playnum,klok,sound,filesize,isnewsong,volumek,
 					volumes,videotype);

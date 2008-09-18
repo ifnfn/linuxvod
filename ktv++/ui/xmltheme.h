@@ -219,8 +219,8 @@ public:
 	~CKtvTheme();
 	CMtvConfig *config;
 	CKtvWindow *CommonWindow; // 通用操作项值
-        CData *songdata;
-        CData *singerdata;
+	CData *songdata;
+	CData *singerdata;
 	bool LoadThemeFromFile(CString& themefile); // 读界面主题文件
 	CKtvFont *FindFont(const char *fontaliasname){return fonts->CreateFont(fontaliasname);}
 	void *DownSingerPhoto(const char *singername, size_t& len);

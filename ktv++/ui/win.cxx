@@ -958,7 +958,7 @@ bool CSongDataWindow::InputProcess(InputEvent *event)
 			if (event->option->tag>0)
 			{
 				tmp = (MemSongNode *)(event->option->tag);
-				CurSelectSong = player->NetAddSongToList(tmp); /* MemSongNode */
+				player->NetAddSongToList(tmp); /* MemSongNode */
 				gui->DrawTextOpt(event->option, font);
 				gui->Flip(&event->option->rect);
 			}
@@ -1066,6 +1066,7 @@ bool CSingerDataWindow::DrawSingerPhoto(char *fn, const RECT Rect) /* ÏÔÊ¾¸èÐÇÍ¼
 
 	sprintf(cBuf, "%s%s%s", DATAPATH"photos/", fn, SINGERPICTYPE);
 
+	printf("Singer Photo file: %s\n", cBuf);
 	int fp = -1;
 	if( (fp = open((const char *)cBuf, O_RDONLY, 0)) != -1)
 	{
@@ -1078,7 +1079,7 @@ bool CSingerDataWindow::DrawSingerPhoto(char *fn, const RECT Rect) /* ÏÔÊ¾¸èÐÇÍ¼
 			read(fp, data, size);
 			close(fp);
 		}
-//		printf("Local Singer image file: %s\n", cBuf);
+		printf("Local Singer image file: %s\n", cBuf);
 	}
 	else if (theme->config->haveserver)// ÏÂÔØÊý¾Ý
 		data = (char *)theme->DownSingerPhoto(fn, size);
@@ -1090,8 +1091,21 @@ bool CSingerDataWindow::DrawSingerPhoto(char *fn, const RECT Rect) /* ÏÔÊ¾¸èÐÇÍ¼
 	}
 	return false;
 }
-/*******************************************************************************/
 
+bool COtherWindow::InputProcess(InputEvent *event)
+{
+	if (event->option == NULL)
+		return CBaseWindow::InputProcess(event);
+	switch (event->option->mtv_value)
+	{
+		case DIKC_7:
+			player->PlayDisc();
+			return true;
+	}
+	return CBaseWindow::InputProcess(event);
+}
+
+/*******************************************************************************/
 #ifdef ENABLE_HANDWRITE
 CHandWriteWindow::CHandWriteWindow(const char *name):CBaseWindow(name), \
 	SongNameOpt(NULL), CancelOpt(NULL), HzOptCount(0), HzListOpt(NULL), \

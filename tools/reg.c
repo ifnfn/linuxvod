@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 			system(cmd);
 
 			strcpy(cmd, binplay);
-			strcat(cmd, " --noserver & 1> /dev/tty3 2> /dev/tty3");
+			strcat(cmd, "& 1> /dev/tty3 2> /dev/tty3");
 			system(cmd);
 
 //			strcpy(cmd, "rm -f ");

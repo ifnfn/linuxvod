@@ -646,14 +646,14 @@ void mwStatistics( int level )
 	}
 }
 
-void mwAutoCheck( int onoff ) 
+void mwAutoCheck( int onoff )
 {
     mwAutoInit();
     mwTestAlways = onoff;
     if( onoff ) mwTestFlags = MW_TEST_ALL;
 }
 
-void mwSetOutFunc( void (*func)(int) ) 
+void mwSetOutFunc( void (*func)(int) )
 {
     mwAutoInit();
     mwOutFunction = func;
@@ -946,7 +946,7 @@ void* mwMalloc( size_t size, const char* file, int line) {
     return p;
     }
 
-void* mwRealloc( void *p, size_t size, const char* file, int line) 
+void* mwRealloc( void *p, size_t size, const char* file, int line)
 {
     int oldUseLimit, i;
     mwData *mw;

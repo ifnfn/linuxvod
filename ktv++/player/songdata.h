@@ -17,8 +17,8 @@ int AppendIPToList(const char *ip);                                  //
 int RecvUdpBuf(char *msg, int MaxSize, struct sockaddr *ClientAddr); // 接受 UDP 上的数据
 inline void CloseUdpSocket(void);                                    // 关闭 UDP 连接
 bool ProcessRecv(PlayCmd cmd, char *param, struct sockaddr addr_sin);// 处理从网络中收到的数据
-void BroadcastSongRec(char *cmd, SelectSongNode *rec);               // 广播歌曲操作
-void BroadcastDebar(char *cmd, SelectSongNode *rec, struct sockaddr_in *debaraddr);
+void BroadcastSongRec(const char *cmd, SelectSongNode *rec);         // 广播歌曲操作
+void BroadcastDebar(const char *cmd, SelectSongNode *rec, struct sockaddr_in *debaraddr);
                                                                      // 广播歌操作，排除debaraddr
 void SendToBroadCast(char *msg);                                     // 广播消息
 bool EnterPressedNonBlocking(char *cmd);                             // 广播字符串

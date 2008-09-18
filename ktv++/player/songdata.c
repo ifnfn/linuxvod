@@ -16,13 +16,14 @@
 #include "songdata.h"
 #include "config.h"
 #include "osnet.h"
+#include "selected.h"
 
 struct sockaddr_in clientaddr_list[10];  // 连接到播放的工作站列表
 static int ClientNum = 0;                // 连接到播放的工作站列表数量
 
 static int udpbindsockfd = 0;
 
-static char *Prompt[4] = {"暂停播放", "继续播放", "原唱模式", "卡拉OK模式"};
+static char *Prompt[4] = {"暂停播放?0", "继续播放", "原唱模式", "卡拉OK模式"};
 //static char *Prompt[4] = {"暂停播放", "继续播放", "卡拉OK模式", "原唱模式"};
 
 int CreateUdpBind(int port )
@@ -71,7 +72,7 @@ int AppendIPToList(const char *ip)
 int RecvUdpBuf(char *msg, int MaxSize, struct sockaddr *ClientAddr)
 {
 	int addrlen = sizeof(struct sockaddr_in);
-	int len = recvfrom(udpbindsockfd, msg, MaxSize, 0, ClientAddr , &addrlen);
+	int len = recvfrom(udpbindsockfd, msg, MaxSize, 0, ClientAddr ,(socklen_t*)&addrlen);
 	if ((len == -1) && (errno != EAGAIN)){
 		fprintf(stderr, "errno %d ", errno);
 		perror("Recvfrom call failed");
@@ -87,7 +88,7 @@ inline void CloseUdpSocket(void)
 	close(udpbindsockfd);
 }
 
-static void SendSongRec(char *cmd, SelectSongNode *rec, struct sockaddr *addr_sin)
+static void SendSongRec(const char *cmd, SelectSongNode *rec, struct sockaddr *addr_sin)
 {
 	char *recstr = SelectSongNodeToStr(cmd, rec);
 	sendto(udpbindsockfd, recstr, strlen(recstr), 0, addr_sin, sizeof(struct sockaddr));
@@ -103,28 +104,28 @@ bool ProcessRecv(PlayCmd cmd, char *param, struct sockaddr addr_sin)   // 处理从
 			StrToSelectSongNode(param, &rec);
 			if (SelectedList.count < SongMaxNumber) {
 				AddSongToList(&rec, true); // 增加新的歌曲
-				BroadcastDebar("addsong=", &rec, (struct sockaddr_in*)&addr_sin);
-				SendSongRec("addsong=", &rec, &addr_sin); // 发回增加歌曲的点播界面
+				BroadcastDebar(ADDSONG, &rec, (struct sockaddr_in*)&addr_sin);
+				SendSongRec(ADDSONG, &rec, &addr_sin); // 发回增加歌曲的点播界面
 			}
 			else{
 				char msg[100];
-				sprintf(msg, "msg=最多允许点歌%d首", SongMaxNumber);
+				sprintf(msg, "msg?最多允许点歌%d首", SongMaxNumber);
 				sendto(udpbindsockfd, msg, strlen(msg), 0, (struct sockaddr *)&addr_sin, sizeof(addr_sin));
 			}
 			return true;
 		case pcDelSong:   // delsong
 			StrToSelectSongNode(param, &rec);
 			DelSongFromList(&rec);
-			BroadcastSongRec("delsong=", &rec);
+			BroadcastSongRec(DELSONG, &rec);
 			return true;
 		case pcFirstSong: // firstsong
 			StrToSelectSongNode(param, &rec);
 			FirstSong(&rec, 1);
-			BroadcastSongRec("firstsong=", &rec);
+			BroadcastSongRec(FIRSTSONG, &rec);
 			return true;
 		case pcListSong:  // listsong
 			for(i=0;i<SelectedList.count;i++)
-				SendSongRec("", SelectedList.items+i, &addr_sin);
+				SendSongRec(NULL, SelectedList.items+i, &addr_sin);
 			sendto(udpbindsockfd, "end", strlen("end"), 0, (struct sockaddr *)&addr_sin, sizeof(addr_sin));
 			return true;
 		default:
@@ -132,7 +133,7 @@ bool ProcessRecv(PlayCmd cmd, char *param, struct sockaddr addr_sin)   // 处理从
 	}
 }
 
-void BroadcastSongRec(char *cmd, SelectSongNode *rec)
+void BroadcastSongRec(const char *cmd, SelectSongNode *rec)
 {
 	char *recstr = SelectSongNodeToStr(cmd, rec);
 	int i;
@@ -142,7 +143,7 @@ void BroadcastSongRec(char *cmd, SelectSongNode *rec)
 	free(recstr);
 }
 
-void BroadcastDebar(char *cmd, SelectSongNode *rec, struct sockaddr_in *debaraddr) // 广播歌操作，排除debaraddr
+void BroadcastDebar(const char *cmd, SelectSongNode *rec, struct sockaddr_in *debaraddr) // 广播歌操作，排除debaraddr
 {
 	char *recstr = SelectSongNodeToStr(cmd, rec);
 	int i;

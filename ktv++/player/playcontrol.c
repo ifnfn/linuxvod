@@ -16,6 +16,8 @@
 #include "selected.h"
 #include "strext.h"
 
+#include "callbacktable.h"
+
 #ifdef OSDMENU
 #include "osd.h"
 #endif
@@ -40,15 +42,130 @@
 
 #define RM_MAX_STRING 1024
 
-const char *PUSHURL = "[%d]PUSH@%s://#buffercount=%d,buffersize=%d,bufferallocation=external/";
-const char *FILEURL = "[%d]FILE@%s://%s";
+static const char *PUSHURL = "[%d]PUSH@%s://#buffercount=%d,buffersize=%d,bufferallocation=external/";
+static const char *FILEURL = "[%d]FILE@%s://%s";
 
 static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message, RMuint32 val);
 
 static int ReadSongTrack(INFO *pInfo);
 static jmp_buf g_env;
 
-void convertToTime(RMuint32 totalSeconds, RMuint32 *hours, RMuint32 *minutes, RMuint32 *seconds)
+static int DiscIsReady(INFO *pInfo)
+{
+	RMstatus status;
+	RMbool isOpen, isDiscInDrive, isReady;
+	if (pInfo->Disc == 0) return 1;
+	status = RMFDiscIsTrayOpen(pInfo->Disc, &isOpen);
+	if (status != RM_OK) {
+		printf ("Cannot check Tray status.\n");
+		return 0;
+	}
+	if (isOpen) {
+		printf("Tray is Open");
+		return 0;
+	} else {
+		status = RMFDiscIsDiscPresent (pInfo->Disc, &isDiscInDrive);
+		if (status != RM_OK) {
+			printf ("Cannot check if disc is present.\n");
+			return 0;
+		}
+		if (!isDiscInDrive) {
+			printf("Disc is not present");
+			return 0;
+		} else {
+			status = RMFDiscIsReady (pInfo->Disc, &isReady);
+			if (status != RM_OK) {
+				printf ("Cannot check is disc is ready.\n");
+				return 0;
+			}
+			if (!isReady) {
+				printf("Disc is not ready.");
+				return 0;
+			} else {
+				printf("Disc is ready.");
+				return 1;
+			}
+		}
+
+	}
+	return 0;
+}
+
+static RMFDVDUserSettings g_user_settings = {
+	videoMode: RMF_DVD_VIDEO_PANSCAN,
+	countryCodeForParentalLevel: RM_COUNTRY_UNITED_STATES,
+	parentalLevel: RM_DVD_PARENTAL_LEVEL_DISABLED,
+	menuDescriptionLanguageCode: RM_LANGUAGE_ENGLISH,
+	initialLanguageForAudioStream: RM_LANGUAGE_ENGLISH,
+	initialLanguageForSubPictureStream: RM_LANGUAGE_ENGLISH,
+	playerRegionCode: RM_DVD_REGION_1,
+	dirtyDiscSensitivity: 0x1E,
+	spdifOutputConfig: RMF_DVD_SPDIF_DTSCOMPRESSED_ENABLE,
+};
+
+static void PrepareStartPlay(INFO *pInfo)
+{
+	int is_ready;
+	RMstatus status;
+
+	is_ready = DiscIsReady(pInfo);
+	if (!is_ready) {
+		return;
+	}
+
+	status = RMFDVDConstruct (pInfo->DvdCtrl,
+			info_get_table(),
+			NULL,
+			&g_user_settings);
+
+	if (status == RM_ERROR_RPC2) {
+		if (g_user_settings.playerRegionCode == RM_DVD_REGION_FREE) {
+			printf ("You have an RPC2 DVD drive. It is not possible to "
+				"set region free on an RPC2 drive.\n");
+		} else {
+			printf ("Invalid Region RPC2\n");
+		}
+		exit(4);
+	} else if (status == RM_ERROR_RPC2_NOT_SET) {
+		printf ("Your RPC2 Drive does not have a region set. This is bad. "
+			"Please, set a region in your drive.\n");
+		exit(5);
+	} else if (status == RM_ERROR_REGION) {
+		printf ("Invalid Region\n");
+		exit(6);
+	} else if (status != RM_OK) {
+		printf ("Could not initialize DVD (rc=%d).\n",status);
+		exit(7);
+	}
+}
+
+static void RMFDVDPlay(INFO *pInfo)
+{
+	RMstatus status;
+	PrepareStartPlay(pInfo);
+	status = RMFDVDTitle_Play(pInfo->DvdCtrl, 0);
+	if (status == RM_OK) {
+		printf("Playing DVD From start");
+		info_set_state ( PLAY_STATE_PLAY);
+	} else {
+		RMdvdTitleSRPTI tt_srpti;
+		status = RMFDVDQueryTT_SRPT (pInfo->DvdCtrl, &tt_srpti);
+		if (status != RM_OK || tt_srpti.numberOfTitles == 0) {
+			printf("DVD Broken: no titles.");
+			exit(10);
+			return;
+		}
+		status = RMFDVDTitle_Play (pInfo->DvdCtrl, 1);
+		if (status != RM_OK) {
+			printf("DVD Broken: cannot play title 1");
+			exit(11);
+			return;
+		}
+		printf("DVD Broken: playing title 1");
+	}
+}
+
+void ConvertToTime(RMuint32 totalSeconds, RMuint32 *hours, RMuint32 *minutes, RMuint32 *seconds)
 {
 	*seconds = (RMuint32) (totalSeconds % 60);
 	*minutes = (RMuint32) (totalSeconds/60);
@@ -59,7 +176,7 @@ void convertToTime(RMuint32 totalSeconds, RMuint32 *hours, RMuint32 *minutes, RM
 void DeleteFirstSongList(void)
 {
 	if (SelectedList.count > 0){
-		BroadcastSongRec("delsong=", SelectedList.items + 0);
+		BroadcastSongRec(DELSONG, SelectedList.items + 0);
 		DelSongIndex(0);
 	}
 }
@@ -103,11 +220,11 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 				char tmp[512] = "text=";
 				strcat(tmp, "下一首：");
 				strcat(tmp, SelectedList.items[1].SongName);
-//				printf("tmp=%s\n", tmp);
-#ifdef OSDMENU				
+				printf("tmp=%s\n", tmp);
+#ifdef OSDMENU
 				CleanScrollTextList(0);
 				CreateScrollTextStr(0, tmp);
-#endif				
+#endif
 			}
 		}
 		else{
@@ -164,18 +281,29 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 		pInfo->PlayingSong.SoundMode = Fire119SoundMode; // 灯光控制模式
 	}
 
-	char *tmpfile = GetLocalFile(pInfo->PlayingSong.SongCode, NULL); // 读取本地文件
-	if (tmpfile) // 如果本地文件存在
-		strcpy(pInfo->VideoFile, tmpfile);
-	else
-		sprintf(pInfo->VideoFile, "code=%s", pInfo->PlayingSong.SongCode);
+	if (strcmp( pInfo->PlayingSong.SongCode, "0") == 0)
+	{
+		strcpy(pInfo->VideoFile, "");
+		pInfo->MediaType = mtDISC;
+	}
+	else {
+		char *tmpfile = GetLocalFile(pInfo->PlayingSong.SongCode, NULL); // 读取本地文件
+		printf("tmpfile=%s\n", tmpfile);
+		if (tmpfile) {// 如果本地文件存在
+			strcpy(pInfo->VideoFile, tmpfile);
+			pInfo->MediaType= mtFILE;
+		}
+		else {
+			sprintf(pInfo->VideoFile, "code=%s", pInfo->PlayingSong.SongCode);
+			pInfo->MediaType= mtPUSH;
+		}
+	}
 //	printf("pInfo->VideoFile = %s\n", pInfo->VideoFile);
-	pInfo->LocalFile = tmpfile != NULL;
-	BroadcastSongRec("playsong=", &pInfo->PlayingSong);
+	BroadcastSongRec(PLAYSONG, &pInfo->PlayingSong);
 	return StartPlayer(pInfo);
 }
 
-void MuteSwitchPlayer(INFO *pInfo)
+bool MuteSwitchPlayer(INFO *pInfo)
 {
 	if (pInfo->Mute) {
 		pInfo->Mute = false;
@@ -188,6 +316,7 @@ void MuteSwitchPlayer(INFO *pInfo)
 			RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeLeft",  0);
 		}
 	}
+	return pInfo->Mute;
 }
 
 void AddVolume(INFO *pInfo, int v)
@@ -286,20 +415,26 @@ void SetAudioChannel(INFO *pInfo)
 				audiomode = eAudioMode_MonoLeft;
 			else if (pInfo->PlayingSong.Klok == 'R')
 				audiomode = eAudioMode_MonoRight;
-			RUA_DECODER_SET_PROPERTY(pInfo->rua, AUDIO_SET, eAudioMode, sizeof(audiomode), &audiomode);
+			RUA_DECODER_SET_PROPERTY(pInfo->rua, 
+					AUDIO_SET, eAudioMode, 
+					sizeof(audiomode), &audiomode);
 		}
 		else {
-			tmpstream = pInfo->PlayingSong.Klok>='0' ? pInfo->PlayingSong.Klok - '0' : pInfo->PlayingSong.Klok;
+			tmpstream = pInfo->PlayingSong.Klok>='0' ? 
+				pInfo->PlayingSong.Klok - '0' : pInfo->PlayingSong.Klok;
 
 			if (strcasecmp(pInfo->PlayingSong.StreamType, "DIVX") == 0) {
-				RMFSetGenericProperty(pInfo->PropCtrl, RM_PROPERTY_EXTERNAL,
-					 		"FILE", "SELECT_AUDIO_STREAM", &tmpstream, sizeof(RMint32));
-//				DEBUG_OUT("MUSICTRACK DIVX =%ld\n", tmpstream);
+				RMFSetGenericProperty(pInfo->PropCtrl, 
+						RM_PROPERTY_EXTERNAL,
+						"FILE", "SELECT_AUDIO_STREAM", 
+						&tmpstream, sizeof(RMint32));
 			}
-			else {
-				if (tmpstream < pInfo->MaxAudioStreamNum)
-					RMFSetGenericProperty(pInfo->PropCtrl, RM_PROPERTY_EXTERNAL, "DEMUX", "AudioPID",
-							&pInfo->audioStreams[tmpstream], sizeof(RMstreamId));
+			else if (tmpstream < pInfo->MaxAudioStreamNum) {
+				RMFSetGenericProperty(pInfo->PropCtrl,
+						RM_PROPERTY_EXTERNAL, 
+						"DEMUX", "AudioPID",
+						&pInfo->audioStreams[tmpstream], 
+						sizeof(RMstreamId));
 			}
 		}
 	}
@@ -313,22 +448,32 @@ void SetAudioChannel(INFO *pInfo)
 			RUA_DECODER_SET_PROPERTY(pInfo->rua, AUDIO_SET, eAudioMode, sizeof(audiomode), &audiomode);
 		}
 		else {
-			tmpstream = pInfo->PlayingSong.Sound>='0'?pInfo->PlayingSong.Sound - '0':pInfo->PlayingSong.Sound;
+			tmpstream = pInfo->PlayingSong.Sound>='0'?
+				pInfo->PlayingSong.Sound - '0' : pInfo->PlayingSong.Sound;
 			if (strcasecmp(pInfo->PlayingSong.StreamType, "DIVX") == 0) {
-				RMFSetGenericProperty(pInfo->PropCtrl, RM_PROPERTY_EXTERNAL,
-					"FILE", "SELECT_AUDIO_STREAM", &tmpstream, sizeof(RMint32));
+				RMFSetGenericProperty(pInfo->PropCtrl, 
+						RM_PROPERTY_EXTERNAL, 
+						"FILE", "SELECT_AUDIO_STREAM", 
+						&tmpstream, 
+						sizeof(RMint32));
 			}
-			else {
-				if (tmpstream < pInfo->MaxAudioStreamNum)
-					RMFSetGenericProperty(pInfo->PropCtrl, RM_PROPERTY_EXTERNAL, "DEMUX", "AudioPID",
-						&pInfo->audioStreams[tmpstream], sizeof(RMstreamId));
+			else if (tmpstream < pInfo->MaxAudioStreamNum) {
+				RMFSetGenericProperty(pInfo->PropCtrl, 
+						RM_PROPERTY_EXTERNAL, 
+						"DEMUX", "AudioPID",
+						&pInfo->audioStreams[tmpstream],
+						sizeof(RMstreamId));
 			}
 		}
 	}
 	AddVolume(pInfo, 0);
 }
 
-int PlayAudio(INFO *pInfo, char *type, RMuint32 samplerate, RMuint32 numberofchannels, RMuint32 numberofbitspersample, char *file)
+int PlayAudio(INFO *pInfo, char *type, 
+		RMuint32 samplerate, 
+		RMuint32 numberofchannels, 
+		RMuint32 numberofbitspersample, 
+		const char *file)
 {
 #define CHUNKSIZE 5000
 #define COPYANDQUEUEDATA_TIMEOUT_MICROSEC 400000
@@ -371,7 +516,7 @@ int PlayAudio(INFO *pInfo, char *type, RMuint32 samplerate, RMuint32 numberofcha
 			break;
 		}
 
-		Q.pData=buf;
+		Q.pData=(unsigned char *)buf;
 		Q.DataLeft = actuallyread;
 		while (RUA_DECODER_FEEDME(pInfo->rua, REALMAGICHWL_AUDIO, 0, &Q)!=0) {
 			RMuint32 X = REALMAGICHWL_HAPPENING_DECODER_AUDIODMA_HALF;
@@ -408,8 +553,62 @@ static void ApiDemoPanic(RMuint32 reason)
 	longjmp(g_env,(int)reason);
 }
 
+bool GetDiscDetect(const char* device, char *url)
+{
+	if (!url) return false;
+	RMTDisc *disc = (RMTDisc *)NULL;
+	RMstatus status = RMFDiscOpen((RMuint8 *) device, &disc);
+	strcpy(url, "");
+	if(status != RM_OK) {
+		printf("Can not open device \"%s\"\n", device);
+		return false;
+	}
+	RMdiscType type = RMFDiscDetect(disc);
+	char disc_type[6] = "";
+	switch (type){
+	case RM_DISC_TYPE_DVD:
+		strcpy(disc_type, "DVD");
+		break;
+	case RM_DISC_TYPE_VCD:
+		strcpy(disc_type, "VCD");
+		break;
+	case RM_DISC_TYPE_SVCD:
+		strcpy(disc_type, "SVCD");
+		break;
+	case RM_DISC_TYPE_CDDA:
+		strcpy(disc_type, "CDDA");
+		break;
+	case RM_DISC_TYPE_ISO9660:
+		printf("DISC == ISO 9660\n");
+		disc_type[0] = '\0';
+		break;
+	case RM_DISC_TYPE_UNKNOWN:
+		printf("DISC == UNKNOWN\n");
+		disc_type[0] = '\0';
+		break;
+	case RM_NO_DISC:
+		printf("NO DISC\n");
+		disc_type[0] = '\0';
+		break;
+	default:
+		printf("Wrong returned value\n");
+		disc_type[0] = '\0';
+		break;
+	}
+	printf("disc_type=%s\n", disc_type);
+	if(disc != (RMTDisc *)NULL)
+		RMFDiscClose(disc);
+	if(disc_type[0] != '\0') {
+		sprintf(url, "DISC@%s://%s", disc_type, device);
+		printf("url=%s\n", url);
+		return true;
+	}
+	return false;
+}
+
 bool InitInfo(INFO *pInfo)
 {
+	CHKREG
 	memset(pInfo, 0, sizeof(INFO));
 	pInfo->PlayStatus    = stStop;
 	pInfo->InterFaceCtrl = 0;
@@ -425,6 +624,7 @@ bool InitInfo(INFO *pInfo)
 	pInfo->KeepSongList  = false;
 	pInfo->lampid        = 0;
 	pInfo->PlayCancel    = false;
+	pInfo->Disc          = NULL;
 	memset(pInfo->ServerIP, 0, IPLEN);
 
 	if (PlayerStartAudioTrack == trMusic) // 播放器开始的音轨
@@ -447,11 +647,6 @@ bool InitInfo(INFO *pInfo)
 	}
 	pInfo->rua = RUA_OpenDevice(0, TRUE);
 	if (pInfo->rua == NULL) {
-		FILE *fp = fopen("/var/run/player", "w");
-		if (fp) {
-			fputs("没有找到解压卡", fp);
-			fclose(fp);
-		}
 		fprintf(stderr, "can't AccessDevice\n");
 		return false;
 	}
@@ -470,9 +665,11 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 		RMFCloseControlInterface(pInfo->InterFaceCtrl);
 		pInfo->InterFaceCtrl = 0;
 	}
-	if (pInfo->LocalFile)
+	printf("InitVideo\n");
+	if (pInfo->MediaType == mtFILE){
 		sprintf(url, FILEURL, 0, pInfo->PlayingSong.StreamType, pInfo->VideoFile);
-	else {
+	}
+	else if (pInfo->MediaType == mtPUSH) {
 		sprintf(url, PUSHURL, 0, pInfo->PlayingSong.StreamType, BUFCOUNT, BUFSIZE);
 		char URL[512];
 		sprintf(URL, "http://%s/playcount?%s", pInfo->ServerIP, pInfo->VideoFile);
@@ -480,6 +677,9 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 		offset_t size;
 		char* p = url_readbuf(URL, &size);
 		if (p) free(p);
+	}
+	else if (pInfo->MediaType == mtDISC) {
+		GetDiscDetect(Cdrom, url);
 	}
 
 	DEBUG_OUT("URL: %s\n", url);
@@ -490,19 +690,18 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 	}
 	RMFGetControlHandle((void **) &pInfo->PropCtrl, RM_CONTROL_PROPERTY, pInfo->InterFaceCtrl);
 //	SETBLACKFRAME(pInfo->PropCtrl);
-	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evInAspectRatio"   ,evInAspectRatio_4x3);
-	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evOutDisplayOption",evOutDisplayOption_Normal);
+	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evInAspectRatio"   , evInAspectRatio_Auto); // evInAspectRatio_4x3
+	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evOutDisplayOption", evOutDisplayOption_Normal);
 
 	if (strcasecmp(TvType, "PAL") == 0)
 		RMFSetAndSavePropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB,"VIDEO_SET", "evTvStandard",evTvStandard_PAL);
 	else
 		RMFSetAndSavePropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB,"VIDEO_SET", "evTvStandard",evTvStandard_NTSC);
 
-
 	RMFGetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evTvStandard", &val);
 
-	hwnd.x=0;
-	hwnd.y=0;
+	hwnd.x = 0;
+	hwnd.y = 0;
 	if (val == evTvStandard_PAL) {
 		hwnd.h = PAL_SCREEN_HEIGHT;
 		hwnd.w = PAL_SCREEN_WIDTH;
@@ -512,21 +711,38 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 		hwnd.w = NTSC_SCREEN_WIDTH;
 	}
 	// Apply the settings
-	RMFSetGenericProperty(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET",
-		"evDestinationWindow", &hwnd, sizeof(Wnd_type));
-//	RUA_DECODER_SET_PROPERTY(pInfo->rua,
-//		OSD_SET, eOsdDestinationWindow, sizeof(Wnd_type), &hwnd);
+	RMFSetGenericProperty(pInfo->PropCtrl, 
+			RM_PROPERTY_HWLIB, 
+			"VIDEO_SET", "evDestinationWindow",
+			&hwnd, sizeof(Wnd_type));
 
 	pInfo->type = RMFGetControlInterfaceInputType(pInfo->InterFaceCtrl);
 
-	if (pInfo->type == RM_INPUT_PUSH){       // 如果是 PUSH 模式
-		sem_init(&pInfo->g_sem, 0, BUFCOUNT);
-		RMFGetControlHandle((void **) &pInfo->PushCtrl, RM_CONTROL_PUSH, pInfo->InterFaceCtrl);
-		RMFPlayPUSH(pInfo->PushCtrl);
-	}
-	else if (pInfo->type == RM_INPUT_FILE) { // 如果是 文件 模式
-		RMFGetControlHandle((void **) &pInfo->FileCtrl, RM_CONTROL_FILE, pInfo->InterFaceCtrl);
-		RMFPlayFile(pInfo->FileCtrl);
+	switch (pInfo->type){
+		case RM_INPUT_PUSH: // 如果是 PUSH 模式
+			sem_init(&pInfo->g_sem, 0, BUFCOUNT);
+			RMFGetControlHandle((void **) &pInfo->PushCtrl, RM_CONTROL_PUSH, pInfo->InterFaceCtrl);
+			RMFPlayPUSH(pInfo->PushCtrl);
+			break;
+		case RM_INPUT_FILE: // 如果是 文件 模式
+			RMFGetControlHandle((void **) &pInfo->FileCtrl, RM_CONTROL_FILE, pInfo->InterFaceCtrl);
+			RMFPlayFile(pInfo->FileCtrl);
+			break;
+		case RM_INPUT_CDDA: // 如果是 CDDA 模式
+			RMFGetControlHandle((void **) &pInfo->CddaCtrl, RM_CONTROL_CDDA, pInfo->InterFaceCtrl);
+			RMFCDDAPlay(pInfo->CddaCtrl);
+			break;
+		case RM_INPUT_VCD: // 如果是 VCD 模式
+			RMFGetControlHandle((void **) &pInfo->VcdCtrl, RM_CONTROL_VCD, pInfo->InterFaceCtrl);
+			RMFVCDPlay(pInfo->VcdCtrl);
+			break;
+		case RM_INPUT_DVD: // 如果是 DVD 模式
+			RMFGetControlHandle((void **) &pInfo->DvdCtrl, RM_CONTROL_DVD, pInfo->InterFaceCtrl);
+			RMFDVDPlay(pInfo);
+			break;
+		case RM_INPUT_DISC:
+		default:
+			break;
 	}
 	return true;
 }
@@ -543,19 +759,34 @@ void ExitPlayer(INFO *pInfo) // 关闭播放器
 void StopPlayer(INFO *pInfo)
 {
 //	if (pInfo->PlayStatus == stStop) return;
-	if (pInfo->type == RM_INPUT_FILE) {
-		RMFStopFile(pInfo->FileCtrl);
-	}
-	else if (pInfo->type == RM_INPUT_PUSH){
-		RMFStopPUSH(pInfo->PushCtrl);           // 停止播放
-		CloseUrl(pInfo->PlayVstp);              // 关闭流媒体通道
-		RMFFlushPUSH(pInfo->PushCtrl, TRUE);    // 播放缓冲区刷新
-		sem_destroy(&pInfo->g_sem);
+	switch (pInfo->type) {
+		case RM_INPUT_FILE:
+			RMFStopFile(pInfo->FileCtrl);
+			break;
+		case RM_INPUT_PUSH:
+			RMFStopPUSH(pInfo->PushCtrl);           // 停止播放
+			CloseUrl(pInfo->PlayVstp);              // 关闭流媒体通道
+			RMFFlushPUSH(pInfo->PushCtrl, TRUE);    // 播放缓冲区刷新
+			sem_destroy(&pInfo->g_sem);
+			break;
+		case RM_INPUT_CDDA:
+			RMFCDDAStop(pInfo->CddaCtrl);
+			RMFCDDAClose(pInfo->CddaCtrl);
+			break;
+		case RM_INPUT_VCD:
+			RMFVCDStop(pInfo->VcdCtrl);
+			RMFVCDClose(pInfo->VcdCtrl);
+			break;
+		case RM_INPUT_DVD:
+			RMFDVDStop(pInfo->DvdCtrl);
+			break;
+		case RM_INPUT_DISC:
+		default:
+			break;
 	}
 	pInfo->PlayStatus = stStop;                 // 将播放设为停止状态
 }
 
-#if 1
 RMTbuffer *GetPushDataBuf(INFO *pInfo)          // 初始化播放信息
 {
 	RMTbuffer *nogetBuffer;
@@ -565,7 +796,6 @@ RMTbuffer *GetPushDataBuf(INFO *pInfo)          // 初始化播放信息
 	nogetBuffer->bufferSize = BUFSIZE;
 	return nogetBuffer;
 }
-#endif
 
 inline void ReplayPlayer(INFO *pInfo) // 重唱
 {
@@ -610,7 +840,7 @@ bool StartPlayer(INFO *pInfo)
 	if (pInfo->lock == true)
 		return false;
 	pInfo->KeepSongList = false;       // 取消重唱状态
-	if (!pInfo->LocalFile) {           // 如果不是本地歌曲
+	if (pInfo->MediaType == mtPUSH) {  // 如果不是本地歌曲
 		if (OpenUrl(pInfo->PlayVstp, pInfo->VideoFile)) {
 			DEBUG_OUT("OpenUrl Error (%s).\n", pInfo->VideoFile);
 			return false;
@@ -630,20 +860,54 @@ bool StartPlayer(INFO *pInfo)
 	return true;
 }
 
-PlayState PauseContinuePlayer(INFO *pInfo)
+PlayerState PauseContinuePlayer(INFO *pInfo)
 {
 	if (pInfo->PlayStatus == stPlaying){
-		if (pInfo->type == RM_INPUT_FILE)
-			RMFPauseFile(pInfo->FileCtrl);
-		else if (pInfo->type == RM_INPUT_PUSH)
-			RMFPausePUSH(pInfo->PushCtrl);
+		printf("Playing --> Pause\n");
+		switch (pInfo->type){
+			case RM_INPUT_FILE:
+				RMFPauseFile(pInfo->FileCtrl);
+				break;
+			case RM_INPUT_PUSH:
+				RMFPausePUSH(pInfo->PushCtrl);
+				break;
+			case RM_INPUT_VCD:
+				RMFVCDPause(pInfo->VcdCtrl);
+				break;
+			case RM_INPUT_CDDA:
+				RMFCDDAPause(pInfo->CddaCtrl);
+				break;
+			case RM_INPUT_DVD:
+				RMFDVDPause_Off(pInfo->DvdCtrl);
+				break;
+				 case RM_INPUT_DISC:
+			default:
+				break;
+		}
 		pInfo->PlayStatus = stPause;
 	}
 	else if (pInfo->PlayStatus == stPause){
-		if (pInfo->type == RM_INPUT_FILE)
-			RMFPlayFile(pInfo->FileCtrl);
-		else if (pInfo->type == RM_INPUT_PUSH)
-			RMFPlayPUSH(pInfo->PushCtrl);
+		printf("Pause --> Playing\n");
+		switch (pInfo->type) {
+			case RM_INPUT_FILE:
+				RMFPlayFile(pInfo->FileCtrl);
+				break;
+			case RM_INPUT_PUSH:
+				RMFPlayPUSH(pInfo->PushCtrl);
+				break;
+			case RM_INPUT_VCD:
+				RMFVCDPlay(pInfo->VcdCtrl);
+				break;
+			case RM_INPUT_CDDA:
+				RMFCDDAPlay(pInfo->CddaCtrl);
+				break;
+			case RM_INPUT_DVD:
+				RMFDVDPause_On(pInfo->DvdCtrl);
+				break;
+			case RM_INPUT_DISC:
+			default:
+				break;
+		}
 		pInfo->PlayStatus = stPlaying;
 	}
 	return pInfo->PlayStatus;
@@ -701,3 +965,4 @@ static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message
 			break;
 	}
 }
+

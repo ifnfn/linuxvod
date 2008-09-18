@@ -26,7 +26,7 @@
 
 #define sgn(x) ((x<0)?-1:((x>0)?1:0))   /* macro to return the sign of a number */
 
-#ifdef __cplusplus
+#ifdef cplusplus
 extern "C" {
 #endif
 
@@ -69,8 +69,8 @@ void SDL_DrawArrow(SDL_Surface * s, int type, int x, int y, int a, Uint32 color,
 	} while(0)
 
 
-#ifdef __cplusplus
+#ifdef cplusplus
 }
 #endif
-	
+
 #endif

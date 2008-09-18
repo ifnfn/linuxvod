@@ -1,3 +1,5 @@
 LIB=../libktv.a
 
--include inc.Makefile
+SRC += vstp.c
+
+-include ../../inc.Makefile

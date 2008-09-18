@@ -32,7 +32,7 @@ static sqlite *db         = NULL;
 
 gboolean dbopen(void)
 {
-	if (!db) 
+	if (!db)
 	{
 		db = sqlite_open(DATABASE, 0, &zErrMsg);
 		if (db == NULL)
@@ -54,10 +54,10 @@ static int UpdateCallBack(void *NotUsed, int argc, char **argv, char **azColName
 int getregnumbyname(const gchar *username)
 {
 	int number = -2;
-	if (dbopen()) 
+	if (dbopen())
 	{
 		char SQL[512];
-		sprintf(SQL, "SELECT number FROM user WHERE username ='%s'", username);	
+		sprintf(SQL, "SELECT number FROM user WHERE username ='%s'", username);
 		sqlite_exec(db, SQL, UpdateCallBack, &number, NULL);
 	}
 	return number;
@@ -65,26 +65,26 @@ int getregnumbyname(const gchar *username)
 
 int saveregcode(const char *username, const char *keycode, const char *regcode, int number)
 {
-	if (dbopen()) 
+	if (dbopen())
 	{
 		char SQL[512];
 		int count = 0;
 		sprintf(SQL, "SELECT COUNT(*) FROM regcode WHERE keycode='%s'", keycode);
 		sqlite_exec(db, SQL, UpdateCallBack, &count, NULL);
-		if (count == 0) 
+		if (count == 0)
 		{
 			time_t timep;
 			struct tm *p;
 			time(&timep);
-			p = localtime(&timep); /*ȡ�õ���ʱ��*/
+			p = localtime(&timep);
 
-			sprintf(SQL, "INSERT INTO regcode VALUES('%s','%s','%s','%d-%d-%d %d:%d:%d');", 
-					username, keycode, regcode, 
+			sprintf(SQL, "INSERT INTO regcode VALUES('%s','%s','%s','%d-%d-%d %d:%d:%d');",
+					username, keycode, regcode,
 					p->tm_year + 1900, p->tm_mon + 1, p->tm_mday,
 					p->tm_hour, p->tm_min, p->tm_sec);
-			
+
 			sqlite_exec(db, SQL, NULL, NULL, NULL);
-			if (number > 0) 
+			if (number > 0)
 			{
 				sprintf(SQL, "UPDATE user SET number=number-1 WHERE username='%s'", username);
 				sqlite_exec(db, SQL, NULL, NULL, NULL);
@@ -112,7 +112,7 @@ static void print_finger(const char *fpr, unsigned int  size)
 	gint i;
 	for (i = 0; i < size-1; i++)
 		g_printerr ("%02X:", fpr[i]);
-	
+
 	g_printerr ("%02X", fpr[size-1]);
 }
 
@@ -126,20 +126,20 @@ static LmSSLResponse ssl_cb (LmSSL *ssl, LmSSLStatus status, gpointer ud)
 		g_printerr ("GTalk: No certificate found!\n");
 		break;
 	case LM_SSL_STATUS_UNTRUSTED_CERT:
-		g_printerr ("GTalk: Certificate is not trusted!\n"); 
+		g_printerr ("GTalk: Certificate is not trusted!\n");
 		break;
 	case LM_SSL_STATUS_CERT_EXPIRED:
-		g_printerr ("GTalk: Certificate has expired!\n"); 
+		g_printerr ("GTalk: Certificate has expired!\n");
 		break;
 	case LM_SSL_STATUS_CERT_NOT_ACTIVATED:
-		g_printerr ("GTalk: Certificate has not been activated!\n"); 
+		g_printerr ("GTalk: Certificate has not been activated!\n");
 		break;
 	case LM_SSL_STATUS_CERT_HOSTNAME_MISMATCH:
-		g_printerr ("GTalk: Certificate hostname does not match expected hostname!\n"); 
+		g_printerr ("GTalk: Certificate hostname does not match expected hostname!\n");
 		break;
 	case LM_SSL_STATUS_CERT_FINGERPRINT_MISMATCH: {
 		const char *fpr = lm_ssl_get_fingerprint (ssl);
-		g_printerr ("GTalk: Certificate fingerprint does not match expected fingerprint!\n"); 
+		g_printerr ("GTalk: Certificate fingerprint does not match expected fingerprint!\n");
 		g_printerr ("GTalk: Remote fingerprint: ");
 		print_finger (fpr, 16);
 
@@ -149,7 +149,7 @@ static LmSSLResponse ssl_cb (LmSSL *ssl, LmSSLStatus status, gpointer ud)
 		break;
 	}
 	case LM_SSL_STATUS_GENERIC_ERROR:
-		g_printerr ("GTalk: Generic SSL error!\n"); 
+		g_printerr ("GTalk: Generic SSL error!\n");
 		break;
 	}
 #endif
@@ -158,13 +158,13 @@ static LmSSLResponse ssl_cb (LmSSL *ssl, LmSSLStatus status, gpointer ud)
 
 static void connection_auth_cb (
 		LmConnection *connection,
-		gboolean      success, 
+		gboolean      success,
 		gpointer      user_data)
 {
-	if (success) 
+	if (success)
 	{
 		LmMessage *m;
-		
+
 		test_success = TRUE;
 
 		m = lm_message_new_with_sub_type (NULL,
@@ -181,7 +181,7 @@ static void connection_auth_cb (
 }
 
 static void connection_open_cb (
-		LmConnection *connection, 
+		LmConnection *connection,
 		gboolean      success,
 		gpointer      user_data)
 {
@@ -189,7 +189,7 @@ static void connection_open_cb (
 		gchar *user;
 
 		user = get_part_name (username);
-		lm_connection_authenticate (connection, user, 
+		lm_connection_authenticate (connection, user,
 				password, resource,
 				connection_auth_cb,
 				NULL, FALSE,  NULL);
@@ -201,12 +201,12 @@ static void connection_open_cb (
 }
 
 static void connection_close_cb (
-		LmConnection       *connection, 
+		LmConnection       *connection,
 		LmDisconnectReason  reason,
 		gpointer            user_data)
 {
 	const char *str;
-	
+
 	switch (reason) {
 		case LM_DISCONNECT_REASON_OK:
 			str = "LM_DISCONNECT_REASON_OK";
@@ -237,7 +237,7 @@ static char *parse_timestamp(const char *ts)
 
 static gboolean SendMessage(
 		LmConnection *connection,
-		const char   *recipient, 
+		const char   *recipient,
 		const char   *message)
 {
 	LmMessage *m;
@@ -246,7 +246,7 @@ static gboolean SendMessage(
 
 	m = lm_message_new (recipient, LM_MESSAGE_TYPE_MESSAGE);
 	lm_message_node_add_child (m->node, "body", message);
-	if (!lm_connection_send (connection, m, &error)) 
+	if (!lm_connection_send (connection, m, &error))
 	{
 		g_print ("Error while sending message to '%s':\n%s\n",
 		recipient, error->message);
@@ -296,7 +296,7 @@ static LmHandlerResult handle_messages (
 	int num = getregnumbyname(from);
 
 	char sendmsg[200];
-	if (num != -2) 
+	if (num != -2)
 	{
 		if (num == 0)
 			strcpy(sendmsg, "您的注册点数已经用完，请重新申请点数.");
@@ -306,7 +306,7 @@ static LmHandlerResult handle_messages (
 			{
 
 			}
-			else {	
+			else {
 				char regkey[33];
 				if (CreateRegCode(msg_str, regkey)) {
 					num = saveregcode(from, msg_str, regkey, num);
@@ -316,14 +316,14 @@ static LmHandlerResult handle_messages (
 						sprintf(sendmsg, "%s->%s", msg_str, regkey);
 					char selfmsg[512];
 					sprintf(selfmsg, "%s: %s->%s\n", from, msg_str, regkey);
-					SendMessage(connection, "chinaktv@gmail.com", selfmsg);		
+					SendMessage(connection, "chinaktv@gmail.com", selfmsg);
 				} else
 					sprintf(sendmsg, "您的认证码 \"%s\" 有错误, 请检查您的认证码是否正确。", msg_str);
 			}
 		}
 	} else
 		strcpy(sendmsg, "您不是注册用户，不能申请注册码。");
-		
+
 	SendMessage(connection, from, sendmsg);
 	return LM_HANDLER_RESULT_REMOVE_MESSAGE;
 }
@@ -361,12 +361,12 @@ int main (int argc, char **argv)
 	lm_connection_set_jid (connection, username);
 
 	handler = lm_message_handler_new (handle_messages, NULL, NULL);
-	lm_connection_register_message_handler (connection, handler, 
-		LM_MESSAGE_TYPE_MESSAGE, 
+	lm_connection_register_message_handler (connection, handler,
+		LM_MESSAGE_TYPE_MESSAGE,
 		LM_HANDLER_PRIORITY_NORMAL);
-	
+
 	lm_message_handler_unref (handler);
-	
+
 	lm_connection_set_disconnect_function (connection,
 			connection_close_cb, NULL, NULL);
 
@@ -375,16 +375,16 @@ int main (int argc, char **argv)
 		LmSSL *ssl;
 		char  *p;
 		int    i;
-		
+
 		if (port == LM_CONNECTION_DEFAULT_PORT)
 			lm_connection_set_port (connection, LM_CONNECTION_DEFAULT_PORT_SSL);
 
 		for (i = 0, p = fingerprint; *p && *(p+1); i++, p += 3)
 			expected_fingerprint[i] = (unsigned char) g_ascii_strtoull (p, NULL, 16);
-	
+
 		ssl = lm_ssl_new (expected_fingerprint,
 			(LmSSLFunction) ssl_cb, NULL, NULL);
-	
+
 		lm_connection_set_ssl (connection, ssl);
 		lm_ssl_unref (ssl);
 	}
@@ -393,7 +393,7 @@ int main (int argc, char **argv)
 			(LmResultFunction) connection_open_cb, NULL, NULL, &error);
 
 	if (!result) {
-		g_printerr ("GTalk: Opening connection failed, error:%d->'%s'\n", 
+		g_printerr ("GTalk: Opening connection failed, error:%d->'%s'\n",
 			error->code, error->message);
 		g_free (error);
 		return EXIT_FAILURE;

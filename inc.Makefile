@@ -13,7 +13,10 @@ ifneq "$(LIB)" ""
 	TARGET=$(LIB)
 endif
 
-all: subdirs deps objects $(OBJS) $(TARGET) $(BIN)
+ifneq "$(LIBSO)" ""
+	TARGETSO=$(LIBSO)
+endif
+all: objects deps subdirs $(OBJS) $(TARGET) $(BIN) $(TARGETSO)
 
 # automatic generation of all the rules written by vincent by hand.
 deps: $(SRC) Makefile
@@ -27,15 +30,18 @@ deps: $(SRC) Makefile
 
 -include ./deps
 
-objects:
+objects: 
 	@mkdir objects
 .PHONY: madlib
 
-$(LIB): objects $(OBJS)
+$(TARGET): $(OBJS)
 	$(AR) r $@ $(OBJS)
 	$(RANLIB) $@
 
-$(BIN): objects $(OBJS)
+$(TARGETSO): $(OBJS)
+	$(CC) --share -s $(OBJS) -o $@
+
+$(BIN): $(OBJS)
 	@ln -s `g++ -print-file-name=libstdc++.a` -f
 	$(LD) $(OBJS) $(LIBS) -o $@ -s
 	@unlink libstdc++.a 
@@ -57,4 +63,4 @@ subdirsclean:
 	done;
 
 clean: subdirsclean
-	rm -rf $(OBJS) *.o *~ .*swp objects deps $(CLEANFILE) $(BIN)
+	rm -rf $(OBJS) *.o *~ .*swp objects deps $(CLEANFILE) $(BIN) $(TARGET) $(TARGETSO)

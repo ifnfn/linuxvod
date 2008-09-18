@@ -31,7 +31,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 void trim(char *S);          // 清除字符串 S 两字的空格符
 void strupper(char *str);    // 将字符串转成大写
 void strlow(char *str);      // 将字符串转成小写
@@ -48,12 +48,12 @@ bool FileExists(const char *fn);
 void pathcat(char *url, const char* path, const char *filename);
 
 int ExtractFilePath(const char *filename, char *path);
-int ExtractFileName(const char *filename, char *file); 
+int ExtractFileName(const char *filename, char *file);
 int ExtractFileExt (const char *filename, char *extname);
 
 #ifdef __cplusplus
 }
 #endif
-	
+
 /*============================================================================*/
 #endif

@@ -2,15 +2,15 @@
 #define COLOR_H
 
 typedef struct tagCOLOR{
-        short r;
-        short g;
-        short b;
-        short a;
+	short r;
+	short g;
+	short b;
+	short a;
 }TColor;
 
 typedef struct tagCOLORLISTS{
-        char Name[20];
-        long Value;
+	char Name[20];
+	long Value;
 }ColorLists;
 
 #define COLORNUM 20

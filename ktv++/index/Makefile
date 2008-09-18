@@ -9,6 +9,8 @@ SRC += \
 	createindex.cpp \
 	index.cxx
 
+CLEANFILE+=libstdc++.a
+
 -include $(TOPDIR)/inc.Makefile
 
 LD=$(CROSS_COMPILD)g++

@@ -35,7 +35,7 @@ void to64frombits(unsigned char *out, const unsigned char *in, int inlen)
 		fragment = (in[0] << 4) & 0x30;
 
 		if (inlen > 1)
-				fragment |= in[1] >> 4;
+			fragment |= in[1] >> 4;
 
 		*out++ = base64digits[fragment];
 		*out++ = (inlen < 2) ? '=' : base64digits[(in[1] << 2) & 0x3c];
@@ -51,23 +51,23 @@ int from64tobits(char *out, const char *in)
 	register unsigned char digit1, digit2, digit3, digit4;
 
 	if (in[0] == '+' && in[1] == ' ')
-			in += 2;
+		in += 2;
 	if (*in == '\r')
-			return(0);
+		return(0);
 
 	do {
 		digit1 = in[0];
 		if (DECODE64(digit1) == BAD)
-				return(-1);
+			return(-1);
 		digit2 = in[1];
 		if (DECODE64(digit2) == BAD)
-				return(-1);
+			return(-1);
 		digit3 = in[2];
 		if (digit3 != '=' && DECODE64(digit3) == BAD)
-				return(-1);
+			return(-1);
 		digit4 = in[3];
 		if (digit4 != '=' && DECODE64(digit4) == BAD)
-				return(-1);
+			return(-1);
 		in += 4;
 		*out++ = (DECODE64(digit1) << 2) | (DECODE64(digit2) >> 4);
 		++len;
@@ -87,11 +87,6 @@ int from64tobits(char *out, const char *in)
 }
 
 #ifdef BASE6EBIN
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-
 int main(int argc, char **argv)
 {
 	char base[1024];

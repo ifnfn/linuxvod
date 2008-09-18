@@ -46,19 +46,19 @@ static unsigned char PADDING[64] = {
 	(a) = ROTATE_LEFT ((a), (s)); \
 	(a) += (b); \
 }
-  
+
 #define GG(a, b, c, d, x, s, ac) { \
 	(a) += G ((b), (c), (d)) + (x) + (UINT4)(ac); \
 	(a) = ROTATE_LEFT ((a), (s)); \
 	(a) += (b); \
 }
-  
+
 #define HH(a, b, c, d, x, s, ac) { \
 	(a) += H ((b), (c), (d)) + (x) + (UINT4)(ac); \
 	(a) = ROTATE_LEFT ((a), (s)); \
 	(a) += (b); \
 }
-  
+
 #define II(a, b, c, d, x, s, ac) { \
 	(a) += I ((b), (c), (d)) + (x) + (UINT4)(ac); \
 	(a) = ROTATE_LEFT ((a), (s)); \
@@ -100,8 +100,8 @@ void MD5Update (MD5_CTX *context, unsigned char *input, unsigned int inputLen)
 			MD5Transform (context->state, &input[i]);
 		index = 0;
 	}
-  	else
-		 i = 0;
+	else
+		i = 0;
 
 	/* Buffer remaining input */
 	MD5_memcpy((POINTER)&context->buffer[index], (POINTER)&input[i], inputLen-i);
@@ -246,10 +246,10 @@ static void Encode (unsigned char *output, UINT4 *input, unsigned int len)
 static void Decode (UINT4 *output, unsigned char *input, unsigned int len)
 {
 	unsigned int i, j;
-	
+
 	for (i = 0, j = 0; j < len; i++, j += 4)
 		output[i] = ((UINT4)input[j]) | (((UINT4)input[j+1]) << 8) |
-   			    (((UINT4)input[j+2]) << 16) | (((UINT4)input[j+3]) << 24);
+			(((UINT4)input[j+2]) << 16) | (((UINT4)input[j+3]) << 24);
 }
 
 /* Note: Replace "for loop" with standard memcpy if possible.

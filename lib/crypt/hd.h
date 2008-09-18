@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 const char* b64str(const char *base, char *out);
 bool GetPublicKey (const char *dev , char *publickey);
 bool GetDesPwd    (const char *dev , char *despwd);
@@ -21,6 +21,6 @@ bool CheckKtvRegCode();
 #ifdef __cplusplus
 }
 #endif
-	
+
 #endif
 

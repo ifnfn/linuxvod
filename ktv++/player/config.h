@@ -28,6 +28,7 @@ extern bool EnabledSound     ;
 extern char Fire119[30]      ;
 extern int  OSDCount         ;
 extern char **OSDList        ;
+extern char Cdrom[10]        ; // 光驱设备
 
 #define VIDEOROOT "/video"     // 本地视频根目录
 

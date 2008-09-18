@@ -155,7 +155,7 @@ int CreateScrollTextStr(int id, const char *text)
 	}
 	tmpScrollText->h = tmpScrollText->Surface->h;
 	tmpScrollText->w = dim.width;
-	
+
 	pthread_mutex_lock(&ThreadHeader[id]->mutex);
 	if (ThreadHeader[id]->LastScroll)
 		ThreadHeader[id]->LastScroll->Next = tmpScrollText;

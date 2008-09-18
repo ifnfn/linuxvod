@@ -182,7 +182,7 @@ char *ReadString(struct ENTRY *Head, char *pSection, char *pKey, char *Default)
 	}
 
 	struct ENTRY *section = FindSection(Head, pSection);
-	if (section) 
+	if (section)
 	{
 		struct ENTRY *pEntry = FindpKey(section, pKey);
 		if ( pEntry != NULL){
@@ -255,7 +255,7 @@ static struct ENTRY *FindSection(struct ENTRY *Head, char *pSection)
 struct ENTRY *FindpKey(struct ENTRY *pSection, char * pKey)
 {
 	struct ENTRY *pEntry = pSection;
-	if (pEntry) 
+	if (pEntry)
 	{
 		pEntry = pEntry->pNext;
 		while (pEntry != NULL)
@@ -330,7 +330,7 @@ bool ValueExists(struct ENTRY *Head, char *pSection, char *pKey)
 
 void PrintIniFile(struct ENTRY *Head)
 {
-	if (Head) 
+	if (Head)
 	{
 		if (Head->Node.Type == tpSECTION)
 			DEBUG_OUT("[%s]\n", Head->Node.KeyText);

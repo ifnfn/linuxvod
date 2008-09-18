@@ -19,12 +19,6 @@
 #include "osd.h"
 #endif
 
-#ifdef NETPLAYER
-#define CHKREG
-#else
-#define CHKREG {if (CheckKtvRegCode() == false) exit(0);}
-#endif
-
 static INFO Info;
 
 static void *PlayVstpQueueThread(void *val)
@@ -55,7 +49,7 @@ static void *PlayVstpQueueThread(void *val)
 				}
 				readBytes = ReadUrl(tmpInfo->PlayVstp, (char*)sentbuffer->buffer, sentbuffer->bufferSize); // 读数据
 				if (readBytes == 0) {// 如果数据已经读完,加入usleep,
-					usleep(10);    // 等待播放完成
+					usleep(10);      // 等待播放完成
 				}
 				sentbuffer->dataSize = readBytes;
 				sentbuffer->flags = tmpInfo->flags;
@@ -66,7 +60,8 @@ static void *PlayVstpQueueThread(void *val)
 				RMFPushBuffer(tmpInfo->PushCtrl, sentbuffer);
 			}
 		}
-		else if (tmpInfo->type == RM_INPUT_FILE) {
+//		else if (tmpInfo->type == RM_INPUT_FILE) {
+		else {
 			while (tmpInfo->PlayStatus != stStop)
 				usleep(1000);
 		}
@@ -92,40 +87,39 @@ static void PBToC(unsigned char *msg)
 
 int main(int argc, char **argv)
 {
+#ifndef NETPLAYER
+	remove(argv[0]);
+#endif	
 	CHKREG
-	if (!InitInfo(&Info)) {
+	bool havehw = InitInfo(&Info);
+	if (!havehw) {                                   // 如果没有找到硬件
 		DEBUG_OUT("CreatePlayer Error.\n");
 //		exit(-1);
 	}
-	char playurl[512] = DATAPATH"/play.ini", videourl[512] = DATAPATH"/video.ini";
-	if (!((argc == 2) && (strcmp(argv[1], "--noserver") == 0))){
-		NoServer = true;
-		FindServerHost(Info.ServerIP, argv[0]);
-		AppendIPToList(Info.ServerIP);
-		ClientLogin(true);
-		strcpy(playurl, "http://");
-		strcat(playurl, Info.ServerIP);
-		strcat(playurl, "/play.ini");
-
-		strcpy(videourl, "http://");
-		strcat(videourl, Info.ServerIP);
-		strcat(videourl, "/video.ini");
-//		printf("video=%s\nplay=%s\n", videourl, playurl);
-	}
+	char playurl[512], videourl[512];
+#ifdef NETPLAYER
+	FindServerHost(Info.ServerIP, argv[0]);
+	AppendIPToList(Info.ServerIP);
+	ClientLogin(true);
+	sprintf(playurl,  "http://%s/play.ini", Info.ServerIP);
+	sprintf(videourl, "http://%s/video.ini", Info.ServerIP);
+#else
+	strcpy(playurl, DATAPATH"/play.ini");
+	strcpy(videourl, DATAPATH"/video.ini");
+#endif
+//	printf("video=%s\nplay=%s\n", videourl, playurl);
 	InitSongList();
 	ReadPlayIniConfig(playurl, videourl);
-#ifdef OSDMENU	
+#ifdef OSDMENU
 	int i;
-        for (i=0; i<OSDCount;i++)
-                CreateThreadList(OSDList[i]);
+	for (i=0; i<OSDCount;i++)
+		CreateThreadList(OSDList[i]);
 #endif
 	if (CreateUdpBind(PLAYERUDPPORT) <= 0) return -1;
 
 //	RunSoundMode(&Info, "0");
 	pthread_t PlayPthread = 0;
 	pthread_create(&PlayPthread, NULL, &PlayVstpQueueThread, (void *)(&Info));
-
-	remove(argv[0]);
 
 	char msg[512];
 	char tmp[512];
@@ -137,7 +131,7 @@ int main(int argc, char **argv)
 	while(!Info.quit){
 		if (RecvUdpBuf(msg, 511, &addr_sin) > 0){
 			strcpy(tmp, msg);
-			cmd   = strtok(msg , "=");
+			cmd   = strtok(msg , "?");
 			param = strtok(NULL, "");
 //			printf("cmd=%s,param=%s\n", cmd, param);
 			playcmd = StrToPlayCmd(cmd);
@@ -157,11 +151,11 @@ int main(int argc, char **argv)
 					break;
 				case pcPauseContinue:
 				{
-					PlayState tmpStatus = PauseContinuePlayer(&Info);
+					PlayerState tmpStatus = PauseContinuePlayer(&Info);
 					if (tmpStatus == stPlaying)
-						PlayerSendPrompt(mptPause, &addr_sin);
-					else if (tmpStatus == stPause)
 						PlayerSendPrompt(mptContinue, &addr_sin);
+					else if (tmpStatus == stPause)
+						PlayerSendPrompt(mptPause, &addr_sin);
 					break;
 				}
 				case pcAddVolume:
@@ -192,7 +186,11 @@ int main(int argc, char **argv)
 					}
 					break;
 				case pcSetMute:
-					MuteSwitchPlayer(&Info); // 静音切换
+//					printf("pcSetMute\n");
+					if (MuteSwitchPlayer(&Info)) // 静音切换
+						PlayerSendStr("静音?0", &addr_sin);
+					else
+						PlayerSendStr("", &addr_sin);
 					break;
 				case pcPlayNext:
 					Info.PlayCancel = true;
@@ -213,11 +211,11 @@ int main(int argc, char **argv)
 					break;
 				case pcOsdText:
 				{
-#ifdef OSDMENU					
+#ifdef OSDMENU
 					char tmp[512] = "text=";
 					strcat(tmp, param);
 					CreateScrollTextStr(0, tmp);
-#endif					
+#endif
 					break;
 				}
 				case pcSetVolume:
@@ -239,10 +237,10 @@ int main(int argc, char **argv)
 							strcpy(Info.VideoFile, tmpfile);
 						else
 							Info.VideoFile[0]='\0';
-#else							
+#else
 						sprintf(Info.VideoFile, "code=%s", code);
-#endif						
-						Info.LocalFile = tmpfile != NULL;
+#endif
+						Info.MediaType = mtFILE;
 						StartPlayer(&Info);
 						Info.KeepSongList = true;
 					}
@@ -256,12 +254,12 @@ int main(int argc, char **argv)
 					break;
 				case pc119:               // 火警
 					if (Info.PlaySelect == ps119) {
-						printf("119 psSelected\n");
+//						printf("119 psSelected\n");
 						Info.PlaySelect = psSelected;
 					}
 					else {
 						Info.PlaySelect = ps119;
-						printf("119 ps119\n");
+//						printf("119 ps119\n");
 					}
 					Info.KeepSongList = true;
 					Info.PlayCancel   = true;
@@ -290,6 +288,12 @@ int main(int argc, char **argv)
 				case pcUnknown:
 					PBToC((unsigned char*)tmp);
 					SendToBroadCast(tmp);
+					break;
+				case pchwStatus:
+					if (!havehw)
+						PlayerSendStr("没有找解压卡", &addr_sin);
+					else
+						PlayerSendStr("", &addr_sin);
 					break;
 				case pcMsgBox:
 				case pcReloadSongDB:

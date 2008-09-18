@@ -3,7 +3,7 @@ LD     = $(CROSS_COMPILE)gcc
 AR     = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
 
-BIN=addsong checkkey usbpnpd saveoff reg send download gtalk
+BIN=addsong checkkey usbpnpd saveoff reg send download #gtalk
 
 all: $(BIN)
 	make -C hwscan
@@ -12,8 +12,7 @@ saveoff:
 	$(CC) a.c -o $@ -s
 	@rm a.c -f
 addsong:
-	$(CC) addsong.c ../lib/osnet.c ../lib/ini.c -o addsong -ltinyxml \
-		-lsqlite -lktv -L../lib -I../lib -s
+	$(CC) addsong.c ../lib/ini.c -o addsong -ltinyxml -lsqlite -lktv -L../lib -I../lib -s
 usbpnpd:
 	$(CC) usbpnpd.c -o usbpnpd -s
 checkkey:

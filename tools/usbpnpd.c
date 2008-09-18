@@ -197,24 +197,24 @@ int UpdateDeviceList()
 			bDeviceSubClass = scan_usb_tag_hex(line, "Sub=");
 			bDeviceProtocol = scan_usb_tag_hex(line, "Prot=");
 		}
-		
+
 		if ( line[0] == 'I' ) {
 			bInterfaceClass = scan_usb_tag_hex(line, "Cls=");
 			bInterfaceSubClass = scan_usb_tag_hex(line, "Sub=");
 			bInterfaceProtocol = scan_usb_tag_hex(line, "Prot=");
 		}
-		
+
 		if ( !strncmp(line, "S:  Manufacturer=", strlen("S:  Manufacturer=")) ) {
 			strcpy(prod, line+strlen("S:  Manufacturer="));
 			if ( strchr(prod, '\n') ) *(strchr(prod, '\n')) = 0;
 		}
-		
+
 		if ( !strncmp(line, "S:  Product=", strlen("S:  Product=")) ) {
 			if ( prod[0] ) strcat(prod, " ");
 				strcat(prod, line+strlen("S:  Product="));
 			if ( strchr(prod, '\n') ) *(strchr(prod, '\n')) = 0;
 		}
-		
+
 		if ( line[0] == 'E' && !igne) {
 		//if ( prod[0] ) set_context_name("%s", prod);
 		if ((idVendor != 0) && (idProduct != 0)) {
@@ -224,7 +224,7 @@ int UpdateDeviceList()
 				if (newNode)
 				{
 					newNode->tag                = FOUND;
-					newNode->installed	    = 0;
+					newNode->installed          = 0;
 					newNode->idVendor           = idVendor;
 					newNode->idProduct          = idProduct;
 					newNode->bDeviceClass	    = bDeviceClass;
@@ -257,21 +257,21 @@ void DumpGlob(glob_t *gdata)
 	for (pathv = gdata->gl_pathv; pathv[0]; pathv++ )
 	{
 		puts(pathv[0]);
-	}               
-}                       
+	}
+}
 
 int IsDirectory(char *path)
 {
-	int len = strlen(path); 
+	int len = strlen(path);
 	return (len && path[len-1] == '/');
-}                                       
-                                
+}
+
 int GlobRecursively(char *path, char *pattern, glob_t *gbuf)
-{                                       
-	char fullpath[500];             
-	int idx, start = gbuf->gl_pathc, end;   
-	int flag = GLOB_MARK;                   
-				                                                
+{
+	char fullpath[500];
+	int idx, start = gbuf->gl_pathc, end;
+	int flag = GLOB_MARK;
+
 	if ( start )
 		flag |= GLOB_APPEND;
 	sprintf(fullpath, "%s%s", path, pattern);
@@ -358,7 +358,7 @@ int UpdateDeviceList()
 
 void DoTakeAction(Device *current, int install)
 {
-//	if (current->bInterfaceClass== 0x08) 
+//	if (current->bInterfaceClass== 0x08)
 	{
 		if (install) {
 			printf("/usr/bin/update\n");
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
 
 	if ( !(prgname = strrchr(argv[0], '/')) )
 		prgname = argv[0];
-	if ( _is_dup(prgname) )
+	if (_is_dup(prgname) )
 	{
 		char cmd[1000];
 		if (argc > 1)
