@@ -41,7 +41,7 @@ CKeywordIndex::~CKeywordIndex()
 	free(ClassList);
 }
 
-FieldClass* CKeywordIndex::AddIndexNode(char *IndexName, FieldID id)
+FieldClass* CKeywordIndex::AddIndexNode(const char *IndexName, FieldID id)
 {
 	int i;
 	for (i=0;i < ClassCount;i++){
@@ -81,7 +81,7 @@ void CKeywordIndex::FieldClassSort()
 	}
 }
 
-IndexNode *CKeywordIndex::FindIndexNode(FieldClass *Class, char *IndexName)
+IndexNode *CKeywordIndex::FindIndexNode(FieldClass *Class, const char *IndexName)
 {
 	if (IndexName[0] == '\0') return NULL;
 	if (Class->sort == false){
@@ -118,7 +118,7 @@ void CKeywordIndex::Data2Data(SongListNode* To, SystemFields* From)
 	To->Klok      = From->Klok;
 	To->Sound     = From->Sound;
 	To->SoundMode = From->SoundMode;
-	To->Password  = From->Password;
+//	To->Password  = From->Password;
 #if 0
 	printf("Code %s = %s\n", To->SongCode, From->SongCode);
 	printf("\tName %s = %s\n", To->SongName, From->SongName);

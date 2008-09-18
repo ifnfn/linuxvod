@@ -51,7 +51,7 @@ protected:
 	virtual void Destory(){}                     // 窗体free时需要完成的操作
 	virtual void DrawWindowOpt();                // 准备窗体需要写字的部分
 	virtual void Restore();                      // 重建背景缓冲,并恢复窗体的显示
-	CKtvOption **CreateOptList(char *key, char startid, char ednid, int *num); // 建立操作项分组列表
+	CKtvOption **CreateOptList(const char *key, char startid, char ednid, int *num); // 建立操作项分组列表
 	virtual void SetFilter(CString& name, CString& desc, int id=0){} // 设置查找条件
 	CData *datadb;
 private:

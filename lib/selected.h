@@ -38,7 +38,7 @@ typedef struct tagSelectSongNode{
 	char Sound;           // 原唱音轨
 	char SoundMode;       // 声音模式
 	char StreamType[6];   // 流格式
-	long Password;        // 
+//	unsigned long Password;        // 
 }SelectSongNode;
 
 typedef struct tagPLAYSONGLIST {
@@ -62,8 +62,6 @@ extern const char *PLAYSONG;
 extern "C" {
 #endif
 
-inline void NoSongUnlock(void);
-inline void NoSongLock(void);
 void InitSongList(void);
 void ClearSongList(void);                                        /* 清空本地已点歌曲列表            */
 SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc);/* 向已点歌曲列表中增加记录,返回ID */

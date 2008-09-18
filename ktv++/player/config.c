@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <ftw.h>
+#include <sqlite.h>
 
 #include "config.h"
 #include "ini.h"
@@ -16,7 +17,7 @@ int VolumeValue       = 40;
 int MinVolume         = 0;
 int MaxVolume         = 100;
 int NextDelayTime     = 0;
-char Background[50]   = DATAPATH"/back.jpg";
+char Background[50]   = DATAPATH"/blank.jpg";
 char Fire119[30]      = "99999999.dat";
 char DefaultSoundMode = 0; // 默认歌曲的灯光控制模式
 char HiSoundMode      = 1; // Disco歌曲的灯光控制模式
@@ -46,18 +47,16 @@ static int  SoundModeCount = 0;
 static char **ModeNames    = NULL;
 static char **ModeCmds     = NULL;
 
-char *GetLocalFile(char *code, char *ext) // 查找文件
+static char *GetLocalFile(char *code) // 查找文件
 {
 	static char filename[100];
 	int i, j;
 	char *extname[] = {"div", "divx", "dat", "m1s", "avi", "mpg", "vob"};
+
 	for (i = 0; i < DirCount; ++i) {
 		for (j = 0; j < 5; ++j) {
 			sprintf(filename, "%s/%s.%s", DirList[i], code, extname[j]);
-//			printf("filename=%s\n", filename);
 			if (FileExists(filename)) {
-				if (ext)
-					strcpy(ext, extname[j]);
 				return filename;
 			}
 		}
@@ -66,23 +65,70 @@ char *GetLocalFile(char *code, char *ext) // 查找文件
 	return NULL;
 }
 
-char *GetHttpURL(char *code, long passwd)
+struct SqlResult {
+	char *videotype;
+	long passwd;
+	int count;
+};
+
+static int SqliteCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
-	static char url[256];
-//	char pass_str[17] = {0, };
-//	char *tmp;
+	struct SqlResult  *data = (struct SqlResult*) NotUsed;
 
-	sprintf(url, "/tmp/file/%s", code);
-//	tmp = GetPassword(passwd, pass_str, 16);
-//	if (tmp == NULL)
-//		sprintf(url, "/tmp/file/%s_cnsczd", code);
-//	else
-//		sprintf(url, "/tmp/file/%s_%s", code, tmp);
+	strcpy(data->videotype, argv[0]);
+	data->passwd = atoi(argv[1]);
+	data->count++;
 
-//	tmp = AesEncryptAndBase64DefaultPwd(url);
-//	sprintf(url, "/tmp/file/%s", url);
-//	free(tmp);
+	return 0;
+}
 
+#define AES_PASSWD
+char *GetFuseFile(char *url, char *videotype, char *code)
+{
+#ifdef AES_PASSWD	
+	char *tmp;
+	static sqlite  *db = NULL;
+	struct SqlResult result;
+
+	result.videotype = videotype;
+	result.count = 0;
+
+	if (db == NULL)
+		db = sqlite_open(NULL, "/ktvdata/song2000.db", 0, NULL);
+
+	if (db == NULL) return NULL;
+
+	sqlite_exec_printf(db, "select videotype, password from system where code='%s'", SqliteCallback, &result, 0, code);
+	if (result.count  == 0)
+		return NULL;
+
+	if (result.passwd == 0) {
+		tmp = GetLocalFile(code);
+		strcpy(url, tmp);
+	}
+	else {
+		char p[33] = {0, };
+
+		tmp = GetPassword(result.passwd, p, 16);
+		sprintf(url, "/tmp/song/%s@%s", code, tmp);
+		strcpy(videotype, result.videotype);
+	}
+
+//	printf("url=%s, videotype=%s, password=%ld\n", url, videotype, result.passwd);
+
+#if 0
+	if (passwd == 0)
+		return GetLocalFile(code);
+	else  {
+		char p[33] ={0, };
+		tmp = GetPassword(passwd, p, 16);
+		sprintf(url, "/tmp/song/%s@%s", code, tmp);
+	}		
+#endif
+
+#else
+	sprintf(url, "/tmp/song/%s", code);
+#endif
 	return url;
 }
 

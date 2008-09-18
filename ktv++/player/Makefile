@@ -21,7 +21,7 @@ ifeq ($(ENABLE_NETPLAYER), yes)
 	RMCFLAGS += -DNETPLAYER
 	SRC += $(LIBSRC)
 else
-	LDFLAGS += -lplayctrl
+	LDFLAGS += -lplayctrl -lnetio -lsqlite
 #	SRC += $(LIBSRC)
 endif
 
@@ -31,7 +31,7 @@ LOCAL_MAKEFILE := Makefile
 RMCFLAGS += -I../ -I../../lib
 RMCFLAGS += -I/RMF/RMF_src/externalapi/rmf -I/RMF/RMF_src/externalapi/rmproperties/include -DDATAPATH=\"/ktvdata\"
 RMCFLAGS += -I/RMF/RUA_src/realmagichwl/include -g
-LDFLAGS  += -L/RMF/lib -lrmcaribbeanapi -ljpeg -lm -L. -L../../lib -lktv
+LDFLAGS  += -L/RMF/lib -lrmcaribbeanapi -ljpeg -lm -L. -L../../lib -lktv -lnetio
 LDFLAGS  += -g
 
 ifeq ($(ENABLE_OSDMENU), yes)

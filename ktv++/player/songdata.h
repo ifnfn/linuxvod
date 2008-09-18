@@ -13,7 +13,7 @@
 #define mptMute     4
 #define mptClean    5
 
-
+int CreateUdpBind(int port);
 int AppendClientToList       (struct sockaddr clientaddr);            // 增加工作站
 int AppendIPToList           (const char *ip);
 inline void CloseUdpSocket   (void);                                  // 关闭 UDP 连接

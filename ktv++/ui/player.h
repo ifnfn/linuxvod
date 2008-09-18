@@ -24,8 +24,8 @@ public:
 	~CPlayer();
 public:
 	CKtvTheme *theme;
-	bool SendPlayerCmdNoRecv(char *cmd);            // 发送网络播放器命令, 无回复消息
-	bool SendPlayerCmdAndRecv(char *cmd);           // 发送命令并且等回复消息
+	bool SendPlayerCmdNoRecv(const char *cmd);            // 发送网络播放器命令, 无回复消息
+	bool SendPlayerCmdAndRecv(const char *cmd);           // 发送命令并且等回复消息
 public:
 	void NetAddSongToList(MemSongNode *rec);        // 向已点歌曲列表中增加记录
 	bool NetDelSongFromList(SelectSongNode *rec);   // 从已点歌曲列表中删除记录
@@ -39,7 +39,7 @@ public:
 	int  AddVolume();                               // 增加音量
 	int  DecVolume();                               // 减小音量
 private:
-	char *SendPlayerCmd(char *format, ...);
+	char *SendPlayerCmd(const char *format, ...);
 	void GetURL(char *data, const char *format, ...);
 	int RecvUdpBuf(int fd, char *msg, int MaxSize);
 	void ClearSocketBuf();                          // 清空套接字缓冲区

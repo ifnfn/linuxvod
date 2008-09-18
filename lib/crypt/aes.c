@@ -6,7 +6,6 @@
 
 #include "aes.h"
 #include "md5.h"
-#include "base64.h"
 #include "hd.h"
 
 #define BUFSIZE (16*512)
@@ -362,7 +361,7 @@ int AesReadFile(struct AesFile *aes, void *ptr, size_t size, off_t offset)
 		data_len += len - p_offset;
 		p_offset = 0;
 	}
-	printf("dat_len=%d\n", data_len);
+//	printf("dat_len=%d\n", data_len);
 
 	return data_len;
 }
@@ -467,11 +466,12 @@ int AesDecryptFile(const char *infile, const char *outfile, uint8_t *passwd)
 		len = AesReadFile(aes, databuf, 4096, offset);
 		if (len <=0) 
 			break;
-//		printf("offset = %ld, len=%d\n", offset, len);
+		printf("offset = %ld, len=%d\n", offset, len);
 		offset += len;
 		fwrite(databuf, len, 1, fh_out);
 	}
 
+#if 1
 	int i;
 	for (i=0; i<10000; i++) {
 		offset = random() % aes->Head.DataLen;
@@ -481,6 +481,7 @@ int AesDecryptFile(const char *infile, const char *outfile, uint8_t *passwd)
 			fwrite(databuf, 1, len, fh_out);
 		}
 	}
+#endif
 
 	fclose(fh_out);
 	AesCloseFile(aes);
@@ -488,13 +489,44 @@ int AesDecryptFile(const char *infile, const char *outfile, uint8_t *passwd)
 	return 0;
 }
 
-char *AesEncryptAndBase64(const char *string, const char *passwd)
+char *Hex2Str(unsigned char *outstr, unsigned char *in, int len)
+{
+	unsigned int i;
+
+	sprintf(outstr, "%02x", len);
+	for (i = 0; i < len; i++)
+		sprintf(outstr+(i+1)*2,"%02X", in[i]);
+
+	return outstr;
+}
+
+char xtod(char c) 
+{
+	if (c>='0' && c<='9') return c-'0';
+	if (c>='A' && c<='F') return c-'A'+10;
+	if (c>='a' && c<='f') return c-'a'+10;
+	return c=0;        // not Hex digit
+}
+ 
+int Str2Hex(unsigned char *outstr, unsigned char *in)
+{
+	unsigned int i;
+	int len = xtod(in[0]) << 4 | xtod(in[1]);
+
+	for (i=0; i<len; i++) {
+		outstr[i] = xtod(in[i*2+2]) << 4 | xtod(in[i*2+3]);
+	}
+
+	return len;
+}
+
+char *AesEncryptString(const char *string, const char *passwd)
 {
 	uint8_t     password[17] = {0,};
 	AVAES*      aesc;
 	uint8_t     len, count;
 	uint8_t*    new_string;
-	uint8_t     base64[1024] = {0, };
+	uint8_t     base[512] = {0, };
 	
 	len = strlen(string);
 	count = len % 16 > 0 ? len / 16 + 1 : len / 16;
@@ -512,20 +544,19 @@ char *AesEncryptAndBase64(const char *string, const char *passwd)
 	new_string[0] = len;
 	free(aesc);
 
-	to64frombits(base64, new_string, len + 1);
+	Hex2Str(base, new_string, len +1);
 	free(new_string);
 
-	return strdup(base64);
+	return strdup(base);
 }
 
-char *AesDecryptAndBase64(const char *base_string, const char *passwd)
+char *AesDecryptString(const char *base_string, const char *passwd)
 {
 	uint8_t    len;
 	uint8_t    password[17] = {0, };
-	uint8_t    base[1024] = {0, };
+	uint8_t    base[512] = {0, };
 
-	from64tobits(base, base_string);
-	len = base[0];
+	len = Str2Hex(base, base_string);
 	AVAES *aesc = malloc(av_aes_size);
 
 	strncpy(password, passwd, strlen(passwd));
@@ -536,7 +567,7 @@ char *AesDecryptAndBase64(const char *base_string, const char *passwd)
 	return strdup(base + 1);
 }
 
-char *AesEncryptAndBase64DefaultPwd(const char *string)
+char *AesEncryptStringDefault(const char *string)
 {
 	time_t timep;
 	struct tm *p;
@@ -545,10 +576,11 @@ char *AesEncryptAndBase64DefaultPwd(const char *string)
 	time(&timep);
 	p=gmtime(&timep);
 	sprintf(usekey, "%d%d%d%d", p->tm_mday, p->tm_mon, p->tm_year, p->tm_wday);
-	return AesEncryptAndBase64(string, usekey);
+
+	return AesEncryptString(string, usekey);
 }
 
-char *AesDecryptAndBase64DefaultPwd(const char *base_string)
+char *AesDecryptStringDefault(const char *base_string)
 {
 	time_t timep;
 	struct tm *p;
@@ -557,7 +589,7 @@ char *AesDecryptAndBase64DefaultPwd(const char *base_string)
 	time(&timep);
 	p=gmtime(&timep);
 	sprintf(usekey, "%d%d%d%d", p->tm_mday, p->tm_mon, p->tm_year, p->tm_wday);
-	return AesDecryptAndBase64(base_string, usekey);
+	return AesDecryptString(base_string, usekey);
 }
 
 int AesCheckEncryptFile(const char *filename)
@@ -577,7 +609,7 @@ int AesCheckEncryptFile(const char *filename)
 	return err;
 }
 
-int AesMD5VerifyFile(const char *filename)
+int AesMD5VerifyFile(const char *filename, char *md5str)
 {
         FILE*     fh_in;
 	int       len;
@@ -589,7 +621,7 @@ int AesMD5VerifyFile(const char *filename)
 
 	if (ReadAesHead(fh_in, &Head, NULL) == 0){
 		MD5_CTX md5_ctx;
-		uint8_t md5[16];
+		uint8_t md5[16] = {0, };
 
 		MD5Init(&md5_ctx);
 		while( !feof(fh_in) ) {
@@ -598,14 +630,17 @@ int AesMD5VerifyFile(const char *filename)
 		}
 		fclose(fh_in);
 		MD5Final(md5, &md5_ctx);
-		if (memcmp(md5, Head.md5, 16) == 0)
+		if (memcmp(md5, Head.md5, 16) == 0) {
+			if (md5str) 
+				MD5Print(md5, md5str, 16);
 			return 0;
+		}
 	}
 
 	return -1;
 }
 
-long GetSizeByFileName(const char *filename)
+long GetAesFileSizeByName(const char *filename)
 {
         FILE*     fh_in;
 	AesHead   Head;
@@ -627,7 +662,7 @@ long GetAesFileSize(struct AesFile *aes)
 
 char *GetPassword(long long id, char *passwd, int len)
 {
-	char base[256];
+	char base[512];
 	char md5[33] = {0, }, outkey[33] = {0, };
 
 	if (id != 0) {
@@ -640,45 +675,48 @@ char *GetPassword(long long id, char *passwd, int len)
 		MD5Init(&context);
 		MD5Update(&context, outkey, strlen(outkey));
 		MD5Final(digest, &context);
-		MDPrint(digest, passwd, len / 2);
+		MD5Print(digest, passwd, len / 2);
 
 		return passwd;
 	}
-	else
-		return NULL;
+
+	return NULL;
 }
 
 #ifdef TEST
 int main(int argc, char **argv)
 {
-//	char passwd[33] = {0, };
-//	GetPassword(atoll(argv[1]), passwd, 16);
-//	printf("passwd=%s\n", passwd);
-//	return 0;
-//	printf("AesFile=%d\n", sizeof(AesHead));
-//
-//	AesDecryptFile("a", "b", "cnsczd");
-//	return 0;
-//
-
 	if (argv[1][0] == 'e') {
 		AesEncryptFile(argv[2], argv[3], argv[4]);
-		if ( AesMD5VerifyFile(argv[3]) == 0)
-			printf("md5 ok\n");
+	}
+	else if (argv[1][0] == 'c') {
+		char md5[33] = {0, };
+		if ( AesMD5VerifyFile(argv[2], md5) == 0)
+			printf("%s is ok: %s\n", argv[2], md5);
 		else
-			printf("md5 error\n");
-			
+			printf("%s is error\n", argv[2]);
+	}
+	else if (argv[1][0] =='p') {
+		char passwd[33] = {0, };
+		GetPassword(atoll(argv[2]), passwd, 16);
+		printf("passwd=%s\n", passwd);
 	}
 	else if (argv[1][0] == '6') {
-		char *s = AesEncryptAndBase64DefaultPwd(argv[2]);
-		char *b = AesDecryptAndBase64DefaultPwd(s);
+		char *s = AesEncryptStringDefault(argv[2]);
+		char *b = AesDecryptStringDefault(s);
 		printf("s = %s\n", s);
 		printf("b = %s\n", b);
 		free(s);
 		free(b);
 	}
-	else
+	else if (argv[1][0] =='d') 
 		AesDecryptFile(argv[2], argv[3], argv[4]);
+	else if (argv[1][0] == 'h'){
+		printf("aes <e> <source> <dest> <password>     Encrypt\n"
+		       "aes <c> <source>                       Check encrypt file MD5\n"
+		       "aes <p> <password>                     Display new password\n"
+	    	       "aes <d> <source> <dest> <password>     Decrypt\n");
+	}
 
 	return 0;
 }

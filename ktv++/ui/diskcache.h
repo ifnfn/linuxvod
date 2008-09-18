@@ -61,7 +61,7 @@ public:
 	}
 	static void SetPath(const char* root, const char* localroot);
 	CUrlBuffer* OpenFile(const char* filename, bool memory, bool savefile);
-	void* ReadBuffer(char* filename, size_t& size, bool savefile=false);
+	void* ReadBuffer(const char* filename, size_t& size, bool savefile=false);
 
 	bool Download(const char* filename);
 	void RemoveChild(CUrlBuffer* pChild) {
@@ -75,6 +75,7 @@ public:
 		pathcat(url, RootNet.data(), filename);
 		if (url_exist(url))
 			return url;
+
 		return NULL;
 	}
 	bool LocalExists(const char* filename) {

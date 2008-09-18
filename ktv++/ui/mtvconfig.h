@@ -54,7 +54,7 @@ private:
 	int ReadThemeCount();               // 从配置文件中读取界面配置
 	int ReadSoundMode();
 	int ReadFontDefine();
-	const char *ReadConfig(char *conf);
+	const char *ReadConfig(const char *conf);
 	void GetPlayerIP();                 // 取播放器IP地址a
 
 	CFontFactory *fonts;

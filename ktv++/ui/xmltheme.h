@@ -125,7 +125,7 @@ public:
 		filter = "";
 		keyname = "";
 		rect.top = rect.left = rect.bottom = rect.right = 0;
-		tag = 0;
+		private_data = NULL;
 		activecolor = argb2color(0,255,0,0);
 		sys_value = mtv_value = 0;
 		tagfilter = 0;
@@ -141,7 +141,7 @@ public:
 #ifdef DEBUG
 	void PrintOption();
 #endif
-	long tag;
+	void *private_data;
 	CKtvFont *font;
 	TColor activecolor;
 	TColor color;

@@ -336,7 +336,7 @@ void CSelectedWindow::DrawWindowOpt()
 		if (tmp){
 			tmp->title = SelectedList.items[startid+i].SongName;
 			gui->DrawTextOpt(tmp);
-			tmp->tag = (long)(SelectedList.items + startid + i);
+			tmp->private_data = SelectedList.items + startid + i;
 		}
 	}
 
@@ -344,7 +344,7 @@ void CSelectedWindow::DrawWindowOpt()
 	{
 		tmp = SongListOpt[i];
 		if (tmp)
-			tmp->tag = 0;
+			tmp->private_data = NULL;
 	}
 }
 
@@ -459,10 +459,10 @@ bool CSelectedWindow::InputProcess(InputEvent *event)
 		case DIKC_6:
 		case DIKC_7:
 		case DIKC_0:
-			if (event->option->tag > 0)
+			if (event->option->private_data != NULL)
 			{
 				SelectSongNode *tmp;
-				tmp = (SelectSongNode *)(event->option->tag);
+				tmp = (SelectSongNode *)(event->option->private_data);
 				if (optstate)
 					player->NetDelSongFromList(tmp);
 				else
@@ -733,12 +733,13 @@ void CDataBaseWindow::DrawWindowOpt()
 			tmp->font->SetFont(datadb->CurPage.RecList[i]->Charset);
 			tmp->active = SongCodeInList(datadb->CurPage.RecList[i]->SongCode);
 			gui->DrawTextOpt(tmp, NULL);
-			tmp->tag = (long)(datadb->CurPage.RecList[i]);
+			tmp->private_data = datadb->CurPage.RecList[i];
 		}
 	}
 	for (;i<SongOptCount;i++) {
 		tmp = SongListOpt[i];
-		if (tmp) tmp->tag = 0;
+		if (tmp) 
+			tmp->private_data = NULL;
 	}
 	if (msgopt)  // 显示标题
 	{
@@ -920,9 +921,9 @@ bool CWBHWindow::InputProcess(InputEvent *event)
 		case DIKC_8:
 		case DIKC_9:
 		case DIKC_0:
-			if (event->option->tag > 0)
+			if (event->option->private_data != NULL)
 			{
-				tmp = (MemSongNode *)(event->option->tag);
+				tmp = (MemSongNode *)(event->option->private_data);
 				player->NetAddSongToList(tmp); /* MemSongNode */
 				event->option->active = true;
 				gui->DrawTextOpt(event->option, NULL);
@@ -941,6 +942,7 @@ bool CSongDataWindow::InputProcess(InputEvent *event)
 	if (event->option == NULL)
 		return CBaseWindow::InputProcess(event);
 	MemSongNode *tmp;
+
 	switch (event->option->mtv_value)
 	{
 		case DIKC_1:
@@ -950,9 +952,9 @@ bool CSongDataWindow::InputProcess(InputEvent *event)
 		case DIKC_5:
 		case DIKC_6:
 		case DIKC_7:
-			if (event->option->tag>0)
+			if (event->option->private_data != NULL)
 			{
-				tmp = (MemSongNode *)(event->option->tag);
+				tmp = (MemSongNode *)(event->option->private_data);
 				player->NetAddSongToList(tmp); /* MemSongNode */
 				event->option->active = true;
 				gui->DrawTextOpt(event->option, NULL);
@@ -1014,7 +1016,7 @@ bool CSingerDataWindow::InputProcess(InputEvent *event)
 		case DIKC_9:
 		case DIKC_0:
 			event->option->filter = event->option->title;
-			if (!event->option->tag)
+			if (event->option->private_data == NULL)
 				return true;
 	}
 	return CDataBaseWindow::InputProcess(event);
@@ -1033,14 +1035,14 @@ void CSingerDataWindow::DrawWindowOpt()
 			tmp->title = datadb->CurPage.RecList[i]->SongName;
 			DrawSingerPhoto(datadb->CurPage.RecList[i]->SongName, SingerListOpt[i]->rect);
 			gui->DrawTextOpt(tmp);
-			tmp->tag = 1;
+			tmp->private_data = (void*)1;
 		}
 	}
 	for (;i<SongOptCount;i++)
 	{
 		tmp = SongListOpt[i];
 		if (tmp)
-			tmp->tag = 0;
+			tmp->private_data = (void*)0;
 	}
 
 	// 将 for 分成两次，这样就不需要每次都换一次字体，提高效率
@@ -1062,7 +1064,6 @@ bool CSingerDataWindow::DrawSingerPhoto(char *fn, const RECT Rect) /* 显示歌星图
 
 	sprintf(cBuf, "%s%s%s", DATAPATH"photos/", fn, SINGERPICTYPE);
 
-	printf("Singer Photo file: %s\n", cBuf);
 	int fp = -1;
 	if( (fp = open((const char *)cBuf, O_RDONLY, 0)) != -1)
 	{
@@ -1075,7 +1076,6 @@ bool CSingerDataWindow::DrawSingerPhoto(char *fn, const RECT Rect) /* 显示歌星图
 			read(fp, data, size);
 			close(fp);
 		}
-		printf("Local Singer image file: %s\n", cBuf);
 	}
 	else if (theme->config->haveserver)// 下载数据
 		data = (char *)theme->DownSingerPhoto(fn, size);
@@ -1262,7 +1262,7 @@ bool CHandWriteWindow::InputProcess(InputEvent *event)
 			WriteFinish(HzListOpt[0], true);
 			break;
 		case DIKC_0:
-			if (!event->option->tag)
+			if (event->option->private_data == NULL)
 				return true;
 	}
 	return CBaseWindow::InputProcess(event);

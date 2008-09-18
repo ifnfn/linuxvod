@@ -227,7 +227,7 @@ static void GetBinMD5(char *command, const char *BinFile)
 	unsigned char digest[33];
 	char md5[33];
 	MD5Final(digest, &context);
-	MDPrint(digest, md5, 16);
+	MD5Print(digest, md5, 16);
 #ifdef SHOWMD5
 	printf("%s: %s\n", BinFile, md5);
 #endif

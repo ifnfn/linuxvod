@@ -1,6 +1,6 @@
 CC     = $(CROSS_COMPILE)gcc
 
-CFLAGS=-g -Os -DSELF_AES
+CFLAGS=-g -Os
 LDFLAGS=$(CFLAGS)
 LIBS=
 DESTDIR=/usr/local/ghttpd

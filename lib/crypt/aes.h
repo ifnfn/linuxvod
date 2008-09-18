@@ -72,25 +72,25 @@ void AesCloseFile  (struct AesFile *aes);
 long GetAesFileSize(struct AesFile *aes);
 AesHead *GetAesHead(struct AesFile *aes);
 
-int ReadAesHead   (FILE *fp, AesHead *aeshead, uint8_t *passwd);
+int ReadAesHead        (FILE *fp, AesHead *aeshead, uint8_t *passwd);
 
-int AesEncryptFile(const char *infile, const char *outfile, uint8_t *passwd);
-int AesDecryptFile(const char *infile, const char *outfile, uint8_t *passwd);
-int AesMD5VerifyFile(const char *filename);
+int AesEncryptFile     (const char *infile, const char *outfile, uint8_t *passwd);
+int AesDecryptFile     (const char *infile, const char *outfile, uint8_t *passwd);
+int AesMD5VerifyFile   (const char *filename, char *md5);
 int AesCheckEncryptFile(const char *filename);
-long GetSizeByFileName(const char *filename);
+long GetAesFileSizeByName(const char *filename);
 /**
  * 将字符串string 用aes 加密后通过base64 编码
  */ 
-char *AesEncryptAndBase64(const char *string, const char *passwd);
+char *AesEncryptString(const char *string, const char *passwd);
 
 /**
  * 将 base_string 用base64解码后再用aes 解密，返回明文字符串
  */ 
-char *AesDecryptAndBase64(const char *base_string, const char *passwd);
-char *AesEncryptAndBase64DefaultPwd(const char *string);
-char *AesDecryptAndBase64DefaultPwd(const char *base_string);
-char *GetPassword(long long id, char *passwd, int len);
+char *AesDecryptString(const char *base_string, const char *passwd);
+char *AesEncryptStringDefault(const char *string);
+char *AesDecryptStringDefault(const char *base_string);
+char *GetPassword           (long long id, char *passwd, int len);
 
 #ifdef __cplusplus
 }

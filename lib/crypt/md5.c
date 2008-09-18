@@ -272,7 +272,7 @@ static void MD5_memset (POINTER output, int value, unsigned int len)
 		((char *)output)[i] = (char)value;
 }
 
-void MDPrint(unsigned char digest[16], char *outstr, int len)
+void MD5Print(unsigned char digest[16], char *outstr, int len)
 {
 	unsigned int i;
 

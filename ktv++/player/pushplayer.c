@@ -22,59 +22,43 @@
 
 static void *PlayVstpQueueThread(void *val)
 {
-	INFO *tmpInfo = val;
-#ifdef NETPLAYER
-	RMTbuffer *sentbuffer;
-	unsigned int readBytes;
-#endif
+	struct sockaddr ClientAddr;
+	char msg[512];
+	INFO *tmpInfo = (INFO *)val;
+	fd_set fdread;
+	int ret, addrlen;
+	struct timeval tv;
+
 	CHKREG
+	int udpsock = CreateUdpBind(6788);
+	SetBlocking(udpsock);
 	while (!tmpInfo->quit){
-		if (tmpInfo->PlayStatus == stStop){                     // 如果已播放完
-			if (!SongListFirstPlay(tmpInfo)){               // 如果播放列表中第一首播不了，
-				if (tmpInfo->PlaySelect  == psSelected)
-					DeleteFirstSongList();          // 删除第一首歌
-				usleep(10);
-				continue;
-			}
-		}
-		if (tmpInfo->PlayStatus == stStop){
-			usleep(10);
+		if (tmpInfo->PlayStatus == stStoped) 
+			SongListFirstPlay(tmpInfo);               // 如果播放列表中第一首播不了，
+
+		VodSyncAudioStream(tmpInfo);
+		FD_ZERO(&fdread);
+		FD_SET(udpsock, &fdread);
+
+		tv.tv_sec = 0;
+		tv.tv_usec= 1000 * 100;
+		if ((ret = select(udpsock + 1, &fdread, NULL, NULL, &tv)) == -1){
+			perror("select socket error.\n");
 			continue;
 		}
-#ifdef NETPLAYER
-		if (tmpInfo->type == RM_INPUT_PUSH) {
-			while (tmpInfo->PlayStatus != stStop) {
-				sentbuffer = GetPushDataBuf(tmpInfo);
-				if (sentbuffer == NULL) {
-					DEBUG_OUT("sentbuffer = NULL, out memory.\n");
-					break;
-				}
-				readBytes = ReadUrl(tmpInfo->PlayVstp, (char*)sentbuffer->buffer, sentbuffer->bufferSize); // 读数据
-				if (readBytes == 0) {    // 如果数据已经读完,加入usleep,
-					usleep(10);      // 等待播放完成
-				}
-				sentbuffer->dataSize = readBytes;
-				sentbuffer->flags = tmpInfo->flags;
-				if (readBytes == 0){
-					RMFPushBuffer(tmpInfo->PushCtrl, (RMTbuffer*) NULL);
-					sentbuffer->flags |= RMF_DISCARD;
-				}
-				RMFPushBuffer(tmpInfo->PushCtrl, sentbuffer);
+		if (FD_ISSET(udpsock, &fdread)) {
+			addrlen = sizeof(struct sockaddr_in);
+			int len = recvfrom(udpsock, msg, 511, 0, &ClientAddr ,(socklen_t*)&addrlen);
+			if (len > 0) {
+				msg[len] = '\0';
+				if (strcasecmp(msg, "WHO") == 0)
+					ClientLogin(1);
+				else
+					process(tmpInfo, msg, NULL, udpsock);
 			}
-		} else 
-#endif
-		{
-			while (tmpInfo->PlayStatus != stStop)
-				usleep(1000);
-		}
-		StopPlayer(tmpInfo);     // 停止播放器
-		if (!tmpInfo->KeepSongList)
-			DeleteFirstSongList();
-		if (!tmpInfo->PlayCancel) {
-			usleep(NextDelayTime *1000);
-			CHKREG
 		}
 	}
+
 	return NULL;
 }
 
@@ -93,10 +77,10 @@ static int CreateTCPBind(int port)
         n = 1;
         setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void*)&n, sizeof(n));
 
-	my_addr.sin_family = AF_INET;         /* host byte order             */
-	my_addr.sin_port = htons(port);       /* short, network byte order   */
-	my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP        */
-	bzero(&(my_addr.sin_zero), 8);        /* zero the rest of the struct */
+	my_addr.sin_family      = AF_INET;     /* host byte order             */
+	my_addr.sin_port        = htons(port); /* short, network byte order   */
+	my_addr.sin_addr.s_addr = INADDR_ANY;  /* auto-fill with my IP        */
+	bzero(&(my_addr.sin_zero), 8);         /* zero the rest of the struct */
 
 	if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1) {
 		printf("bind: Could not bind to port, exiting\n");
@@ -107,7 +91,7 @@ static int CreateTCPBind(int port)
 		printf("listen: Unable to do a listen()\n");
 		exit(1);
 	}
-	printf("Create TCP Server at port %d\n", port);
+	DEBUG_OUT("Create TCP Server at port %d\n", port);
 
 	return sockfd;
 }
@@ -155,14 +139,14 @@ static int ConnectWorkThread(INFO *pInfo, int sockfd)
 	}
 
 	getpeername(sockfd, (struct sockaddr *)&sa, (socklen_t*)&addrlen);
-//	printf("Connection from %s, request = \"%s %s\"\n", inet_ntoa(sa.sin_addr), status, ptr);
+	DEBUG_OUT("Connection from %s, request = \"%s %s\"\n", inet_ntoa(sa.sin_addr), status, ptr);
 
 	// ***** PATCH *****
 	// Replaces %20s of the message string by blanks
 	while (strstr(ptr,"%20")!=NULL) {
 		stringpos = strstr(ptr, "%20");
 		*stringpos = (char)32;
-		strcpy(stringpos+1, stringpos+3);
+		strcpy(stringpos + 1, stringpos + 3);
 	}
 	// ***** END *****
 
@@ -213,7 +197,6 @@ int main(int argc, char **argv)
 	strcpy(videourl, DATAPATH"/video.ini");
 #endif
 	InitSongList();
-//	printf("video=%s\nplay=%s\n", videourl, playurl);
 	ReadPlayIniConfig(playurl, videourl);
 #ifdef OSDMENU
 	int i;

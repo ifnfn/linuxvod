@@ -51,7 +51,7 @@ void ReadPlayIniConfig(char *PlayIni, char *VideoIni);
 inline char *GetRandomDefaultSong(void);   // 得到随机的默认歌曲
 inline char *GetRandomHiSong(void);        // 得到随机的HI歌曲
 inline char *GetSoundMode(const char *modename);
-char *GetLocalFile(char *code, char *ext); // 给定编号，返回本地存在的文件名
-char *GetHttpURL(char *code, long passwd);
+//char *GetLocalFile(char *code); // 给定编号，返回本地存在的文件名
+char *GetFuseFile(char *url, char *videotype, char *code);
 
 #endif

@@ -68,6 +68,7 @@ char *DesDecryptFileToBuf(const char *infile, long *datalen, const char *KeyStr)
 // desfile : 已用DES加密的文件，deskey：加密的密码
 /*****************************************************************************/
 bool CheckPasswd(const char *desfile, char *deskey);
+
 #ifdef __cplusplus
 }
 #endif

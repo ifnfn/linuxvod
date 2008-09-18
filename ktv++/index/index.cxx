@@ -114,7 +114,7 @@ static int SongDataCallback(void *NotUsed, int argc, char **argv, char **azColNa
 	if (argc > 16 && argv[16]) data.Sound       = argv[16][0];
 	if (argc > 17 && argv[17]) data.SoundMode   = atoi(argv[17]);
 	if (argc > 18 && argv[18]) data.IsNewSong   = atoi(argv[18]);
-	if (argc > 19 && argv[19]) data.Password    = atol(argv[19]);
+//	if (argc > 19 && argv[19]) data.Password    = atol(argv[19]);
 
 //	printf("data.charset=%d(%s)\n", data.Charset, argv[10]);
 //	printf("data.Language%s(%s)\n", data.Language, argv[3]);
@@ -160,24 +160,29 @@ static int PasswordCallback(void *NotUsed, int argc, char **argv, char **azColNa
 	long long password = atoll(argv[1]);
 
 	if (GetPassword(password, passwd, 16) ) {
-		char filename[100];
-		struct stat statbuf;
-		char *extname[] = {"div", "divx", "dat", "m1s", "vob", "avi", NULL};
-		int i =0;
+		char              filename[100];
+		struct stat       statbuf;
+		const char        *extname[] = {"div", "divx", "dat", "m1s", "vob", "avi", "aes", NULL};
+		char              *pwdfile;
+		int               i = 0;
+		sprintf(filename, "%s@%s", argv[0], argv[1]);
+		pwdfile = AesEncryptStringDefault(filename);
+		printf("pwdfile=%s\n", pwdfile);
+		if (pwdfile)
+			free(pwdfile);
 
 		while (extname[i]) {
 			sprintf(filename, "./%s.%s", argv[0], extname[i]);
 			if (stat(filename, &statbuf) == 0){
+				printf("echo \"aes e %s %s.aes %s\"\n", filename, argv[0], passwd);
 				printf("aes e %s %s.aes %s\n", filename, argv[0], passwd);
 				printf("if [ -f %s.aes ]; then\n"
-						"rm -f %s\n"
+						"    rm -f %s\n"
 						"fi\n", argv[0], filename);
 				return 0;
 			}
 			i++;
 		}
-			
-		printf("%s\t%s\n", argv[0], passwd);
 	}
 	
 //	printf("%s=%s\n", azColName[0], argv[0]);
@@ -202,7 +207,7 @@ static int haveDBdata(sqlite *db, const char *code)
 	sprintf(sql, "SELECT code FROM system WHERE code='%s'", code);
 //	printf("%s(%s): %s\n", __FUNCTION__, code, sql);
 
-	sqlite_exec(db, sql, UpdateCallback, &count, NULL);
+	sqlite_exec(NULL, db, sql, UpdateCallback, &count, NULL);
 	return count;
 }
 
@@ -244,18 +249,18 @@ int IndexFromServer(sqlite *db)
 	}
 	close(udpfd);
 
-	sqlite_exec(db, "BEGIN TRANSACTION;", NULL, 0, NULL);
-	sqlite_exec(db, "UPDATE system SET havesong=0;", NULL, 0, NULL);
+	sqlite_exec(NULL, db, "BEGIN TRANSACTION;", NULL, 0, NULL);
+	sqlite_exec(NULL, db, "UPDATE system SET havesong=0;", NULL, 0, NULL);
 	char sql[1024];
 	char *code = strtok(buf, "\n");
 	while (code)
 	{
 		sprintf(sql, "UPDATE system SET havesong=1 WHERE code='%s';", code);
-		sqlite_exec(db, sql, NULL, 0, NULL);
+		sqlite_exec(NULL, db, sql, NULL, 0, NULL);
 		code = strtok(NULL, "\n");
 	}
 
-	sqlite_exec(db, "COMMIT;", NULL , 0, NULL);
+	sqlite_exec(NULL, db, "COMMIT;", NULL , 0, NULL);
 	return 0;
 }
 
@@ -275,13 +280,13 @@ static int fn(const char *file, const struct stat *sb, int flag)
 		ExtractFilePath(file, path);
 		ExtractFileName(file, code);
 		ExtractFileExt (file, extname);
-		if ((strcasecmp(extname, "mpg") == 0) ||
+		if ((strcasecmp(extname, "") == 0) ||
+			(strcasecmp(extname, "aes" ) == 0) ||
+			(strcasecmp(extname, "div" ) == 0) ||
 			(strcasecmp(extname, "dat" ) == 0) ||
-			(strcasecmp(extname, "m1s" ) == 0) ||
 			(strcasecmp(extname, "vob" ) == 0) ||
-			(strcasecmp(extname, "divx") == 0) ||
-			(strcasecmp(extname, "avi" ) == 0) ||
-			(strcasecmp(extname, "div" ) == 0) )
+			(strcasecmp(extname, "mpg" ) == 0) ||
+			(strcasecmp(extname, "avi" ) == 0) )
 		{
 			filenum++;
 			if (view_nodata == 1) {
@@ -289,7 +294,7 @@ static int fn(const char *file, const struct stat *sb, int flag)
 					printf("rm %s\n", file);
 			}
 			sprintf(buf, "UPDATE system SET havesong=1,filesize=%ld WHERE code='%s';", sb->st_size, code);
-			sqlite_exec(localdb, buf, NULL, 0, NULL);
+			sqlite_exec(NULL, localdb, buf, NULL, 0, NULL);
 
 		}
 	}
@@ -298,37 +303,36 @@ static int fn(const char *file, const struct stat *sb, int flag)
 
 int IndexLocal(sqlite *db, const char *indexpath)
 {
-	sqlite_exec(db, "BEGIN TRANSACTION;", NULL , 0, NULL);
-	sqlite_exec(db, "UPDATE system SET havesong=0;", NULL , 0, NULL);
+	sqlite_exec(NULL, db, "BEGIN TRANSACTION;", NULL , 0, NULL);
+	sqlite_exec(NULL, db, "UPDATE system SET havesong=0;", NULL , 0, NULL);
 	localdb = db;
 	filenum =0;
 	ftw(indexpath, fn, 500);
-	sqlite_exec(db, "COMMIT;", NULL , 0, NULL);
+	sqlite_exec(NULL, db, "COMMIT;", NULL , 0, NULL);
 	fprintf(stderr, "\n\nFound Song Number: %ld\n", filenum);
 	return filenum;
 }
 
 int main(int argc, char **argv)
 {
+	sqlite   *db             = NULL;
+	char     filename[512]   = "/ktvdata/song2000.db";
+	char     sql[1024]       = "";
+	char     indexpath[512]  = "/tmp/video";
+	char     singerfile[200] = "/ktvdata/singerdata";
+	char     songfile[200]   = "/ktvdata/songdata";
+	int      createtablesql  = 0;
+	char     tablename[200]  = "", fields[1024] ="*";
+	int      fromnet         = 2;
+	int      print           = 0;
+	int      update          = 0;
+	char     sqlfile[512]    = "";
+	int      setupdate       = 0;
+	int      show_password   = 0;
+//	char     *source_path    = NULL, dest_path = NULL;
+	char     ch;
+
 	av_register_all();
-
-	sqlite *db = NULL;
-
-	char filename[512] = "/ktvdata/song2000.db";
-	char sql[1024] = "";
-	char indexpath[512] ="/tmp/video";
-
-	char singerfile[200]="/ktvdata/singerdata", songfile[200]="/ktvdata/songdata";
-	int createtablesql = 0;
-	char tablename[200] = "", fields[1024] ="*";
-	int fromnet = 2;
-	int print = 0;
-	int update = 0;
-	char sqlfile[512]="";
-	int setupdate=0;
-	int show_password=0;
-	char ch;
-	
 	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:c:t:w:hnlpuv"))!= -1)
 	{
 		switch (ch)
@@ -388,12 +392,24 @@ int main(int argc, char **argv)
 					"[-b <singerdatafile>]\n" 
 					"[-c <tablename>] [-t <fields>]\n"
 					"[-w <songcode>]\n"
-					"[-d <video>] [-l/-n] [-m] [-v] [-h]\n", argv[0]);
+					"[-[-d <destpath>]\n"
+					"[-d <video>] [-l/-n] [-m] [-v] [-h]\n"
+					"-q,               SQL script file\n"
+					"-f,               the database file song2000.db\n"
+					"-s,               execture SQL command\n"
+					"-a,               create songdata file\n"
+					"-b,               create singerdata file\n"
+					"-c, -t,           create table by field SQL script\n"
+					"-w,               password\n"
+					"-d,               set the video file path\n"
+					"-l/-n,            -l from local -n from net\n"
+					
+					, argv[0]);
 				exit(0);
 		}
 	}
 
-	db = sqlite_open(filename, 0, &zErrMsg);
+	db = sqlite_open(NULL, filename, 0, &zErrMsg);
 	if (db == NULL)
 	{
 		printf("error: %s\n", zErrMsg);
@@ -401,24 +417,25 @@ int main(int argc, char **argv)
 	}
 
 	if (show_password) {
-		strcpy(sql, "select code,password from system where havesong=1");
+		strcpy(sql, "select code,abs(password) from system ");// where havesong=1 and ");
 		if (fields[0] != '*') {
-			strcat(sql, " and code='");
+			strcat(sql, "where code='");
 			strcat(sql, fields);
 			strcat(sql, "'");
 		}
-		sqlite_exec(db, sql, PasswordCallback, NULL, &zErrMsg);
+		strcat(sql, " order by code");
+		sqlite_exec(NULL, db, sql, PasswordCallback, NULL, &zErrMsg);
 		return 0;
 	}
 	if (setupdate) {
-		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
+		sqlite_exec(NULL, db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
 		exit(1);
 	}
 
 	if (strcasecmp(sql, ""))
 	{
-		sqlite_exec(db, sql, SqliteCallback, 0, &zErrMsg);
-		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
+		sqlite_exec(NULL, db, sql, SqliteCallback, 0, &zErrMsg);
+		sqlite_exec(NULL, db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
 		return 1;
 	}
 	if (strcasecmp(sqlfile, ""))
@@ -429,23 +446,23 @@ int main(int argc, char **argv)
 		while (!feof(fp))
 		{
 			if ( fgets(sql, 1024, fp) != NULL)
-				sqlite_exec(db, sql, NULL, 0, NULL);
+				sqlite_exec(NULL, db, sql, NULL, 0, NULL);
 		}
 		fclose(fp);
-		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
+		sqlite_exec(NULL, db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
 		return 2;
 	}
 
 	if (!update) {
-		sqlite_exec(db, "SELECT IndexTag FROM UpdateIndex;", UpdateCallback, &update, NULL);
-		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=0;", NULL, NULL, NULL);
+		sqlite_exec(NULL, db, "SELECT IndexTag FROM UpdateIndex;", UpdateCallback, &update, NULL);
+		sqlite_exec(NULL, db, "UPDATE UpdateIndex SET IndexTag=0;", NULL, NULL, NULL);
 	}
 
 	if (createtablesql) {
 		sprintf(sql, "SELECT %s from %s;", fields, tablename);
 		printf("%s\n", sql);
 		printf("BEGIN TRANSACTION;\n");
-		sqlite_exec(db, sql, CreateSQLCallback, tablename, &zErrMsg);
+		sqlite_exec(NULL, db, sql, CreateSQLCallback, tablename, &zErrMsg);
 		printf("COMMIT;\n");
 	}
 	if (update) {
@@ -453,19 +470,19 @@ int main(int argc, char **argv)
 			IndexFromServer(db);
 		else
 			IndexLocal(db, indexpath);
-		char *sql_1 = "SELECT id,name,sex,pinyin FROM singer WHERE name in (\
+		const char *sql_1 = "SELECT id,name,sex,pinyin FROM singer WHERE name in (\
 				SELECT singer1 FROM system WHERE havesong=1) AND visible=1 ORDER by num DESC;";
-		sqlite_exec(db, sql_1, AddSingerCallback, &songindex, &zErrMsg);
+		sqlite_exec(NULL, db, sql_1, AddSingerCallback, &songindex, &zErrMsg);
 
-		char *sql_2 = "SELECT code,name,class,language,singer1,singer2,singer3,singer4,\
+		const char *sql_2 = "SELECT code,name,class,language,singer1,singer2,singer3,singer4,\
 				pinyin,wbh,videotype,charset,volumek,volumes,num,klok,sound,soundmode,\
 				isnewsong FROM system WHERE havesong=1 ORDER BY Num, PinYin, Name;";
 
-		sqlite_exec(db, sql_2, SongDataCallback, &songindex, &zErrMsg);
+		sqlite_exec(NULL, db, sql_2, SongDataCallback, &songindex, &zErrMsg);
 		songindex.CodeHashSort();
 
-		char *sql_3 = "SELECT code, PinYin, PlayNum FROM system WHERE havesong=1 ORDER BY playnum DESC LIMIT 1000";
-		sqlite_exec(db, sql_3, HotSongDataCallback, &songindex, &zErrMsg);
+		const char *sql_3 = "SELECT code, PinYin, PlayNum FROM system WHERE havesong=1 ORDER BY playnum DESC LIMIT 1000";
+		sqlite_exec(NULL, db, sql_3, HotSongDataCallback, &songindex, &zErrMsg);
 		sqlite_close(db);
 		songindex.SaveFile(songfile);
 		singerindex.SaveFile(singerfile);

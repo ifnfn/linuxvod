@@ -113,7 +113,7 @@ void CBaseWindow::Show() // ÏÔÊ¾º¯Êı
 	Restore();
 }
 
-CKtvOption **CBaseWindow::CreateOptList(char *key, char startid, char endid, int *num)
+CKtvOption **CBaseWindow::CreateOptList(const char *key, char startid, char endid, int *num)
 {
 	char opt[50];
 	int count = 0;
@@ -228,7 +228,6 @@ void CMsgWindow::CleanMsg()
 {
 	CBaseWindow *tmp = stack->WindowTop();
 	if (tmp) {
-		printf("..............................................................................\n");
 		tmp->Paint();
 	}
 }

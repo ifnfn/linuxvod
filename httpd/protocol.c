@@ -159,13 +159,14 @@ static char *GetFileByName(const char *path, const char *code)
 
 static int DecodeFile(int sockfd, const char *param, t_vhost *thehost)
 {
-	int    err = -1;
-	char   *filename;
-	int    numbytes;
-	char   tempstring[4096];
-	struct AesFile *aes = NULL;
-	char  *code, *key, *name, *passwd;
-	char  *tmp, *p;
+	int                  err = -1;
+	char                 *filename;
+	int                  numbytes;
+	char                 tempstring[4096];
+	struct AesFile       *aes = NULL;
+	char                 *code, *key, *name, *passwd;
+	char                 *tmp, *p;
+	off_t                offset = 0;
 
 	code = key = name = passwd = NULL;
 	tmp = AesDecryptAndBase64DefaultPwd(param);
@@ -201,9 +202,11 @@ static int DecodeFile(int sockfd, const char *param, t_vhost *thehost)
 		goto faliend;
 
 	while(1) {
-		numbytes = AesReadFile(aes, tempstring, 4096);
+		numbytes = AesReadFile(aes, tempstring, 4096, offset);
 		if (numbytes <= 0)
 			break;
+
+		offset += numbytes;
 		if (send(sockfd, tempstring, numbytes, 0)==-1)
 			goto faliend;
 	}

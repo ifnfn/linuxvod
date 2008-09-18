@@ -49,7 +49,7 @@ typedef struct tagSystemFields {
 	uint8_t Sound;                  // 原唱音轨
 	uint8_t SoundMode;              // 声音模式
 	char StreamType[StreamTypeLen]; // 视频格式
-	long Password;
+//	long Password;
 	uint8_t IsNewSong;              // 新歌推荐
 }SystemFields;
 
@@ -135,12 +135,12 @@ class CKeywordIndex // 关键字索引类
 public:
 	CKeywordIndex();
 	~CKeywordIndex();
-	FieldClass* AddIndexNode(char *IndexName, FieldID id);
+	FieldClass* AddIndexNode(const char *IndexName, FieldID id);
 	void AddSongData(SystemFields *data, bool check=true);
 	void printIndex();
 	void printSong();
 	bool readdata(SystemFields *data);
-	IndexNode *FindIndexNode(FieldClass *Class, char *IndexName);
+	IndexNode *FindIndexNode(FieldClass *Class, const char *IndexName);
 	void FieldClassSort();
 	void SaveFile(const char *url);
 	void SaveTo(int fp);

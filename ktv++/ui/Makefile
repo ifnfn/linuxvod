@@ -1,11 +1,11 @@
 TOPDIR=../../
 
-LIBS += -ltinyxml -lktv -static-libgcc -L../../lib -L.
-CPPFLAGS += -I../../lib
+LIBS += -ltinyxml -lktv -lnetio -static-libgcc -L../../lib -L.
+CPPFLAGS += -I../../lib -g
 BIN = mtv
 SRC =
 
-CLEANFILE+=libstdc++.a
+#CLEANFILE+=libstdc++.a
 
 ifndef CONFIGDEFINE
 CONFIGDEFINE  =

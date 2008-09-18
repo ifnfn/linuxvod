@@ -47,13 +47,13 @@ CPlayer::CPlayer(const char *ip): theme(NULL), working(true)
 	memset(&RecvAddr, 0, sizeof(RecvAddr));
 	RecvAddr.sin_family      = AF_INET;
 	RecvAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	RecvAddr.sin_port        = htons(PLAYPORT);
+	RecvAddr.sin_port        = htons(PLAYERPORT);
 	if( (udpsvrfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))== -1){
 		perror("Dont get a socket.\n");
 		exit(-1);
 	}
 	if(bind(udpsvrfd, (struct sockaddr *)&RecvAddr, sizeof(RecvAddr)) == -1)	{
-		fprintf(stderr, "Dont bind port %d.\n", PLAYPORT);
+		fprintf(stderr, "Dont bind port %d.\n", PLAYERPORT);
 		exit(-1);
 	}
 //#define NON_BLOCKING
@@ -135,7 +135,6 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 		}
 		CBaseWindow *tmp = stack->WindowTop();
 		if (tmp && update) {
-			printf("stack->WindowTop Paint\n");
 			tmp->Paint();
 		}
 		return true;
@@ -156,7 +155,7 @@ int CPlayer::RecvUdpBuf(int fd, char *msg, int MaxSize)
 		DEBUG_OUT("errno %d Recvfrom call failed", errno);
 		return 0;
 	}
-	else if (len== 0 | errno == EAGAIN){ // NO DATA
+	else if (len== 0 || errno == EAGAIN){ // NO DATA
 	}
 	else
 		msg[len] = '\0';
@@ -164,7 +163,7 @@ int CPlayer::RecvUdpBuf(int fd, char *msg, int MaxSize)
 	return len;
 }
 
-bool CPlayer::SendPlayerCmdNoRecv(char *cmd)
+bool CPlayer::SendPlayerCmdNoRecv(const char *cmd)
 {
 	char *data = SendPlayerCmd(cmd);
 	
@@ -273,7 +272,7 @@ void CPlayer::ReloadSongList()
 	}
 }
 
-bool CPlayer::SendPlayerCmdAndRecv(char *cmd) // 发送命令并且等回复消息
+bool CPlayer::SendPlayerCmdAndRecv(const char *cmd) // 发送命令并且等回复消息
 {
 	char *data = SendPlayerCmd(cmd);
 
@@ -322,7 +321,7 @@ void CPlayer::GetURL(char *temp, const char *format, ...)
 	va_end(ap);
 }
 
-char *CPlayer::SendPlayerCmd(char *format, ...)
+char *CPlayer::SendPlayerCmd(const char *format, ...)
 {
 	char temp[4096];
 	va_list ap;
@@ -336,7 +335,7 @@ char *CPlayer::SendPlayerCmd(char *format, ...)
 	vsnprintf(temp + newformat_len, 4095 - newformat_len, format, ap);
 	va_end(ap);
 
-//	printf("SendPlayerCmd=%s\n", temp);
+	DEBUG_OUT("SendPlayerCmd=%s\n", temp);
 	
 	return (char *)url_readbuf(temp, &size);
 }

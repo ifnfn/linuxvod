@@ -229,7 +229,7 @@ int CMtvConfig::ReadThemeCount()
 	return PicThemeCount;
 }
 
-const char *CMtvConfig::ReadConfig(char *conf)
+const char *CMtvConfig::ReadConfig(const char *conf)
 {
 	if (confignode)
 	{

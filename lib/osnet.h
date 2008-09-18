@@ -31,12 +31,12 @@
 //#define SHOWMD5
 //#define CHECKMD5
 
-#define REQUEST_SERVER_MSG "GetMainServer Client:X="
 #define SERVERUDPPORT 8386
 #define VSTPPORT      8385
-#define HOSTLISTPORT  9009
 #define PLAYERUDPPORT 6789
-#define PLAYPORT      31016
+#define PLAYERPORT    31016
+
+#define REQUEST_SERVER_MSG "GetMainServer Client:X="
 #define SERVICEMD5    "ODMwQTEzMzk3MjQwODhBMjY5REZCN0Y1NTczMzUyQjg="
 
 #ifdef __cplusplus

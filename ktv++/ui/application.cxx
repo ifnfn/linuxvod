@@ -15,11 +15,8 @@ void *KeyReadThread(void *p) // 友员函数，用于线程，功能：按键操作缓冲
 	int timeout = 800;
 	while( !cp->quit ){
 		memset(&event, 0, sizeof(InputEvent));
-		if (cp->gui->WaitInputEvent(&event, timeout)){
-//			DEBUG_OUT("%c, %d,%d\n", event.k, event.x, event.y);
-			ftime(&cp->gui->opttime);
+		if (cp->gui->WaitInputEvent(&event, timeout))
 			cp->KeyBuffer->KeyIn(event);
-		}
 	}
 	return NULL;
 }
@@ -36,9 +33,11 @@ CApplication::CApplication(int argc, char **argv): quit(false)
 	if ((argc == 2) && (strcmp(argv[1], "--noserver") == 0)){
 	}
 	else {
-//		haveserver = FindServerHost(ServerIP, argv[0]);
-//		if (!haveserver)
-//			DEBUG_OUT("No Found Server.\n");
+		haveserver = FindServerHost(ServerIP, argv[0]);
+		if (!haveserver)
+			DEBUG_OUT("No Found Server.\n");
+		else
+			printf("Found Server: %s\n", ServerIP);
 	}
 	configure = new CMtvConfig(ServerIP);
 	configure->haveserver = haveserver;
@@ -84,7 +83,6 @@ void CApplication::run()
 				quit = 1;
 				continue;
 			}
-			ftime(&gui->opttime);
 			if ((configure->testkey) && (event.type == IT_KEY_DOWN)) {
 				PrintKeyValue(&event);
 				continue;
@@ -120,16 +118,13 @@ void CApplication::run()
 					else if (event.type == IT_KEY_DOWN)
 						key = FindMtvKey(event.k);
 					GlobalInputProcess(key);
-//					GlobalInputProcess(FindMtvKey(event.k));
-//					GlobalInputProcess(event.option->mtv_value);
 				}
 			}
 			else {
 				printf("No WindowTop\n");
 				break;
 			}
-		} else
-			DEBUG_OUT("BACK\n");
+		}
 	}
 }
 

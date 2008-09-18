@@ -152,7 +152,7 @@ CUrlBuffer* CDiskCache::FindFile(const char* filename)
 	return NULL;
 }
 
-void* CDiskCache::ReadBuffer(char* filename, size_t& size, bool savefile)
+void* CDiskCache::ReadBuffer(const char* filename, size_t& size, bool savefile)
 {
 	CUrlBuffer* buffer = OpenFile(filename, false, savefile);
 	if (!buffer) return NULL;

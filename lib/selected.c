@@ -31,16 +31,6 @@ static pthread_mutex_t count_lock;
 	#define UNLOCK()
 #endif
 
-void NoSongLock(void)
-{
-	pthread_cond_wait( &count_nonzero, &count_lock);
-}
-
-void NoSongUnlock(void)
-{
-	pthread_cond_signal(&count_nonzero);
-}
-
 void InitSongList(void)
 {
 	memset(&SelectedList, 0, sizeof(PlaySongList));
@@ -89,7 +79,7 @@ bool StrToSelectSongNode(const char *msg, SelectSongNode *rec)
 		else if (!strcmp(x, "sound"))     rec->Sound     = atoidef(sub, '0');
 		else if (!strcmp(x, "soundmode")) rec->SoundMode = atoidef(sub, '0');
 		else if (!strcmp(x, "type"))      strcpy(rec->StreamType, sub);
-		else if (!strcmp(x, "password"))  rec->Password  = atoidef(sub, '0');
+//		else if (!strcmp(x, "password"))  rec->Password  = atoidef(sub, '0');
 
 		x = strtok(NULL, "&");
 		count ++;
@@ -100,11 +90,11 @@ bool StrToSelectSongNode(const char *msg, SelectSongNode *rec)
 }
 
 #define STRMCAT(str, s1, s2) {           \
-	if (s2) {                        \
+	do {                             \
 		char tmpbuf[100];        \
 		sprintf(tmpbuf, s1, s2); \
 		strcat(str, tmpbuf);     \
-	}                                \
+	} while(0);                      \
 }
 char *SelectSongNodeToStr(const char *cmd, SelectSongNode *rec)  /* 将歌曲结构，转换成字符串 */
 {
@@ -125,7 +115,7 @@ char *SelectSongNodeToStr(const char *cmd, SelectSongNode *rec)  /* 将歌曲结构，
 	STRMCAT(msg, "&sound=%d"    , rec->Sound     );
 	STRMCAT(msg, "&soundmode=%d", rec->SoundMode );
 	STRMCAT(msg, "&type=%s"     , rec->StreamType);
-	STRMCAT(msg, "&password=%ld", rec->Password  );
+//	STRMCAT(msg, "&password=%ld", rec->Password  );
 
 	return strdup(msg);
 }
@@ -175,7 +165,7 @@ SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc)   /* 向已点歌曲
 	memcpy(SelectedList.items + SelectedList.count, rec, sizeof(SelectSongNode));
 	SelectedList.count++;
 	UNLOCK();
-	NoSongUnlock();
+
 	return SelectedList.items + SelectedList.count - 1;
 }
 
@@ -266,7 +256,7 @@ void PrintSelectSongNode(SelectSongNode Node)
 	DEBUG_OUT("Sound=%c\n", Node.Sound);             //
 	DEBUG_OUT("SoundMode=%d\n", Node.SoundMode);     //
 	DEBUG_OUT("StreamType=%s\n\n", Node.StreamType); //
-	DEBUG_OUT("Password=%ld\n\n", Node.Password);    //
+//	DEBUG_OUT("Password=%ld\n\n", Node.Password);    //
 }
 
 void PrintSelectSong(void)

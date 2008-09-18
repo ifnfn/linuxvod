@@ -55,7 +55,7 @@
 class CBaseGui
 {
 public:
-	struct timeb opttime;
+//	struct timeb opttime;
 	CBaseGui();
 	virtual ~CBaseGui(void){}
 	virtual void GuiRest(){}

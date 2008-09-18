@@ -100,7 +100,7 @@ void MD5(char *text, char *md5, int len)
 	MD5Init(&context);
 	MD5Update(&context, (unsigned char*)text, strlen(text));
 	MD5Final(digest, &context);
-	MDPrint(digest, md5, len);
+	MD5Print(digest, md5, len);
 	int i;
 	for (i=0;i<len*2;i++)
 		if ( (md5[i]>='A') && (md5[i]<='F') ) {

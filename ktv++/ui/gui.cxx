@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #include <math.h>
-
 //#include "memtest.h"
 
 #include "gui.h"
@@ -27,7 +26,7 @@ CScreen* CScreen::screen = NULL;
 CBaseGui::CBaseGui()
 {
 //	printf("CBaseGui::CBaseGui()\n");
-	ftime(&opttime);
+//	ftime(&opttime);
 
 	volrect.left   = SOUND_WINDOW_LEFT;
 	volrect.top    = SOUND_WINDOW_TOP;
@@ -157,6 +156,7 @@ bool CDirectFBGui::GraphicInit(int argc, char **argv)
 //	surface_dsc.caps   = DSCAPS_DOUBLE;
 
 	MtvDFB->GetDisplayLayer(MtvDFB, DLID_PRIMARY, &MtvLayer);
+	MtvLayer->SetCooperativeLevel(MtvLayer, DLSCL_ADMINISTRATIVE );
 
 	layer_config.flags      = DLCONF_BUFFERMODE;
 //	layer_config.buffermode = DLBM_BACKSYSTEM;
@@ -176,11 +176,9 @@ bool CDirectFBGui::GraphicInit(int argc, char **argv)
 
 	err = MtvDFB->GetInputDevice(MtvDFB, DIDID_MOUSE, &InputDevice);
 	if (err != DFB_OK)
-		DirectFBError( "IDirectFBInput->CreateDevice for mouse failed", err);
+		MtvLayer->EnableCursor(MtvLayer, 0);
 
-	err = MtvDFB->GetInputDevice(MtvDFB, DIDID_KEYBOARD, &InputDevice);
-	if (err != DFB_OK)
-		DirectFBError( "IDirectFBInput->CreateDevice for mouse failed", err);
+	MtvDFB->GetInputDevice(MtvDFB, DIDID_KEYBOARD, &InputDevice);
 	
 	MtvWindow->SetOptions(MtvWindow, (DFBWindowOptions) (DWOP_ALPHACHANNEL | DWOP_OPAQUE_REGION));
 	MtvWindow->SetOpacity(MtvWindow, 0xff);
@@ -192,12 +190,12 @@ bool CDirectFBGui::GraphicInit(int argc, char **argv)
 
 void CDirectFBGui::GuiEnd(void)
 {
-	if (MtvFont      != NULL) MtvFont->Release   (MtvFont   );
-	if (MtvWindow    != NULL) MtvWindow->Release (MtvWindow );
-	if (MtvSurface   != NULL) MtvSurface->Release(MtvSurface);
-	if (MtvBakSurface!= NULL) MtvBakSurface->Release(MtvSurface);
-	if (MtvLayer     != NULL) MtvLayer->Release  (MtvLayer  );
-	if (MtvDFB       != NULL) MtvDFB->Release    (MtvDFB    );
+	if (MtvFont      != NULL) MtvFont->Release      (MtvFont    );
+	if (MtvWindow    != NULL) MtvWindow->Release    (MtvWindow  );
+	if (MtvSurface   != NULL) MtvSurface->Release   (MtvSurface );
+	if (MtvBakSurface!= NULL) MtvBakSurface->Release(MtvSurface );
+	if (MtvLayer     != NULL) MtvLayer->Release     (MtvLayer   );
+	if (MtvDFB       != NULL) MtvDFB->Release       (MtvDFB     );
 }
 
 void CDirectFBGui::DrawFillRect(RECT rect, TColor color)
@@ -215,7 +213,7 @@ bool CDirectFBGui::UnTextExtent(char *text,int len, int *w, int *h)
 	const uint16_t *text16 = (uint16_t*)text;
 	const uint16_t *ch = text16;
 	int swapped = 0;
-	int ascender, descender;
+	int ascender, descender, glyphadvance;
 
 	*w = *h = 0;
 	DFBRectangle GlyphRect;
@@ -239,8 +237,8 @@ bool CDirectFBGui::UnTextExtent(char *text,int len, int *w, int *h)
 		if ( swapped ) {
 			c = Swap16(c);
 		}
-		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, NULL);
-		*w += GlyphRect.w + GlyphRect.x;
+		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, &glyphadvance);
+		*w += glyphadvance;
 	}
 	MtvFont->GetAscender (MtvFont, &ascender);
 	MtvFont->GetDescender(MtvFont, &descender);
@@ -393,9 +391,10 @@ void CDirectFBGui::SetFont(CKtvFont *font)
 		IDirectFBFont *tmpFont = NULL;
 		DFBFontDescription MtvFontDesc;
 
-		MtvFontDesc.flags = (DFBFontDescriptionFlags)(DFDESC_WIDTH | DFDESC_HEIGHT);
-		MtvFontDesc.width = (font->size() > 0 ? ConvertFSizeToPixer(font->size()) : FONT_SIZE);
-		MtvFontDesc.height= (font->size() > 0 ? ConvertFSizeToPixer(font->size()) : FONT_SIZE);
+		MtvFontDesc.flags      = (DFBFontDescriptionFlags)(DFDESC_WIDTH | DFDESC_HEIGHT);
+		MtvFontDesc.width      = (font->size() > 0 ? ConvertFSizeToPixer(font->size()) : FONT_SIZE);
+		MtvFontDesc.height     = (font->size() > 0 ? ConvertFSizeToPixer(font->size()) : FONT_SIZE);
+//		MtvFontDesc.attributes = DFFA_NOHINTING;
 		if (MtvDFB->CreateFont(MtvDFB, font->GetFontFile(), &MtvFontDesc, &tmpFont)!= DFB_OK) {
 			DEBUG_OUT("failed opening %s\n", font->GetFontFile());
 			return;
@@ -419,8 +418,9 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 	char cBuf[BUF_LEN];
 	memset(cBuf, '\0', BUF_LEN);
 	size_t OutByteSize = BUF_LEN;
-	int CurX;
-	int CurY;
+	int CurX, CurY;
+	int glyphadvance;
+
 	if (unicode)
 		OutByteSize = Unicode(CurFont->charset(), value, cBuf, BUF_LEN);
 	else{
@@ -455,8 +455,7 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 		}
 		if ( swapped )
 			c = Swap16(c);
-		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, NULL);
-		CurX += GlyphRect.x;
+		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, &glyphadvance);
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX-1, CurY-1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX+1, CurY+1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX-1, CurY+1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
@@ -465,7 +464,7 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX+1, CurY  , (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX  , CurY+1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX  , CurY-1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
-		CurX += GlyphRect.w;
+		CurX += glyphadvance;
 	}
 	MtvSurface->SetColor(MtvSurface, CurFont->color.r, CurFont->color.g, CurFont->color.b, CurFont->color.a);
 
@@ -488,10 +487,9 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 		}
 		if ( swapped )
 			c = Swap16(c);
-		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, NULL);
-		CurX += GlyphRect.x;
+		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, &glyphadvance);
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX, CurY, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
-		CurX += GlyphRect.w;
+		CurX += glyphadvance;
 	}
 }
 

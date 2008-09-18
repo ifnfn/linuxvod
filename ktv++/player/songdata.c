@@ -21,22 +21,41 @@ static int ClientNum = 0;                // 连接到播放的工作站列表数量
 static int udp_msg_sockfd = -1;
 static char *Prompt[] = {"暂停播放?0", "继续播放", "原唱模式", "卡拉OK模式", "静音?0", ""};
 
-typedef int (*command_process)(INFO *Info, const char *param, int sockfd);
-
 typedef struct command_t {
 	const char *command;
-	command_process process;
+	int (*process)(INFO *Info, const char *param, int sockfd);
 }command_t ;
 
-extern command_t command_table[];
 static int SendHttpHead(int sockfd, const char *text);
-
 
 #define CREATE_UDP do { \
 		if (udp_msg_sockfd < 0) \
 			udp_msg_sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); \
 	} while(0)
 
+
+int CreateUdpBind(int port)
+{
+	int udpbindsockfd;
+	struct sockaddr_in addr_sin;
+	int AddrLen = sizeof(struct sockaddr_in);
+
+	bzero(&addr_sin, sizeof(addr_sin));
+	addr_sin.sin_family = AF_INET;
+	addr_sin.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr_sin.sin_port = htons(port);
+	if ((udpbindsockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+		perror("SOCKET call failed");
+		return 0;
+	}
+	
+	if(bind(udpbindsockfd, (struct sockaddr *)&addr_sin, AddrLen) < 0) {
+		perror("BIND Call failed");
+		return 0;
+	}
+	
+	return udpbindsockfd;
+}
 
 int AppendClientToList(struct sockaddr clientaddr)
 {
@@ -48,10 +67,10 @@ int AppendClientToList(struct sockaddr clientaddr)
 			return 0;
 	}
 	memcpy(clientaddr_list + ClientNum, &clientaddr, sizeof(struct sockaddr_in));
-	clientaddr_list[ClientNum].sin_port = htons(PLAYPORT);
+	clientaddr_list[ClientNum].sin_port = htons(PLAYERPORT);
 	if (ClientNum < 10)
 		ClientNum++;
-//	printf("Add (%d) %s.\n", ClientNum, inet_ntoa(tmp->sin_addr));
+	
 	return 1;
 }
 
@@ -61,6 +80,7 @@ int AppendIPToList(const char *ip)
 	bzero(&addr, sizeof(struct sockaddr_in));
 	addr.sin_addr.s_addr = inet_addr(ip);
 	struct sockaddr *x = (struct sockaddr*)&addr;
+
 	return AppendClientToList(*x);
 }
 
@@ -88,9 +108,10 @@ void SendToBroadCast(char *msg) // 发送广播数据
 	int i;
 
 	CREATE_UDP;
-	for(i=0;i<ClientNum;i++)
+	for(i=0;i<ClientNum;i++) {
 		sendto(udp_msg_sockfd, msg, strlen(msg), 0, \
 			(struct sockaddr *)(clientaddr_list + i), sizeof(struct sockaddr_in));
+	}
 }
 
 static int SendHttpHead(int sockfd, const char *text)
@@ -107,11 +128,8 @@ static int SendHttpHead(int sockfd, const char *text)
 		if (send(sockfd, tempstring, strlen(tempstring), 0)==-1)	
 			return -1;
 	}
-	strcpy(tempstring, "Content-Type: text/html\n");
+	strcpy(tempstring, "Content-Type: text/html\n\n");
 	if (send(sockfd, tempstring, strlen(tempstring), 0)==-1)
-		return -1;
-
-	if (send(sockfd, "\n", 1, 0)==-1)
 		return -1;
 
 	if (text != NULL) {
@@ -187,7 +205,57 @@ static int command_ListSong(INFO *pInfo, const char *param, int sockfd)
 		free(recstr);
 		send(sockfd, "\n", 1, 0);
 	}
-	send(sockfd, "\xFF", 1, 0);
+
+	return 1;
+}
+
+inline static int sendstr(int sockfd, char *str)
+{
+	return send(sockfd, str, strlen(str), 0);
+}
+
+static int command_ListSongxml(INFO *pInfo, const char *param, int sockfd)
+{
+	int i;
+	char tmpxml[1024];
+	SelectSongNode *rec;
+
+	SendHttpHead(sockfd, NULL);
+	sendstr(sockfd, "<?xml version=\"1.0\" encoding=\"GBK\"?>\n");
+	sendstr(sockfd, "<playersonglist>\n");
+
+	for(i=0; i<SelectedList.count; i++) {
+		rec = SelectedList.items + i;
+		snprintf(tmpxml, 1023, "\t<song id=\"%ld\" code=\"%s\">\n"
+				"\t\t<name>%s</name>\n"
+				"\t\t<charset>%d</charset>\n"
+				"\t\t<language>%s</language>\n"
+				"\t\t<singer>%s</singer>\n"
+				"\t\t<volk>%d</volk><vols>%d</vols>\n"
+				"\t\t<num>%d</num>\n"
+				"\t\t<klok>%d</klok><sound>%d</sound>\n"
+				"\t\t<soundmode>%d</soundmode>\n"
+				"\t\t<type>%s</type>\n"
+				"\t</song>\n\n"
+				, rec->ID        
+				, rec->SongCode 
+				, rec->SongName
+				, rec->Charset
+				, rec->Language
+				, rec->SingerName
+				, rec->VolumeK
+				, rec->VolumeS
+				, rec->Num  
+				, rec->Klok
+				, rec->Sound
+				, rec->SoundMode
+				, rec->StreamType
+		);
+
+		sendstr(sockfd, tmpxml);
+	}
+
+	sendstr(sockfd, "</playersonglist>\n</xml>\n");
 
 	return 1;
 }
@@ -264,10 +332,12 @@ static int command_SetMute(INFO *pInfo, const char *param, int sockfd)
 
 static int command_PlayNext(INFO *pInfo, const char *param, int sockfd)
 {
-	pInfo->PlayCancel = true;
 	if (pInfo->PlaySelect == psHiSong)  // 如果是HI模式，切换到SlectedDefault
 		pInfo->PlaySelect = psSelected;
 	StopPlayer(pInfo);
+
+	if (pInfo->PlaySelect  == psSelected)
+		DeleteFirstSongList();
 
 	return 0;
 }
@@ -348,18 +418,16 @@ static int command_PlayCode(INFO *pInfo, const char *param, int sockfd)
 		strcpy(tmp, param);
 		char *code = strtok(tmp, ",");
 		char *ext  = strtok(NULL, ",");
-		if (ext == NULL) ext ="M1S";
+		if (ext == NULL) 
+			ext ="DIVX";
 
 		strcpy(pInfo->PlayingSong.SongCode, code);
 		strcpy(pInfo->PlayingSong.StreamType, ext);
 #ifndef NETPLAYER
-		char *tmpfile = GetLocalFile(code, NULL);
-		if (tmpfile)
-			strcpy(pInfo->VideoFile, tmpfile);
-		else
-			pInfo->VideoFile[0]='\0';
+
+		GetFuseFile(pInfo->VideoURL, code, 0); //TODO
 #else
-		sprintf(pInfo->VideoFile, "code=%s", code);
+		sprintf(pInfo->VideoURL, "code=%s", code); // TODO
 #endif
 		pInfo->MediaType = mtFILE;
 		StartPlayer(pInfo);
@@ -403,21 +471,24 @@ static int command_hwStatus(INFO *pInfo, const char *param, int sockfd)
 	return 0;
 }
 
-
 static int command_119(INFO *pInfo, const char *param, int sockfd)
 {
-	if (pInfo->PlaySelect == ps119) {
-//		printf("119 psSelected\n");
-		pInfo->PlaySelect = psSelected;
-	}
-	else {
+	if (pInfo->PlaySelect != ps119) {
 		pInfo->PlaySelect = ps119;
-//		printf("119 ps119\n");
+		pInfo->KeepSongList = true;
+		StopPlayer(pInfo);
 	}
-	pInfo->KeepSongList = true;
-	pInfo->PlayCancel   = true;
-	pInfo->PlayStatus   = stStop;
-	NoSongUnlock();
+
+	return 0;
+}
+
+static int command_911(INFO *pInfo, const char *param, int sockfd)
+{
+	if (pInfo->PlaySelect == ps119) {
+		pInfo->PlaySelect = psSelected;
+		pInfo->KeepSongList = true;
+		StopPlayer(pInfo);
+	}
 
 	return 0;
 }
@@ -431,9 +502,7 @@ static int command_HiSong(INFO *pInfo, const char *param, int sockfd)
 	else if ( (pInfo->PlaySelect == psSelected) || (pInfo->PlaySelect == psDefault) )
 		pInfo->PlaySelect = psHiSong;
 	pInfo->KeepSongList = true;
-	pInfo->PlayCancel   = true;
-	pInfo->PlayStatus   = stStop;
-	NoSongUnlock();
+	StopPlayer(pInfo);
 
 	return 0;
 }
@@ -466,6 +535,7 @@ command_t command_table[] = {
 	{"delsong"      , command_DelSong       },
 	{"firstsong"    , command_FirstSong     },
 	{"listsong"     , command_ListSong      },
+	{"listsongxml"  , command_ListSongxml   },
 	{"playsong"     , command_PlaySong      },
 	{"setvolume"    , command_SetVolume     },
 	{"audioswitch"  , command_AudioSwitch   },
@@ -483,6 +553,7 @@ command_t command_table[] = {
 	{"mac"          , command_MACIP         },
 	{"MaxVolume"    , command_MaxVolume     },
 	{"119"          , command_119           },
+	{"911"          , command_911           },
 	{"runscript"    , command_RunScript     },
 	{"HiSong"       , command_HiSong        },
 	{"MsgBox"       , command_MsgBox        },
@@ -493,18 +564,28 @@ command_t command_table[] = {
 	{NULL           , command_Unknown       },
 };
 
+static pthread_mutex_t  process_mutex;
+static int process_mutex_init = 0;
 int process(INFO *pInfo, const char *cmd, const char *param, int sockfd)
 {
-	int id = 0;
+	int id = 0, ret = -1;
+	
+	if (process_mutex_init == 0) {
+		pthread_mutex_init(&process_mutex, NULL);
+		process_mutex_init = 1;
+	}
+	pthread_mutex_lock(&process_mutex);
 	while (command_table[id].command) {
 		if (strcmp(command_table[id].command, cmd) == 0) {
 			if (command_table[id].process(pInfo, param, sockfd) == 0) {
 				SendHttpHead(sockfd, "OK\n");
 			}
-			return 0;
+			ret = 0;
+			break;
 		}
 		id++;
 	}
 
-	return -1;
+	pthread_mutex_unlock(&process_mutex);
+	return ret;
 }

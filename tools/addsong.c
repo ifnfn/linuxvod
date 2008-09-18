@@ -106,7 +106,7 @@ static char *ReadStrSection(struct ENTRY *pSection, char *pKey, char *value)
 static int GetMaxSongCode(sqlite *db)
 {
 	int maxcode = -1;
-	sqlite_exec(db, "SELECT MAX(code) from system", UpdateCallBack, &maxcode, NULL);
+	sqlite_exec(NULL, db, "SELECT MAX(code) from system", UpdateCallBack, &maxcode, NULL);
 	return maxcode;
 }
 
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 	const char * database = argv[2];
 	sqlite *db = NULL;
 	char *zErrMsg;
-	db = sqlite_open(database, 0, &zErrMsg);
+	db = sqlite_open(NULL, database, 0, &zErrMsg);
 	if(db == NULL)
 	{
 		printf("Error: %s\n", zErrMsg);
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 			char sql[512];
 			sprintf(sql, "SELECT COUNT(*) FROM system WHERE code='%s';", code);
 			int update = 0;
-			sqlite_exec(db, sql, UpdateCallBack, &update, NULL);
+			sqlite_exec(NULL, db, sql, UpdateCallBack, &update, NULL);
 			if (update == 1)
 			{
 				sprintf(sql, "UPDATE System SET Name='%s', Charset='%s', \
@@ -229,7 +229,7 @@ VolumeS='%s', VideoType='%s' WHERE Code='%s'",
 					singer4, num, pinyin, wbh, playnum, klok, sound, filesize, \
 					isnewsong, volumek, volumes, videotype, code);
 //				printf("%s\n", sql);
-				sqlite_exec(db, sql, NULL, NULL, NULL);
+				sqlite_exec(NULL, db, sql, NULL, NULL, NULL);
 			}
 			else{
 				sprintf(sql, "INSERT INTO System(Code,Name,Charset,Language,Class,Singer1, \
@@ -241,7 +241,7 @@ VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s', \
 					num,pinyin,wbh,playnum,klok,sound,filesize,isnewsong,volumek,
 					volumes,videotype);
 //				printf("%s\n", sql);
-				sqlite_exec(db, sql, NULL, NULL, NULL);
+				sqlite_exec(NULL, db, sql, NULL, NULL, NULL);
 			}
 			char SourceFileName[512], Dist[512];
 			sprintf(SourceFileName, "%s/%s", argv[1], filename);

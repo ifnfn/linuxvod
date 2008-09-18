@@ -19,7 +19,7 @@ extern "C" {
 void MD5Init  (MD5_CTX *);
 void MD5Update(MD5_CTX *, unsigned char *, unsigned int);
 void MD5Final (unsigned char [16], MD5_CTX *);
-void MDPrint  (unsigned char digest[16], char *outstr, int len);
+void MD5Print (unsigned char digest[16], char *outstr, int len);
 
 #ifdef __cplusplus
 }
