@@ -83,6 +83,7 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 	int size = RecvUdpBuf(udpsvrfd, msg, 511);
 
 	if (size>0) {
+		printf("...................................msg=%s\n", msg);
 		char *cmd = strtok(msg, "?");
 		char *param = strtok(NULL, "");
 		printf("cmd:%s, param:%s\n", cmd, param);
@@ -116,6 +117,9 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 				theme->songdata->Reload();
 				theme->singerdata->Reload();
 			}
+		}
+		else if (strcasecmp(cmd, "playsong") == 0) {
+
 		}
 		else {
 			if (strcmp(cmd, "silicon") == 0)
@@ -187,6 +191,7 @@ void CPlayer::NetAddSongToList(MemSongNode *rec)
 			rec->Password);
 
 	if (data) {
+#if 0
 		printf("data=%s\n", data);
 		char *cmd   = strtok(data, "?");
 		char *param = strtok(NULL, "");
@@ -198,19 +203,20 @@ void CPlayer::NetAddSongToList(MemSongNode *rec)
 		}
 		else 
 			ShowMsgBox(param, 3000);
+#endif
 		free(data);
 	}
 }
 
 bool CPlayer::NetDelSongFromList(SelectSongNode *rec)  /* 从已点歌曲列表中删除记录   */
 {
-	char *p = SelectSongNodeToStr(rec);
+	char *p = SelectSongNodeToStr(NULL, rec);
 	if (p) {
 		char *data = SendPlayerCmd("%s?%s", DELSONG, p);
 		free(p);
 
 		if (data) {
-			DelSongFromList(rec);
+//			DelSongFromList(rec);
 			free(data);
 		}
 	}
@@ -220,13 +226,13 @@ bool CPlayer::NetDelSongFromList(SelectSongNode *rec)  /* 从已点歌曲列表中删除记
 
 bool CPlayer::NetFirstSong(SelectSongNode *rec, int id) /* 优先歌曲 */
 {
-	char *p = SelectSongNodeToStr(rec);
+	char *p = SelectSongNodeToStr(NULL, rec);
 	if (p) {
 		char *data = SendPlayerCmd("%s?%s", FIRSTSONG, p);
 		free(p);
 
 		if (data) {
-			DelSongFromList(rec);
+//			DelSongFromList(rec);
 			free(data);
 		}
 	}
@@ -260,8 +266,8 @@ void CPlayer::ReloadSongList()
 			else
 				break;
 		}
+		url_fclose(&io);
 	}
-	url_fclose(&io);
 }
 
 bool CPlayer::SendPlayerCmdAndRecv(char *cmd) // 发送命令并且等回复消息
@@ -338,6 +344,7 @@ int CPlayer::AddVolume()
 	char *data = SendPlayerCmd("addvolume");
 
 	if (data) {
+		printf("AddVolume:%s\n", data);
 		volume = atoidef(data, 0);
 		free(data);
 	}
@@ -350,6 +357,7 @@ int CPlayer::DecVolume()
 	char *data = SendPlayerCmd("delvolume");
 
 	if (data) {
+		printf("DecVolume:%s\n", data);
 		volume = atoidef(data, 0);
 		free(data);
 	}

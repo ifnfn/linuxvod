@@ -14,7 +14,8 @@ typedef enum tagInputType{
 	IT_MOUSERIGHT_UP,
 	IT_MOUSEMIDDLE_DOWN,
 	IT_MOUSEMIDDLE_UP,
-	IT_MOUSEMOVE
+	IT_MOUSEMOVE, 
+	IT_QUIT
 }InputType;
 
 typedef struct tagInputEvent{

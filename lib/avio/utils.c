@@ -99,7 +99,7 @@ void url_split(char *proto, int proto_size,
 {
 	const char *p;
 	char *q;
-	int port;
+	int port, id;
 
 	port = -1;
 
@@ -164,7 +164,23 @@ void url_split(char *proto, int proto_size,
 	}
 	if (port_ptr)
 		*port_ptr = port;
-	pstrcpy(path, path_size, p);
+
+	id = 0;
+	for (;;) {
+		int c = *p++;
+		if (c == 0 || id >= path_size - 1)
+			break;
+
+		if (c == ' '){
+			path[id++] = '%';
+			path[id++] = '2'; 
+			path[id++] = '0';
+		}
+		else
+			path[id++]  = c;
+	}
+	path[id] = 0;
+//pstrcpy(path, path_size, p);
 }
 
 /**

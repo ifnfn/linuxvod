@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "memtest.h"
+//#include "memtest.h"
 #include "strext.h"
 #include "ktvstdclass.h"
 

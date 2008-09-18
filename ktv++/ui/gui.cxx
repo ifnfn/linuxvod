@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-#include "memtest.h"
+//#include "memtest.h"
 
 #include "gui.h"
 #include "win.h"

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "memtest.h"
+//#include "memtest.h"
 #include "key.h"
 
 #define REGENTRY(REG_NAME,value) {#REG_NAME, REG_NAME, value, #REG_NAME},

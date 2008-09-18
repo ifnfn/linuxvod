@@ -40,6 +40,41 @@ inline static char *ToUTF8(unsigned char charset, char *in)
 #define ToUTF8(a,b) b
 #endif
 
+static int CreateSQLCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	int i;
+	char sql[1204*2];
+	if (argc <= 0) return 1;
+
+	sprintf(sql, "INSERT INTO %s(", (char *)NotUsed);
+	for (i=0; i<argc - 1; i++) {
+		strcat(sql, "[");
+		strcat(sql, azColName[i]);
+		strcat(sql, "],");
+	}
+	strcat(sql, "[");
+	strcat(sql, azColName[argc-1]);
+	strcat(sql, "]) VALUES(");
+	for (i=0; i<argc - 1; i++) {
+		strcat(sql, "'");
+		if (argv[i])
+			strcat(sql, argv[i]);
+		else
+			strcat(sql, "NULL");
+		strcat(sql, "',");
+	}
+	strcat(sql, "'");
+	if (argv[argc-1])
+		strcat(sql, argv[argc-1]);
+	else
+		strcat(sql, "NULL");
+	strcat(sql, "');");
+
+	printf("%s\n", sql);
+
+	return 0;
+}
+
 static int SongDataCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	CKeywordIndex *index = (CKeywordIndex *)NotUsed;
@@ -83,6 +118,7 @@ static int SongDataCallBack(void *NotUsed, int argc, char **argv, char **azColNa
 //	printf("data.Sound=%c(%s)\n", data.Sound, argv[15]);
 //	printf("StreamType (%s) (%s)\n", data.StreamType, argv[17]);
 	index->AddSongData(&data);
+
 	return 0;
 }
 
@@ -245,17 +281,20 @@ int main(int argc, char **argv)
 	sqlite *db = NULL;
 
 	char filename[512] = "/ktvdata/song2000.db";
-	char sql[512] = "";
+	char sql[1024] = "";
 	char indexpath[512] ="/tmp/video";
 
 	char singerfile[200]="/ktvdata/singerdata", songfile[200]="/ktvdata/songdata";
+	int createtablesql = 0;
+	char tablename[200] = "", fields[1024] ="*";
 	int fromnet = 2;
 	int print = 0;
 	int update = 0;
 	char sqlfile[512]="";
 	int setupdate=0;
 	char ch;
-	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:hnlpuv"))!= -1)
+	
+	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:c:t:hnlpuv"))!= -1)
 	{
 		switch (ch)
 		{
@@ -263,22 +302,22 @@ int main(int argc, char **argv)
 				update = 1;
 				break;
 			case 'q':
-				strcpy(sqlfile, optarg);
+				strncpy(sqlfile, optarg, 511);
 				break;
 			case 'f':
-				strcpy(filename, optarg);
+				strncpy(filename, optarg, 511);
 				break;
 			case 's':
-				strcpy(sql, optarg);
+				strncpy(sql, optarg, 511);
 				break;
 			case 'a':
-				strcpy(songfile, optarg);
+				strncpy(songfile, optarg, 199);
 				break;
 			case 'b':
-				strcpy(singerfile, optarg);
+				strncpy(singerfile, optarg, 199);
 				break;
 			case 'd':
-				strcpy(indexpath, optarg);
+				strncpy(indexpath, optarg, 199);
 				break;
 			case 'n':
 				fromnet = 1;
@@ -295,10 +334,20 @@ int main(int argc, char **argv)
 			case 'v':
 				view_nodata = 1;
 				break;
+			case 'c':
+				if (optarg) {
+					strncpy(tablename, optarg, 199);
+					createtablesql = 1;
+				}
+				break;
+			case 't':
+				strncpy(fields, optarg, 1023);
+				break;
 			case 'h':
-				printf("Usage: %s [-u] [-q <sqlfile>] [-f <songfile>] [-s <sql command>]"
-					"[-a <songdatafile>] "
-					"[-b <singerdatafile>] " 
+				printf("Usage: %s [-u] [-q <sqlfile>] [-f <songfile>] [-s <sql command>]\n"
+					"[-a <songdatafile>]\n"
+					"[-b <singerdatafile>]\n" 
+					"[-c <tablename>] [-t <fields>]\n"
 					"[-d <video>] [-l/-n] [-m] [-v] [-h]\n", argv[0]);
 				exit(0);
 		}
@@ -342,6 +391,13 @@ int main(int argc, char **argv)
 		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=0;", NULL, NULL, NULL);
 	}
 
+	if (createtablesql) {
+		sprintf(sql, "SELECT %s from %s;", fields, tablename);
+		printf("%s\n", sql);
+		printf("BEGIN TRANSACTION;\n");
+		sqlite_exec(db, sql, CreateSQLCallBack, tablename, &zErrMsg);
+		printf("COMMIT;\n");
+	}
 	if (update) {
 		if (fromnet)
 			IndexFromServer(db);

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
-
 #include "memtest.h"
 #include "windowmanage.h"
 #include "selected.h"

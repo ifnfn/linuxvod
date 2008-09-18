@@ -1,4 +1,4 @@
-#include "memtest.h"
+//#include "memtest.h"
 
 #include "font.h"
 #include "strext.h"

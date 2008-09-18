@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "memtest.h"
+//#include "memtest.h"
 #include "gui.h"
 #include "win.h"
 #include "player.h"
@@ -72,11 +72,11 @@ bool CKtvApplication::GlobalInputProcess(int KtvKeyValue)
 
 int main(int argc, char **argv)
 {
-#ifdef MEMWATCH
-	mwStatistics( 2 );
-	mwAutoCheck( 1 );
-	TRACE("Hello world!\n");
-#endif
+//#ifdef MEMWATCH
+//	mwStatistics( 2 );
+//	mwAutoCheck( 1 );
+//	TRACE("Hello world!\n");
+//#endif
 	CKtvApplication app(argc, argv);
 	app.run();
 	return 0;

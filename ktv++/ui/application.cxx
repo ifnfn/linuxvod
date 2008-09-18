@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "memtest.h"
+//#include "memtest.h"
 
 #include "application.h"
 #include "player.h"
@@ -80,6 +80,10 @@ void CApplication::run()
 	while( !quit ){
 		memset(&event, 0, sizeof(InputEvent));
 		if (KeyBuffer->KeyOut(&event)) {
+			if (event.type == IT_QUIT) {
+				quit = 1;
+				continue;
+			}
 			ftime(&gui->opttime);
 			if ((configure->testkey) && (event.type == IT_KEY_DOWN)) {
 				PrintKeyValue(&event);
@@ -104,6 +108,9 @@ void CApplication::run()
 					case IT_MOUSELEFT_UP:
 					case IT_MOUSERIGHT_UP:
 					case IT_MOUSEMIDDLE_UP:
+						break;
+					case IT_QUIT:
+						quit = 1;
 						break;
 				}
 				if ( !CurWindow->InputProcess(&event) ) {

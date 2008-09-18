@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "memtest.h"
+//#include "memtest.h"
 #include "keybuf.h"
 
 CKeyBuffer *CKeyBuffer::pKeyBuf = NULL;
@@ -45,7 +45,8 @@ bool CKeyBuffer::KeyIn(InputEvent key)
 					keylist += key.k;
 //					printf("keylist=%s\n",keylist.data());
 					if (keylist == "exit")
-						exit(0);
+						key.type = IT_QUIT;
+//						exit(0);
 				}
 			}
 		}

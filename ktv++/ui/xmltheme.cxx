@@ -6,7 +6,6 @@
 
 #include "memtest.h"
 #include "xmltheme.h"
-//#include "tinyxml.h"
 #include "strext.h"
 #include "key.h"
 #include "timer.h"

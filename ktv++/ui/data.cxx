@@ -20,7 +20,6 @@
 #include "songstream.h"
 #include "xmltheme.h"
 
-
 static bool IsPrime(long m)
 {
 	long i,k;
@@ -39,10 +38,9 @@ static long NextPrime(long x)
 	return i;
 }
 
-
-
 void FreeMemSongNode(MemSongNode *node)
 {
+	if (node ==NULL) return;
 	if (node->SongCode) {
 		free(node->SongCode);
 		node->SongCode = NULL;
@@ -111,9 +109,10 @@ void CData::Reload()
 void CData::FreeDataDB(void)
 {
 	// สอทลธ่ว๚สýื้
-	for (int i=0;i<FHead.SongCount;i++)
-		FreeMemSongNode(SongLists + i);
 	if (SongLists) {
+		printf("FHead.SongCount=%ld\n", FHead.SongCount);
+		for (int i=0;i<FHead.SongCount;i++)
+			FreeMemSongNode(SongLists + i);
 		free(SongLists);
 		SongLists = NULL;
 	}
@@ -166,7 +165,8 @@ bool CData::CreateSeekTable(const char *FileName, bool LoadMemory)
 #ifdef DEBUG
 //	HashPrint();
 #endif
-	if (SongLists) free(SongLists);
+	if (SongLists) 
+		free(SongLists);
 	SongLists = (MemSongNode *) malloc(sizeof(MemSongNode) * FHead.SongCount);
 	memset(SongLists, 0, sizeof(MemSongNode) * FHead.SongCount);
 

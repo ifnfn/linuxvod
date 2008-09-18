@@ -350,11 +350,12 @@ void CSelectedWindow::DrawWindowOpt()
 
 void CSelectedWindow::AcitveEvent() // 窗体激活事件
 {
-	player->ReloadSongList();
+//	printf("CSelectedWindow::ActiveEvent\n");
 }
 
 void CSelectedWindow::Show()
 {
+	player->ReloadSongList();
 	CurPageID = 0;
 	CBaseWindow::Show();
 }

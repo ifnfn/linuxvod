@@ -697,7 +697,6 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 		RMFCloseControlInterface(pInfo->InterFaceCtrl);
 		pInfo->InterFaceCtrl = NULL;
 	}
-//	printf("InitVideo\n");
 	if (pInfo->MediaType == mtFILE){
 		snprintf(url, RM_MAX_STRING -1, FILEURL, 0, pInfo->PlayingSong.StreamType, pInfo->VideoFile);
 	}
@@ -893,7 +892,6 @@ bool StartPlayer(INFO *pInfo)
 		}
 	}
 #endif
-//	PlayerResumeMute(pInfo);
 	if (!InitVideo(pInfo)) {
 		DEBUG_OUT("InitVideo Error.\n");
 		return false;
