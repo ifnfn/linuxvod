@@ -239,14 +239,15 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 			memset(&pInfo->PlayingSong, 0, sizeof(SelectSongNode));
 			char *p = GetRandomDefaultSong();
 			if (p){ // 如果没有默认歌曲
-				char tmp[100];
-				strcpy(tmp, p);
-				char *code= strtok(tmp, ",");
-				char *ext = strtok(NULL, ",");
-				if (ext == NULL) ext = "VOB";
+				StrToSelectSongNode(p, &pInfo->PlayingSong);
+//				char tmp[100];
+//				strcpy(tmp, p);
+//				char *code= strtok(tmp, ",");
+//				char *ext = strtok(NULL, ",");
+//				if (ext == NULL) ext = "VOB";
 
-				strcpy(pInfo->PlayingSong.SongCode  , code);
-				strcpy(pInfo->PlayingSong.StreamType, ext );
+//				strcpy(pInfo->PlayingSong.SongCode  , code);
+//				strcpy(pInfo->PlayingSong.StreamType, ext );
 			}else {
 				DEBUG_OUT("ShowJpeg %s\n", Background);
 				ShowJpeg(pInfo->rua, Background);
@@ -267,26 +268,28 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 		memset(&pInfo->PlayingSong, 0, sizeof(SelectSongNode));
 		char *p = GetRandomHiSong();
 		if (p) {
-			char tmp[100];
-			strcpy(tmp, p);
-			char *code=strtok(tmp, ",");
-			char *ext =strtok(NULL, ",");
-			if (ext == NULL) ext = "VOB";
+//			char tmp[100];
+//			strcpy(tmp, p);
+//			char *code=strtok(tmp, ",");
+//			char *ext =strtok(NULL, ",");
+//			if (ext == NULL) ext = "VOB";
 
-			strcpy(pInfo->PlayingSong.SongCode  , code);
-			strcpy(pInfo->PlayingSong.StreamType, ext );
+//			strcpy(pInfo->PlayingSong.SongCode  , code);
+//			strcpy(pInfo->PlayingSong.StreamType, ext );
+			StrToSelectSongNode(p, &pInfo->PlayingSong);
 			pInfo->PlayingSong.SoundMode = HiSoundMode; // 灯光控制模式
 		}else
 			return false;
 	}
 	else if (pInfo->PlaySelect == ps119){
-		char tmp[50];
-		strcpy(tmp, Fire119);
-		char *code = strtok(tmp, ",");
-		char *ext  = strtok(NULL, ",");
-		if (ext == NULL) ext ="M1S";
-		strcpy(pInfo->PlayingSong.SongCode  , code);
-		strcpy(pInfo->PlayingSong.StreamType, ext );
+//		char tmp[50];
+//		strcpy(tmp, Fire119);
+//		char *code = strtok(tmp, ",");
+//		char *ext  = strtok(NULL, ",");
+//		if (ext == NULL) ext ="M1S";
+//		strcpy(pInfo->PlayingSong.SongCode  , code);
+//		strcpy(pInfo->PlayingSong.StreamType, ext );
+		StrToSelectSongNode(Fire119, &pInfo->PlayingSong);		
 		pInfo->PlayingSong.SoundMode = Fire119SoundMode; // 灯光控制模式
 	}
 
