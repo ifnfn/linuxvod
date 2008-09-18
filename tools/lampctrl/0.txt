@@ -1,0 +1,8 @@
+dskport 0;
+micvolume 40;    // 设置麦克风的音量 0 -49
+musicvolume 30; // 音乐音量增加 0 - 48
+subwoofer 0;   // 超低音增加0 - 30
+musictreble 6;  // 0-12, 中间值为 6
+musicbass 6;    // 0 12, 中间值为 6
+
+closeport;

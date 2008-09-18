@@ -1,0 +1,266 @@
+#!/bin/sh
+#
+
+MSGTTY=/dev/tty3
+pcnt=0
+TOTAL=1
+MOUNTTEMP="/tmp/dest"
+sizeof() { df "$1" | grep "$1" | awk '{print $3}'; }
+running() { ps |grep $1>/dev/null; }
+
+: ${DIALOG=dialog}
+: ${DIALOG_OK=0}
+: ${DIALOG_CANCEL=1}
+: ${DIALOG_ESC=255}
+
+# global vars
+author="Silicon"
+version="VER 2.1"
+year="2006"
+website="http://www.freektv.org"
+BACK_TITLE="KtvLinux Disk Clone system $version, $author $year"
+TEMP_MENU_VALUE=/tmp/tempfileclonemenu
+
+copydialog()
+{
+	TOTAL=$(sizeof $SONG_SOURCE)
+	MSG="KtvLinux is cloning $1 to $2\n"
+	find $1 -exec cp {} $2 \; &
+	START_TIME=`date +%T`
+	S_TIME=`date +%s`
+	(
+		while running find
+		do
+			COPIADO=$(sizeof $2)
+			E_TIME=`date +%s`
+			RATE=$((COPIADO / (E_TIME-S_TIME + 1)))
+			PORCENTAGEM=$((COPIADO/(TOTAL/100)))
+			pcnt=`ls $2 -t|head -n1`
+			echo "XXX"
+			echo $PORCENTAGEM
+			echo "\n"
+			echo "$MSG\n"
+			echo "The progress bar shows the percentage of the amount written\n"
+			echo "to the size of the destination.\n\n"
+			echo "Please stand by, this might take some time!\n\n"
+			echo "Progress: "$RATE"KB/sec"
+			echo "  copy $1/$pcnt to $2/$pcnt\n\n"
+			echo "Current Time : `date +%T`"
+			echo "Start Time   : $START_TIME"
+			F_TIME=$(((TOTAL-COPIADO)/RATE/60))
+			echo "Finished Time: $F_TIME"
+			echo "XXX"
+			sleep 3
+		done
+	) |
+	$DIALOG --backtitle "$BACK_TITLE" --title "Working..." --clear --gauge "One moment..." 19 70
+	sync
+	sync
+	sync
+	sync
+	sync
+}
+
+Createpartition()
+{
+	sfdisk -q $1 << EOF 1> $MSGTTY 2> $MSGTTY
+,13,L
+,30,S
+;
+EOF
+
+	mkfs.xfs -f "$1"1 1> $MSGTTY 2> $MSGTTY # 建立系统分区
+	mkswap "$1"2      1> $MSGTTY 2> $MSGTTY # 建立临时分区
+	mkfs.xfs -f "$1"3 1> $MSGTTY 2> $MSGTTY # 建立视频分区
+}
+
+CreateBootAndReg()
+{
+	$DIALOG --clear --backtitle "$BACK_TITLE" \
+		--title "Select your mainboard model." \
+		--menu "Choose one of the following options: \n\n" 0 0 0 \
+		"Intel 810 Mainboard" "Intel 810/815 support" \
+		"Other Mainboard"     "Intel 845 and Other VESA Card" \
+		2> $TEMP_MENU_VALUE
+
+	retvalclonemenu=$?
+	choiceclonemenu=`cat $TEMP_MENU_VALUE`
+	rm $TEMP_MENU_VALUE -f
+	case $retvalclonemenu in
+		$DIALOG_OK)
+			case $choiceclonemenu in
+				"Intel 810 Mainboard")
+					VGA=""
+				;;
+				"Other Mainboard")
+					VGA="vga=0x314"
+				;;
+			esac
+			;;
+		$DIALOG_CANCEL)
+			;;
+	esac
+
+	echo "boot=$CLONETARGET"    >  $1/etc/lilo.conf
+	echo "root=/dev/hda1"       >> $1/etc/lilo.conf
+	echo "image=/etc/Ktvlinux"  >> $1/etc/lilo.conf
+	echo "$VGA"                 >> $1/etc/lilo.conf
+	lilo -r $1
+	rm $1/etc/lilo.conf -f
+
+	REG_QUIT="1"
+	while [ "$REG_QUIT" = "1" ]
+	do
+		publicekey=`player -k $CLONETARGET`
+		TEMPFILEREGCODE=/tmp/tempfileregcode
+		$DIALOG --backtitle "$BACK_TITLE" --colors \
+			--title "Software Register" --clear \
+			--inputbox "\nClone succeed, Now start register software. \n
+			The RSA Public key is: \Zb\Z1$publicekey\Zn\n\n
+			Please Input register code:" 12 50 2> $TEMPFILEREGCODE
+
+		REGCODE=`cat $TEMPFILEREGCODE`
+		rm $TEMPFILEREGCODE -f
+		if [ "$REGCODE" = "" ]; then
+			$DIALOG --backtitle "$BACK_TITLE" \
+				--title "ERROR" --clear \
+				--msgbox "No Register code, please input register code! \n\n\n ->Back to Main Menu." 11 55
+			continue
+		else
+			player -c /dev/play $CLONESOURCE $1/dev/play $REGCODE
+			REG_QUIT="0"
+		fi
+	done
+}
+
+clone()
+{
+	retvalclonemenu=0
+	while [ "$retvalclonemenu" != "1" ]
+	do
+		$DIALOG --backtitle "$BACK_TITLE" --colors \
+			--title "KtvLinux clone new disk" --clear \
+			--yesno "\nKtvLinux Found a new blank hard disk, will start clone: \
+				\n\nSource drive: $CLONESOURCE \
+				\nTarget drive: $CLONETARGET \
+				\n\n \Z5$CLONESOURCE ------> $CLONETARGET\Zn \
+				\n\nAre you sure?" 0 0
+		case $? in
+		$DIALOG_OK)
+			$DIALOG --backtitle "$BACK_TITLE" --title "Create Disk Partitions" \
+				--infobox "\nCreate Disk $CLONETARGET partitions, Please wait...\n" 5 55
+			Createpartition $CLONETARGET
+# 建立文件系统
+			mount -t xfs "$CLONETARGET"1 $MOUNTTEMP
+			$DIALOG --backtitle "$BACK_TITLE" --title "Create System" \
+				--infobox "\nStart Create KtvLinux System, Please wait...\n" 5 50
+			cp lib/ /bin /dev /etc /root /sbin /usr /var $MOUNTTEMP/ -arfv>$MSGTTY
+
+			mkdir -p $MOUNTTEMP/root $MOUNTTEMP/home $MOUNTTEMP/proc $MOUNTTEMP/tmp $MOUNTTEMP/mnt
+			mkdir -p $MOUNTTEMP/ktvdata/video $MOUNTTEMP/boot
+			cp /ktvdata/* $MOUNTTEMP/ktvdata/ -f
+
+			cp /ktvdata/photos /ktvdata/plungins $MOUNTTEMP/ktvdata/ -arf
+			chown ktv:users $MOUNTTEMP/ktvdata -R
+
+			touch $MOUNTTEMP/.install
+
+			CreateBootAndReg $MOUNTTEMP
+			umount $MOUNTTEMP
+# 建立文件系统
+# 拷贝歌库
+			pcnt=0
+			TITLE="KtvLinux Clone..."
+			SONG_SOURCE=`mount | grep "$CLONESOURCE"3 | awk '{print $3}'`
+			mkdir -p $MOUNTTEMP 1> $MSGTTY 2> $MSGTTY
+			mount -t xfs "$CLONETARGET"3 $MOUNTTEMP 1> $MSGTTY 2> $MSGTTY
+			copydialog $SONG_SOURCE $MOUNTTEMP
+			chown video:users $MOUNTTEMP -R
+			umount $MOUNTTEMP
+# 拷贝歌库完成
+			$DIALOG --backtitle "$BACK_TITLE" --colors \
+				--title "KtvLinux clone system" --clear \
+				--yesno "\nSystem clone finished, Are you close your computer now?" 7 60
+			case $? in
+			$DIALOG_OK)
+				retvalclonemenu="1"
+				poweroff
+				;;
+			$DIALOG_CANCEL)
+				retvalclonemenu="1"
+			esac
+			;;
+		$DIALOG_CANCEL)
+			retvalclonemenu="1"
+		;;
+		$DIALOG_ESC)
+			retvalclonemenu="1"
+		esac
+	done
+}
+
+update()
+{
+	echo "SourceDisk: $CLONESOURCE"
+	echo "DestDisk  : $CLONETARGET"
+	mount -t xfs "$CLONETARGET"1 $MOUNTTEMP 2>/dev/null
+	if [ "$?" = 0 ]; then
+		echo "START UPDATE system."
+		CreateBootAndReg $MOUNTTEMP
+	fi
+	umount $MOUNTTEMP
+}
+
+#==============================================================================
+DISKCOUNT=0
+for i in $(ls /proc/ide/hd* -d); do
+	if cat $i/media | grep -i disk >/dev/null; then
+		DISKCOUNT=`expr $DISKCOUNT + 1`
+	fi
+done
+if [ "$DISKCOUNT" = "1" ]; then
+#	echo "Found disk count:1"
+	exit -1
+fi
+
+CLONETARGET=""
+CLONESOURCE=`cat /etc/mtab | grep "/ " | cut -c1-8`
+
+if [ ! -d $MOUNTTEMP ]; then
+	mkdir $MOUNTTEMP
+fi
+
+UPDATE=0
+NODISK=`echo $CLONESOURCE | cut -c6-8`
+for i in $(ls /proc/ide/hd* -d | grep -v $NODISK); do
+	if cat $i/media | grep -i disk >/dev/null; then
+		DISK=`basename "$i"`
+		mount -t xfs "/dev/$DISK"1 $MOUNTTEMP 2>/dev/null
+		if [ "$?" = 0 ]; then
+			if [ -f "$MOUNTTEMP/.install" ]; then
+				UPDATE=1
+			else
+				UPDATE=0
+			fi
+			umount $MOUNTTEMP
+		fi
+		CLONETARGET=/dev/$DISK
+	fi
+done
+
+echo "SourceDisk: $CLONESOURCE"
+echo "DestDisk  : $CLONETARGET"
+
+hdparm -d 1 $CLONESOURCE
+hdparm -d 1 $CLONETARGET
+
+echo "$UPDATE"
+if [ "$UPDATE" = "0" ]; then
+	clone
+elif [ "$UPDATE" = "1" ]; then
+	update
+fi
+
+if [ -d $MOUNTTEMP ]; then
+	rm -rf $MOUNTTEMP
+fi

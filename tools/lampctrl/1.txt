@@ -1,0 +1,22 @@
+dskport 0;
+
+micvolume 0;    // 设置麦克风的音量 0 -49
+x=0;
+// 主音量渐变
+while (x<=40) {
+	musicvolume x; // 音乐音量增加 0 - 48
+	sleep 30;
+	x=x+1;
+}
+
+// 超低音渐变
+x=0;
+while (x<=30) {
+	subwoofer x;   // 超低音增加0 - 30
+	sleep 30;
+	x=x+1;
+}
+musictreble 6;  // 0-12, 中间值为 6
+musicbass 6;    // 0 12, 中间值为 6
+
+closeport;

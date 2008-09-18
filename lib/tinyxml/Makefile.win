@@ -1,0 +1,37 @@
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  =
+OBJ  = tinystr.o tinyxml.o tinyxmlerror.o tinyxmlparser.o $(RES)
+LINKOBJ  = tinystr.o tinyxml.o tinyxmlerror.o tinyxmlparser.o $(RES)
+LIBS =  -L"C:/Dev-Cpp/lib"
+INCS =  -I"C:/Dev-Cpp/include"  -I"C:/Dev-Cpp/include/glib-2.0"  -I"C:/Dev-Cpp/include/gtk-2.0"
+CXXINCS =  -I"C:/Dev-Cpp/include/c++"  -I"C:/Dev-Cpp/include"
+BIN  = libtinyxml.a
+CXXFLAGS = $(CXXINCS)
+CFLAGS = $(INCS)
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before libtinyxml.a all-after
+
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(LINKOBJ)
+	ar r $(BIN) $(LINKOBJ)
+	ranlib $(BIN)
+
+tinystr.o: tinystr.cpp
+	$(CPP) -c tinystr.cpp -o tinystr.o $(CXXFLAGS)
+
+tinyxml.o: tinyxml.cpp
+	$(CPP) -c tinyxml.cpp -o tinyxml.o $(CXXFLAGS)
+
+tinyxmlerror.o: tinyxmlerror.cpp
+	$(CPP) -c tinyxmlerror.cpp -o tinyxmlerror.o $(CXXFLAGS)
+
+tinyxmlparser.o: tinyxmlparser.cpp
+	$(CPP) -c tinyxmlparser.cpp -o tinyxmlparser.o $(CXXFLAGS)

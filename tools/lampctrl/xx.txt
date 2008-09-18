@@ -1,0 +1,48 @@
+#
+# 注解方式
+#   1: /* ... */ 
+#   2: 以#开头的行
+#   3: //
+#
+#  数值定义: 010101B   二进制数
+#            123456789 十进制数
+#            A97BH     十六进制数
+#  支持if 语句
+#  支持的运算符:
+#  + - * / < >
+#  >= 大于等于
+#  <= 小于等于
+#  == 等于
+#  != <> 不等于
+#  
+#  && 
+#  ||
+#
+#  print xx; 打印值
+#  open  xx; 打开灯光控制
+#  sleep xx; 延时 xx 毫秒
+#  openport xx; 打开端口号xx
+#  closeport;   关闭打开的端口
+#  micvolume xx,yy; 设置麦克风xx音量为yy
+
+# OPENPORT 1;
+# MicVolume 1,40;
+# MusicInput 1;
+#
+openport 0;  // 灯光控制器串口
+dskport 0;   // DSK 串口号
+x=0;
+open 00000000B;
+sleep 1000;
+open 01010101B;
+sleep 100;
+open 11001100B;
+sleep 100;
+open 00110011B;
+while (x<=20H) {
+	print x;
+	open x;
+	sleep 100;
+	x=x+1;
+}
+closeport;

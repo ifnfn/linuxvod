@@ -1,0 +1,153 @@
+CC     = $(CROSS_COMPILE)g++ 
+CPP    = $(CROSS_COMPILE)g++
+LD     = $(CROSS_COMPILE)g++
+AR     = $(CROSS_COMPILE)ar
+RANLIB = $(CROSS_COMPILE)ranlib
+
+#LIBS = -lpthread -ltinyxml -lktv -L. -L../../lib
+LIBS = -ltinyxml -lktv -static-libgcc -L../../lib -L.
+
+BIN = mtv
+CXXFLAGS = -I../../lib -Os -pipe -Werror -Wall
+SRC =
+
+ifndef CONFIGDEFINE
+CONFIGDEFINE  =
+#CONFIGDEFINE += TSLIB
+
+#CONFIGDEFINE += SDLGUI
+#CONFIGDEFINE += NEWMOUSE
+#CONFIGDEFINE += ENABLE_HANDWRITE
+#CONFIGDEFINE += CONSOLEINPUT
+
+CONFIGDEFINE += DIRECTFB
+#CONFIGDEFINE += SPHEGUI
+
+#CONFIGDEFINE += MEMTEST
+CONFIGDEFINE  += ENABLE_MULTLANGIAGE
+endif
+
+ifeq ($(findstring ENABLE_MULTLANGIAGE, $(CONFIGDEFINE)), ENABLE_MULTLANGIAGE)
+	CXXFLAGS += -DENABLE_MULTLANGIAGE
+endif
+
+ifeq ($(findstring ENABLE_FOODMENU, $(CONFIGDEFINE)), ENABLE_FOODMENU)
+	CXXFLAGS += -DENABLE_FOODMENU
+endif
+
+ifeq ($(findstring MEMTEST, $(CONFIGDEFINE)), MEMTEST)
+	SRC+= memwatch.c
+	CXXFLAGS += -DMEMWATCH -DMW_STDIO -DMW_NOCPP
+endif
+
+ifeq ($(findstring CONSOLEINPUT, $(CONFIGDEFINE)), CONSOLEINPUT)
+	CXXFLAGS += -DCONSOLEINPUT
+endif
+
+ifeq ($(findstring DIRECTFB, $(CONFIGDEFINE)), DIRECTFB)
+	CXXFLAGS +=-DDIRECTFB
+endif
+
+ifeq ($(findstring SPHEGUI, $(CONFIGDEFINE)), SPHEGUI)
+	LIBS +=/home/silicon/sunplus/sdk-1.09/lib/lib1001_IPSTB.a
+	LIBS += crc32.o	 inflate.o zutil.o adler32.o inftrees.o inffast.o
+	CXXFLAGS +=-DSPHEGUI -I/home/silicon/sunplus/sdk-1.09/include
+endif
+
+ifeq ($(findstring SDLGUI, $(CONFIGDEFINE)), SDLGUI)
+	CXXFLAGS += -DSDLGUI
+	LIBS += -ljpeg 
+endif
+
+ifeq ($(findstring WIN32, $(CONFIGDEFINE)), WIN32)
+	LIBS +=-lwsock32 -lgdi32
+endif
+
+ifeq ($(findstring NEWMOUSE, $(CONFIGDEFINE)), NEWMOUSE)
+	SRC += mousecursor.cpp
+	CXXFLAGS += -DNEWMOUSE
+endif
+
+ifeq ($(findstring ENABLE_HANDWRITE, $(CONFIGDEFINE)), ENABLE_HANDWRITE)
+	SRC += hw/hwim.cpp
+	CXXFLAGS += -DENABLE_HANDWRITE
+	LIBS += hw/hw-i386.a
+endif
+
+ifeq ($(findstring TSLIB, $(CONFIGDEFINE)), TSLIB)
+	CXXFLAGS += -DTSLIB
+	LIBS += -lts
+endif
+
+SRC += \
+	color.cxx         \
+	keybuf.cxx        \
+	font.cxx          \
+	stack.cxx         \
+	application.cxx   \
+	xmltheme.cxx	  \
+	key.cxx	          \
+	data.cxx          \
+	ktvstdclass.cxx   \
+	songstream.cxx    \
+	player.cxx        \
+	main.cxx          \
+	mtvconfig.cxx     \
+	windowmanage.cxx  \
+	win.cxx           \
+	gui.cxx	          \
+	timer.cxx         \
+	diskcache.cxx     \
+	list.cxx          \
+
+OBJS=$(addprefix objects/, $(addsuffix .o, $(basename $(notdir $(SRC)))))
+all: deps $(BIN) 
+
+# automatic generation of all the rules written by vincent by hand.
+deps: $(SRC) Makefile
+	@echo "Generating new dependency file...";
+	@-rm -f deps;
+ifeq ($(findstring SDLGUI, $(CONFIGDEFINE)), SDLGUI)
+	@echo 'LIBS += '`sdl-config --static-libs`>>deps;
+	@echo 'LIBS += '`freetype-config --libs`  >>deps;
+	@echo 'LIBS += '`libpng-config --libs`  >>deps;
+	@echo 'CXXFLAGS += '`sdl-config --cflags` >>deps;
+	@echo 'CXXFLAGS += '`freetype-config --cflags` >>deps;
+endif
+
+ifeq ($(findstring DIRECTFB, $(CONFIGDEFINE)), DIRECTFB)
+	@echo 'LIBS += '`directfb-config --libs` >>deps;
+	@echo 'CXXFLAGS +='`directfb-config --cflags` >>deps;
+endif
+
+ifeq ($(findstring SPHEGUI, $(CONFIGDEFINE)), SPHEGUI)
+	@echo 'LIBS += -lSDL_image '`sdl-config --libs`>>deps;
+	@echo 'LIBS += '`libpng-config --ldflags`>>deps;
+	@echo 'CXXFLAGS += '`sdl-config --cflags`>>deps;
+endif
+
+	@for f in $(SRC); do \
+		OBJ=objects/`basename $$f|sed -e 's/\.cpp/\.o/' -e 's/\.cxx/\.o/' -e 's/\.c/\.o/'`; \
+		echo $$OBJ: $$f>> deps; \
+		echo '	$(CPP) $$(CXXFLAGS) -c -o $$@ $$^'>> deps; \
+	done
+
+-include ./deps
+
+objects:
+	mkdir objects
+
+.PHONY: madlib
+
+$(BIN): objects $(OBJS)
+	@rm -f $(BIN)
+	@ln -s `$(CPP) -print-file-name=libstdc++.a` -f
+	$(LD) $(OBJS) $(LIBS) -o $@
+	@unlink libstdc++.a
+#	cp mtv /ktvdata -f
+
+md5: mtv
+	@md5sum -b mtv | tr a-z A-Z
+
+clean:
+	rm -rf mtv objects deps *~ *.a *.o 
