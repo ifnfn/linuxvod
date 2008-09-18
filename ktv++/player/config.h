@@ -33,12 +33,12 @@ extern char Cdrom[10]        ; // 光驱设备
 #define VIDEOROOT "/video"     // 本地视频根目录
 
 #if 0
-#define PRINTTRACK(track) \
-	if (track == trDefault) \
-		printf("trDefault\n"); \
+#define PRINTTRACK(track)   \
+	if (track == trDefault)   \
+		printf("%s: trDefault\n", __FUNCTION__);  \
 	else if (track == trSong) \
-		printf("trSong\n"); \
-	else printf("trMusic\n");
+		printf("%s: trSong\n", __FUNCTION__); \
+	else printf("%s: trMusic\n", __FUNCTION__);
 #else
 #define PRINTTRACK(track)
 #endif

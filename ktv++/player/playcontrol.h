@@ -48,6 +48,7 @@ enum tagMediaType {
 
 #define MUSICTRACK 0
 #define SOUNDTRACK 1
+#define MUTE       2
 
 #define MAXVIDEONUM 2
 #define MAXAUDIONUM 7
@@ -122,6 +123,7 @@ RMTbuffer *GetPushDataBuf      (INFO *pInfo);// 得到一个缓冲区
 PlayerState PauseContinuePlayer(INFO *pInfo);// 暂停继续
 void RunSoundMode(INFO *pInfo, char *param); // 运行脚本
 
+void PlayerMute(INFO *pInfo);
 int  PlayAudio(INFO *pInfo, char *type, \
 		RMuint32 samplerate, \
 		RMuint32 numberofchannels, \

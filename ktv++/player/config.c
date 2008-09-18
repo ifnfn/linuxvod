@@ -109,7 +109,7 @@ void ReadPlayIniConfig(char *PlayIni, char *VideoIni)
 		PlayerStartAudioTrack = trMusic;
 	PRINTTRACK(PlayerStartAudioTrack);
 	tmp = ReadString(ini, SECTION, "DefaultAudioTrack", "伴唱");
-	if (strcasecmp(tmp, "不变") == 0)
+	if (strcasecmp(tmp, "无声") == 0)
 		DefaultAudioTrack = trDefault;
 	else if (strcasecmp(tmp, "原唱") == 0)
 		DefaultAudioTrack = trSong;

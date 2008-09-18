@@ -203,8 +203,7 @@ int GetRealVolume(INFO *pInfo)
 	}
 	else 
 		tmp = 0;
-//		tmp = pInfo->volume;
-	printf("vol =%d, pInfo->volume=%d, RealVolume=%d\n", EquVolume, pInfo->volume, tmp);
+//	printf("vol =%d, pInfo->volume=%d, RealVolume=%d\n", EquVolume, pInfo->volume, tmp);
 	return tmp;
 }
 
@@ -259,6 +258,8 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 				pInfo->CurTrack = MUSICTRACK;
 			else if (DefaultAudioTrack == trSong)
 				pInfo->CurTrack = SOUNDTRACK;
+			else
+				pInfo->CurTrack = MUTE;
 			pInfo->PlayingSong.SoundMode = DefaultSoundMode; // 灯光控制模式
 		}
 	}
@@ -296,7 +297,7 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 	}
 	else {
 		char *tmpfile = GetLocalFile(pInfo->PlayingSong.SongCode, NULL); // 读取本地文件
-		printf("tmpfile=%s\n", tmpfile);
+//		printf("tmpfile=%s\n", tmpfile);
 		if (tmpfile) {// 如果本地文件存在
 			strcpy(pInfo->VideoFile, tmpfile);
 			pInfo->MediaType= mtFILE;
@@ -317,14 +318,18 @@ bool MuteSwitchPlayer(INFO *pInfo)
 		pInfo->Mute = false;
 		AddVolume(pInfo, 0);
 	}
-	else {
+	else
+		PlayerMute(pInfo);
+	return pInfo->Mute;
+}
+
+void PlayerMute(INFO *pInfo)
+{
 		pInfo->Mute = true;
 		if (pInfo->rua) {
 			RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeRight", 0);
 			RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeLeft",  0);
 		}
-	}
-	return pInfo->Mute;
 }
 
 void AddVolume(INFO *pInfo, int v)
@@ -473,6 +478,10 @@ void SetAudioChannel(INFO *pInfo)
 						sizeof(RMstreamId));
 			}
 		}
+	}
+	else if (pInfo->CurTrack == MUTE) {
+		PlayerMute(pInfo);
+		return;
 	}
 	AddVolume(pInfo, 0);
 }
@@ -864,7 +873,10 @@ bool StartPlayer(INFO *pInfo)
 	pInfo->StartGetStream = true;
 	if (EnabledSound)
 		RunSoundMode(pInfo, NULL);
-	AddVolume(pInfo, 0);
+	if (strcasecmp(pInfo->PlayingSong.StreamType, "DIVX") == 0)
+		SetAudioChannel(pInfo);
+	else
+		AddVolume(pInfo, 0);
 	return true;
 }
 
@@ -934,7 +946,7 @@ static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message
 			break;
 		case RM_MESSAGE_EOS:               // 播放完毕信号
 			SETBLACKFRAME(tmpInfo->PropCtrl);
-//			ShowJpeg(tmpInfo->rua, Background);
+			ShowJpeg(tmpInfo->rua, Background);
 #if 0
 			if (Advertising){ // 如果两首歌曲显示广告图片
 				const char *tmpfile="/ktvdata/adtmp.jpg";
@@ -957,11 +969,13 @@ static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message
 		case RM_MESSAGE_ACMODECHANGE:
 			break;
 		case RM_MESSAGE_FRAME_INDEX:
+			printf("RM_MESSAGE_FRAME_INDEX: tmpInfo->StartGetStream=%d\n", tmpInfo->StartGetStream);
 			if (tmpInfo->StartGetStream) {
 				if (strcasecmp(tmpInfo->PlayingSong.StreamType, "DIVX") == 0)
 					tmpInfo->StartGetStream = false;
 				else
 					tmpInfo->StartGetStream = ReadSongTrack(tmpInfo) < 1;
+				printf("%s: tmpInfo->StartGetStream=%d\n", __FUNCTION__, tmpInfo->StartGetStream);
 				if (!tmpInfo->StartGetStream) {
 					PRINTTRACK(tmpInfo->CurTrack);
 					SetAudioChannel(tmpInfo);
