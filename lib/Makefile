@@ -7,7 +7,6 @@ SRC = \
 	osnet.c \
 	selected.c \
 	strext.c \
-	unicode.c
 
 CLEANFILE+=libktv.a libtinyxml.a
 

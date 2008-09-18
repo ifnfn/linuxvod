@@ -183,20 +183,26 @@ void DeleteFirstSongList(void)
 
 int GetRealVolume(INFO *pInfo)
 {
-	int EquVolume;
-	return  pInfo->volume;
+	int EquVolume, tmp;
+//	return  pInfo->volume;
 	if (pInfo->CurTrack == MUSICTRACK)
 		EquVolume = pInfo->PlayingSong.VolumeK;
 	else
 		EquVolume = pInfo->PlayingSong.VolumeS;
 
-//	DEBUG_OUT("EquVolume=%d\n", EquVolume);
-	int tmp = pInfo->volume * (1 - (EquVolume - pInfo->volume) / 100.0);
-	if (tmp > pInfo->maxvolume)
-		tmp = pInfo->maxvolume;
-	else if (tmp < pInfo->minvolume)
-		tmp = pInfo->minvolume;
-//	DEBUG_OUT("vol =%d, pInfo->volume=%d, RealVolume=%d\n", EquVolume, pInfo->volume, tmp);
+//	printf("EquVolume=%d\n", EquVolume);
+	if (EquVolume != 0) {
+		tmp = pInfo->volume * (1 + (EquVolume - 50)/50.0);
+//		tmp = pInfo->volume + (EquVolume - 50);	
+//	int tmp = pInfo->volume * (1 - (EquVolume - pInfo->volume) / 100.0);
+		if (tmp > pInfo->maxvolume)
+			tmp = pInfo->maxvolume;
+		else if (tmp < pInfo->minvolume)
+			tmp = pInfo->minvolume;
+	}
+	else 
+		tmp = pInfo->volume;
+	printf("vol =%d, pInfo->volume=%d, RealVolume=%d\n", EquVolume, pInfo->volume, tmp);
 	return tmp;
 }
 
@@ -690,8 +696,8 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 	}
 	RMFGetControlHandle((void **) &pInfo->PropCtrl, RM_CONTROL_PROPERTY, pInfo->InterFaceCtrl);
 //	SETBLACKFRAME(pInfo->PropCtrl);
-	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evInAspectRatio"   , evInAspectRatio_Auto); // evInAspectRatio_4x3
-	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evOutDisplayOption", evOutDisplayOption_Normal);
+	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evInAspectRatio"   ,evInAspectRatio_4x3);
+	RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "VIDEO_SET", "evOutDisplayOption",evOutDisplayOption_Normal);
 
 	if (strcasecmp(TvType, "PAL") == 0)
 		RMFSetAndSavePropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB,"VIDEO_SET", "evTvStandard",evTvStandard_PAL);

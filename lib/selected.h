@@ -74,6 +74,8 @@ typedef enum tagPlayCmd {
 	pcMsgBox       ,
 	pcReloadSongDB ,
 	pchwStatus     , // 硬件状态
+	pcSetVolumeS   ,
+	pcSetVolumeK   ,
 	pcUnknown        // 不知名操作
 } PlayCmd;
 

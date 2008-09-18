@@ -154,12 +154,12 @@ static void CreateKey(const char *data, char *key)
 		strcat(md5str, tmp);
 		len -= 16;
 	}
-//	printf("%s=%d\n", md5str, strlen(md5str));
+//	printf("%s: %s=%d\n", __FUNCTION__, md5str, strlen(md5str));
 	MD5(md5str, tmp, 8);
 	MD5(tmp, key, 4);
-//	printf("key=%s\n", key);
+//	printf("%s: key=%s\n", __FUNCTION__, key);
 	MD5(key, tmp, 1);
-//	printf("tmp=%s\n", tmp);
+//	printf("%s: tmp=%s\n", __FUNCTION__, tmp);
 	strcat(key, tmp);
 }
 
@@ -174,9 +174,9 @@ bool GetPublicKey(const char *dev, char *publickey) // 生成认证码
 		return false;
 	}
 
-	if (getcpuinfo(cpu)) {
-//		printf("No found CPU serial number.\n");
-//		return false;
+	if (!getcpuinfo(cpu)) {
+//		printf("No found CPU serial number is %s.\n", cpu);
+		return false;
 	}
 	strcat(hd, cpu);
 	CreateKey(hd, publickey);

@@ -57,8 +57,10 @@ int main(int argc, char **argv)
 				ok = GetDesPwd(b64str(DEVHDA, devhda), despwd);
 			else
 				ok = GetDesPwd(argv[4], despwd);
-			if (ok)
+			if (ok) {
+				printf("DesEncryptFile(%s, %s, %s)\n", argv[2], argv[3], despwd);
 				DesEncryptFile(argv[2], argv[3], despwd);
+			}
 		}
 		else if (strcmp(argv[1], "-x") == 0)
 			DesEncryptFile(argv[2], argv[3], argv[4]);

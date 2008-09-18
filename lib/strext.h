@@ -51,6 +51,8 @@ int ExtractFilePath(const char *filename, char *path);
 int ExtractFileName(const char *filename, char *file);
 int ExtractFileExt (const char *filename, char *extname);
 
+int Unicode(const char* charset, const char* inbuf, char *outbuf, int MaxLen);
+
 #ifdef __cplusplus
 }
 #endif

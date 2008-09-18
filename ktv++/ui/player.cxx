@@ -93,7 +93,7 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 	if (size>0) {
 		char *cmd = strtok(msg, "?");
 		char *param = strtok(NULL, "");
-//		printf("cmd:%s, param:%s\n", cmd, param);
+		printf("cmd:%s, param:%s\n", cmd, param);
 		PlayCmd playcmd = StrToPlayCmd(cmd);
 		SelectSongNode rec;
 
@@ -110,13 +110,13 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 			FirstSong(&rec, 1);
 		}
 		else if (playcmd == pcPauseContinue) {
-//			printf("pcPauseContinue\n");
+			printf("pcPauseContinue\n");
 			ShowMsgBox(param, 2000);
 		}
 		else if (playcmd == pcMsgBox) {
 			char *m = strtok(param, ",");
 			int t = atoidef(strtok(NULL, ","), 0);
-//			printf("%s, %d\n", m, t);
+			printf("%s, %d\n", m, t);
 			ShowMsgBox(m, t);
 			return true;
 		}

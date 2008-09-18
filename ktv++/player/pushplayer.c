@@ -107,8 +107,8 @@ int main(int argc, char **argv)
 	strcpy(playurl, DATAPATH"/play.ini");
 	strcpy(videourl, DATAPATH"/video.ini");
 #endif
-//	printf("video=%s\nplay=%s\n", videourl, playurl);
 	InitSongList();
+//	printf("video=%s\nplay=%s\n", videourl, playurl);
 	ReadPlayIniConfig(playurl, videourl);
 #ifdef OSDMENU
 	int i;
@@ -133,8 +133,8 @@ int main(int argc, char **argv)
 			strcpy(tmp, msg);
 			cmd   = strtok(msg , "?");
 			param = strtok(NULL, "");
-//			printf("cmd=%s,param=%s\n", cmd, param);
 			playcmd = StrToPlayCmd(cmd);
+//			printf("cmd=%s,param=%s, playcmd=%d\n", cmd, param, playcmd);
 			switch (playcmd){
 				case pcAddSong:
 				case pcDelSong:
@@ -220,6 +220,26 @@ int main(int argc, char **argv)
 				}
 				case pcSetVolume:
 					if (param) Info.volume = atoi(param);
+					break;
+				case pcSetVolumeK:
+					if (param) {
+						Info.CurTrack = MUSICTRACK;
+						SetAudioChannel(&Info);
+						PlayerSendPrompt(mptMusic, &addr_sin);
+
+						Info.PlayingSong.VolumeK = atoi(param);
+						AddVolume(&Info, 0);
+					}
+					break;
+				case pcSetVolumeS:
+					if (param) {
+						Info.CurTrack = SOUNDTRACK;
+						SetAudioChannel(&Info);
+						PlayerSendPrompt(mptSong, &addr_sin);
+
+						Info.PlayingSong.VolumeS = atoi(param);
+						AddVolume(&Info, 0);
+					}
 					break;
 				case pcPlayCode:
 					if (param){

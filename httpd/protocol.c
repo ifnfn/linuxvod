@@ -181,7 +181,7 @@ int serveconnection(int sockfd)
 				filename[strlen(filename)-strlen(thehost->DEFAULTPAGE)-1] = '\0'; // Get rid of the /index..
 				if(isDirectory(filename) == TRUE) 
 				{ 
-//					showdir(filename, sockfd, thehost); 
+					showdir(filename, sockfd, thehost); 
 					goto end;
 				}
 

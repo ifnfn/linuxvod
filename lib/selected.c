@@ -50,6 +50,8 @@ static struct tagCMD CMD[CMDSIZE] = {
 	{"MsgBox"	, pcMsgBox	  },
 	{"hwstatus"     , pchwStatus      },
 	{"ReSongDB"	, pcReloadSongDB  },
+	{"SetVolumeK"   , pcSetVolumeK    },
+	{"SetVolumeS"   , pcSetVolumeS    },
 };
 
 static pthread_cond_t count_nonzero;
@@ -79,7 +81,8 @@ PlayCmd StrToPlayCmd(char *cmd)
 {
 	int i;
 	for (i=0;i<CMDSIZE;i++){
-		if (!strncasecmp(CMD[i].cmdstr, cmd, strlen(CMD[i].cmdstr)))
+//		if (!strncasecmp(CMD[i].cmdstr, cmd, strlen(CMD[i].cmdstr)))
+		if (!strcasecmp(CMD[i].cmdstr, cmd))
 			return CMD[i].cmd;
 	}
 	return pcUnknown;

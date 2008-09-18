@@ -76,7 +76,7 @@ int saveregcode(const char *username, const char *keycode, const char *regcode, 
 			time_t timep;
 			struct tm *p;
 			time(&timep);
-			p = localtime(&timep);
+			p = localtime(&timep); /*ȡµõ±µي±¼⨯
 
 			sprintf(SQL, "INSERT INTO regcode VALUES('%s','%s','%s','%d-%d-%d %d:%d:%d');",
 					username, keycode, regcode,

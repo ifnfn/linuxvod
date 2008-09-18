@@ -13,10 +13,7 @@ ifneq "$(LIB)" ""
 	TARGET=$(LIB)
 endif
 
-ifneq "$(LIBSO)" ""
-	TARGETSO=$(LIBSO)
-endif
-all: objects deps subdirs $(OBJS) $(TARGET) $(BIN) $(TARGETSO)
+all: objects deps subdirs $(OBJS) $(TARGET) $(BIN)
 
 # automatic generation of all the rules written by vincent by hand.
 deps: $(SRC) Makefile
@@ -37,9 +34,6 @@ objects:
 $(TARGET): $(OBJS)
 	$(AR) r $@ $(OBJS)
 	$(RANLIB) $@
-
-$(TARGETSO): $(OBJS)
-	$(CC) --share -s $(OBJS) -o $@
 
 $(BIN): $(OBJS)
 	@ln -s `g++ -print-file-name=libstdc++.a` -f
@@ -63,4 +57,4 @@ subdirsclean:
 	done;
 
 clean: subdirsclean
-	rm -rf $(OBJS) *.o *~ .*swp objects deps $(CLEANFILE) $(BIN) $(TARGET) $(TARGETSO)
+	rm -rf $(OBJS) *.o *~ .*swp objects deps $(CLEANFILE) $(BIN) $(TARGET)

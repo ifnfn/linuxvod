@@ -4,7 +4,6 @@
 #include "strext.h"
 #include "selected.h"
 #include "mtvconfig.h"
-#include "unicode.h"
 
 #ifndef DATAPATH
 #define DATAPATH "/ktvdata/"

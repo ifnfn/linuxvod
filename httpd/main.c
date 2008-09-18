@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	signal(SIGINT, signal_handler);
 	signal(SIGCHLD, signal_handler);
 
-#if 1
+#if 0
 	xx = fork();
 	if(xx==-1)
 	{

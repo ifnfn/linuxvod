@@ -3,7 +3,7 @@ LD     = $(CROSS_COMPILE)gcc
 AR     = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
 
-BIN=addsong checkkey usbpnpd saveoff reg send download #gtalk
+BIN=addsong checkkey usbpnpd saveoff reg player send download #gtalk
 
 all: $(BIN)
 	make -C hwscan
@@ -19,6 +19,8 @@ checkkey:
 	$(CC) checkey.c -o checkkey -s
 reg:
 	$(CC) reg.c -lktv -L../lib -I../lib -o $@ -DREGCODE -s
+player:
+	$(CC) reg.c -lktv -L../lib -I../lib -o $@ -s
 download:
 	$(CC) $(CXXFLAGS) download.c ../lib/osnet.c -o download -s -lktv -I../lib -lktv -L../lib -s
 send:

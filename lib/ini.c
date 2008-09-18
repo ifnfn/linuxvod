@@ -175,9 +175,9 @@ void CloseIniFile(struct ENTRY *Head)
 
 char *ReadString(struct ENTRY *Head, char *pSection, char *pKey, char *Default)
 {
+	strcpy(Result, Default);
 	if (!ArePtrValid(pSection, pKey, Default)){
 		puts("Program normaly");
-		strcpy(Result, Default);
 		return Result;
 	}
 
@@ -189,11 +189,8 @@ char *ReadString(struct ENTRY *Head, char *pSection, char *pKey, char *Default)
 			strcpy (Result, pEntry->Node.ValText);
 			return Result;
 		}
-
-		strcpy(Result, Default);
-		return Result;
 	}
-	return NULL;
+	return Result;
 }
 
 bool ReadBool(struct ENTRY *Head, char * pSection, char * pKey, bool Default)
