@@ -21,38 +21,61 @@ static int sqlitecallback(void *NotUsed, int argc, char **argv, char **azColName
 	return 0;
 }
 
+#if 0
+inline static char *ToUTF8(unsigned char charset, char *in)
+{
+	static char outbuf[256];
+
+	memset(outbuf, 0, 256);
+	if (charset == 129)
+		Unicode("EUC-KR", in, outbuf, 255);
+	else if (charset == 128)
+		Unicode("EUC-JP", in, outbuf, 255);
+	else 
+		Unicode("GBK", in, outbuf, 255);
+
+	return outbuf;
+}
+#else
+#define ToUTF8(a,b) b
+#endif
+
 static int SongDataCallBack(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	CKeywordIndex *index = (CKeywordIndex *)NotUsed;
 	SystemFields data;
+//	unsigned char charset = atoidef(argv[11], 0);
+
 #if 0
 	int i=0;
-	for (i=0;i<argc; i++)
+	for (i=0;i<argc; i++) {
 		printf("%s|", argv[i]);
 		printf("(%d)%s|", i, azColName[i]);
+	}
 	printf("\n");
 	return 0;
 #endif
 	memset(&data, 0, sizeof(SystemFields));
-	if (argv[ 0]) strncpy(data.SongCode   , argv[0], SongCodeLen   - 1);
-	if (argv[ 1]) strncpy(data.SongName   , argv[1], SongNameLen   - 1);
-	if (argv[ 2]) strncpy(data.Class      , argv[2], ClassLen      - 1);
-	if (argv[ 3]) strncpy(data.Language   , argv[3], LanguageLen   - 1);
-	if (argv[ 4]) strncpy(data.SingerName1, argv[4], SingerNameLen - 1);
-	if (argv[ 5]) strncpy(data.SingerName2, argv[5], SingerNameLen - 1);
-	if (argv[ 6]) strncpy(data.SingerName3, argv[6], SingerNameLen - 1);
-	if (argv[ 7]) strncpy(data.SingerName4, argv[7], SingerNameLen - 1);
-	if (argv[ 8]) strncpy(data.PinYin     , argv[8], PinYinLen     - 1);
-	if (argv[ 9]) strncpy(data.WBH        , argv[9], PinYinLen     - 1);
-	if (argv[10]) data.Charset  = atoi(argv[10]);
-	if (argv[11]) data.VolumeK  = atoi(argv[11]);
-	if (argv[12]) data.VolumeS  = atoi(argv[12]);
-	if (argv[13]) data.Num      = atoi(argv[13]);
-	if (argv[14]) data.Klok     = argv[14][0];
-	if (argv[15]) data.Sound    = argv[15][0];
-	if (argv[16]) data.SoundMode= atoi(argv[16]);
-	if (argv[17]) strncpy(data.StreamType, argv[17], StreamTypeLen - 1);
-	if (argv[18]) data.IsNewSong = atoi(argv[18]);
+	if (argc >  0 && argv[ 0]) strncpy(data.SongCode   , argv[ 0], SongCodeLen   - 1);
+	if (argc >  1 && argv[ 1]) strncpy(data.SongName   , ToUTF8(charset, argv[ 1]), SongNameLen   - 1);
+	if (argc >  2 && argv[ 2]) strncpy(data.Class      , ToUTF8(charset, argv[ 2]), ClassLen      - 1);
+	if (argc >  3 && argv[ 3]) strncpy(data.Language   , ToUTF8(charset, argv[ 3]), LanguageLen   - 1);
+	if (argc >  4 && argv[ 4]) strncpy(data.SingerName1, ToUTF8(charset, argv[ 4]), SingerNameLen - 1);
+	if (argc >  5 && argv[ 5]) strncpy(data.SingerName2, ToUTF8(charset, argv[ 5]), SingerNameLen - 1);
+	if (argc >  6 && argv[ 6]) strncpy(data.SingerName3, ToUTF8(charset, argv[ 6]), SingerNameLen - 1);
+	if (argc >  7 && argv[ 7]) strncpy(data.SingerName4, ToUTF8(charset, argv[ 7]), SingerNameLen - 1);
+	if (argc >  8 && argv[ 8]) strncpy(data.PinYin     , argv[ 8], PinYinLen     - 1);
+	if (argc >  9 && argv[ 9]) strncpy(data.WBH        , argv[ 9], PinYinLen     - 1);
+	if (argc > 10 && argv[10]) strncpy(data.StreamType , argv[10], StreamTypeLen - 1);
+	if (argc > 11 && argv[11]) data.Charset     = atoi(argv[11]);
+	if (argc > 12 && argv[12]) data.VolumeK     = atoi(argv[12]);
+	if (argc > 13 && argv[13]) data.VolumeS     = atoi(argv[13]);
+	if (argc > 14 && argv[14]) data.Num         = atoi(argv[14]);
+	if (argc > 15 && argv[15]) data.Klok        = argv[15][0];
+	if (argc > 16 && argv[16]) data.Sound       = argv[16][0];
+	if (argc > 17 && argv[17]) data.SoundMode   = atoi(argv[17]);
+	if (argc > 18 && argv[18]) data.IsNewSong   = atoi(argv[18]);
+	if (argc > 19 && argv[19]) data.Password    = atol(argv[19]);
 
 //	printf("data.charset=%d(%s)\n", data.Charset, argv[10]);
 //	printf("data.Language%s(%s)\n", data.Language, argv[3]);
@@ -84,8 +107,8 @@ static int AddSingerCallBack(void *NotUsed, int argc, char **argv, char **azColN
 	SystemFields data;
 	memset(&data, 0, sizeof(SystemFields));
 	if (argv[0]) strncpy(data.SongCode  , argv[0], SongCodeLen - 1);
-	if (argv[1]) strncpy(data.SingerName, argv[1], SongNameLen - 1);
-	if (argv[2]) strncpy(data.Sex       , argv[2], ClassLen - 1);
+	if (argv[1]) strncpy(data.SingerName, ToUTF8(0, argv[1]), SongNameLen - 1);
+	if (argv[2]) strncpy(data.Sex       , ToUTF8(9, argv[2]), ClassLen - 1);
 	if (argv[3]) strncpy(data.PinYin    , argv[3], PinYinLen - 1);
 	singerindex.AddSongData(&data, false);
 	return 0;
@@ -319,8 +342,7 @@ int main(int argc, char **argv)
 		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=0;", NULL, NULL, NULL);
 	}
 
-	if (update)
-	{
+	if (update) {
 		if (fromnet)
 			IndexFromServer(db);
 		else
@@ -330,8 +352,8 @@ int main(int argc, char **argv)
 		sqlite_exec(db, sql_1, AddSingerCallBack, &songindex, &zErrMsg);
 
 		char *sql_2 = "SELECT code,name,class,language,singer1,singer2,singer3,singer4,\
-				pinyin,wbh,charset,volumek,volumes,num,klok,sound,soundmode,\
-				videotype, isnewsong FROM system WHERE havesong=1 ORDER BY Num, PinYin, Name;";
+				pinyin,wbh,videotype,charset,volumek,volumes,num,klok,sound,soundmode,\
+				isnewsong FROM system WHERE havesong=1 ORDER BY Num, PinYin, Name;";
 
 		sqlite_exec(db, sql_2, SongDataCallBack, &songindex, &zErrMsg);
 		songindex.CodeHashSort();

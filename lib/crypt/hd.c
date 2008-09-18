@@ -93,7 +93,7 @@ const char* b64str(const char *base, char *out)
 	return out;
 }
 
-static void MD5(char *text, char *md5, int len)
+void MD5(char *text, char *md5, int len)
 {
 	MD5_CTX context;
 	unsigned char digest[17];
@@ -135,7 +135,7 @@ static bool getcpuinfo(char *cpu_serial) // 得到CPU序列号
 	return true;
 }
 
-static void CreateKey(const char *data, char *key)
+void CreateKey(const char *data, char *key)
 {
 	char tmp[512], md5str[513], out[100];
 	memset(tmp, 0, 512);
@@ -154,12 +154,9 @@ static void CreateKey(const char *data, char *key)
 		strcat(md5str, tmp);
 		len -= 16;
 	}
-//	printf("%s: %s=%d\n", __FUNCTION__, md5str, strlen(md5str));
 	MD5(md5str, tmp, 8);
 	MD5(tmp, key, 4);
-//	printf("%s: key=%s\n", __FUNCTION__, key);
 	MD5(key, tmp, 1);
-//	printf("%s: tmp=%s\n", __FUNCTION__, tmp);
 	strcat(key, tmp);
 }
 
@@ -192,7 +189,8 @@ bool GetDesPwd(const char *dev, char *despwd)
 	if (!CreateRegCode(pk, rc))
 		return false;
 	CreateRegCode(rc, dp);
-	if (despwd) strcpy(despwd, dp);
+	if (despwd) 
+		strcpy(despwd, dp);
 	return true;
 }
 
@@ -233,15 +231,15 @@ bool DecAndEncFile(const char *oldfile, const char *oldpwd, const char *newfile,
 bool CheckKtvRegCode()
 {
 	char publickey[33], standkey[33], deskey[33], out[512];
-	// 生成公开认证码
+
 	if (GetPublicKey(b64str(DEVHDA, out), publickey) == false) {
 		printf(b64str(RSAERROR, out));
 		return false;
 	}
-	// 生成注册码
+
 	if (!CreateRegCode(publickey, standkey))
 		return false;
-	// 生成DES加密密码
+
 	CreateRegCode(standkey, deskey);
 	return CheckPasswd(b64str(PLAYDES, out), deskey);
 }

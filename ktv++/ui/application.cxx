@@ -36,9 +36,9 @@ CApplication::CApplication(int argc, char **argv): quit(false)
 	if ((argc == 2) && (strcmp(argv[1], "--noserver") == 0)){
 	}
 	else {
-		haveserver = FindServerHost(ServerIP, argv[0]);
-		if (!haveserver)
-			DEBUG_OUT("No Found Server.\n");
+//		haveserver = FindServerHost(ServerIP, argv[0]);
+//		if (!haveserver)
+//			DEBUG_OUT("No Found Server.\n");
 	}
 	configure = new CMtvConfig(ServerIP);
 	configure->haveserver = haveserver;

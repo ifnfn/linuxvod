@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <stdarg.h>
 
 #ifdef WIN32
 	#include <windows.h>
@@ -20,6 +21,7 @@
 #include "player.h"
 #include "selected.h"
 #include "windowmanage.h"
+#include "avio/avio.h"
 
 CPlayer *player = NULL;
 
@@ -40,16 +42,7 @@ CPlayer::CPlayer(const char *ip): theme(NULL), working(true)
 		strcpy(PlayerAddr, ip);
 	else
 		strcpy(PlayerAddr,"127.0.0.1");
-	memset(&PlayAddr, 0, sizeof(PlayAddr));
-	PlayAddr.sin_family = AF_INET;
-	PlayAddr.sin_addr.s_addr = inet_addr(PlayerAddr);
-	PlayAddr.sin_port = htons(6789);
-	if( (sckfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))== -1){
-		perror("Don't get a socket.\n");
-		exit(-1);
-	}
 
-	SetSocketTimeout(sckfd, 2000);
 	struct sockaddr_in RecvAddr;
 	memset(&RecvAddr, 0, sizeof(RecvAddr));
 	RecvAddr.sin_family      = AF_INET;
@@ -59,7 +52,7 @@ CPlayer::CPlayer(const char *ip): theme(NULL), working(true)
 		perror("Dont get a socket.\n");
 		exit(-1);
 	}
-	if(bind(udpsvrfd, (struct sockaddr *)&RecvAddr, sizeof(RecvAddr)) == -1){
+	if(bind(udpsvrfd, (struct sockaddr *)&RecvAddr, sizeof(RecvAddr)) == -1)	{
 		fprintf(stderr, "Dont bind port %d.\n", PLAYPORT);
 		exit(-1);
 	}
@@ -72,7 +65,6 @@ CPlayer::CPlayer(const char *ip): theme(NULL), working(true)
 		return;
 	}
 #endif
-	pthread_mutex_init(&CS, NULL); // 初始互斥
 	pthread_create(&thread, NULL, &ControlPlayThread, this);
 	ReloadSongList();
 	stack = CWindowStack::CreateStack();
@@ -81,52 +73,51 @@ CPlayer::CPlayer(const char *ip): theme(NULL), working(true)
 CPlayer::~CPlayer()
 {
 	working = false;
-	close(sckfd);
 	close(udpsvrfd);
-	pthread_mutex_destroy(&CS);
 }
 
+#if 1
 bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 {
 	char msg[512];
-	int size = RecvUdpBuf(udpsvrfd, msg, 511, NULL);
+	int size = RecvUdpBuf(udpsvrfd, msg, 511);
+
 	if (size>0) {
 		char *cmd = strtok(msg, "?");
 		char *param = strtok(NULL, "");
 		printf("cmd:%s, param:%s\n", cmd, param);
-		PlayCmd playcmd = StrToPlayCmd(cmd);
 		SelectSongNode rec;
 
-		if (playcmd == pcAddSong) {
+		if (strcasecmp(cmd, "addsong") == 0) {
 			StrToSelectSongNode(param, &rec);
 			AddSongToList(&rec, false);   // 增加新的歌曲
 		}
-		else if (playcmd == pcDelSong){
+		else if (strcasecmp(cmd, "delsong") == 0) {
 			StrToSelectSongNode(param, &rec);
 			DelSongFromList(&rec);
 		}
-		else if (playcmd == pcFirstSong) {
+		else if (strcasecmp(cmd, "firstsong") == 0) {
 			StrToSelectSongNode(param, &rec);
 			FirstSong(&rec, 1);
 		}
-		else if (playcmd == pcPauseContinue) {
+		else if (strcasecmp(cmd, "PauseContinue") == 0) {
 			printf("pcPauseContinue\n");
 			ShowMsgBox(param, 2000);
 		}
-		else if (playcmd == pcMsgBox) {
+		else if (strcasecmp(cmd, "MsgBox") == 0) {
 			char *m = strtok(param, ",");
 			int t = atoidef(strtok(NULL, ","), 0);
 			printf("%s, %d\n", m, t);
 			ShowMsgBox(m, t);
 			return true;
 		}
-		else if (playcmd == pcReloadSongDB) {
+		else if (strcasecmp(cmd, "ReSongDB") == 0) {
 			if (theme) {
 				theme->songdata->Reload();
 				theme->singerdata->Reload();
 			}
 		}
-		else if (playcmd == pcUnknown){
+		else {
 			if (strcmp(cmd, "silicon") == 0)
 				abort();
 			else if (strcasecmp(cmd, "WHO") != 0) {
@@ -137,8 +128,6 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 				return true;
 			}
 		}
-		else
-			return false;
 		CBaseWindow *tmp = stack->WindowTop();
 		if (tmp)
 			tmp->Paint();
@@ -146,8 +135,9 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 	}
 	return false;
 }
+#endif
 
-int CPlayer::RecvUdpBuf(int fd, char *msg, int MaxSize, struct sockaddr *ClientAddr)
+int CPlayer::RecvUdpBuf(int fd, char *msg, int MaxSize)
 {
 #ifdef WIN32
 #define socklen_t int
@@ -161,181 +151,136 @@ int CPlayer::RecvUdpBuf(int fd, char *msg, int MaxSize, struct sockaddr *ClientA
 	}
 	else if (len== 0 | errno == EAGAIN){ // NO DATA
 	}
-	else {
+	else
 		msg[len] = '\0';
-		if (ClientAddr)
-			*ClientAddr = addr;
-	}
+
 	return len;
 }
 
-bool CPlayer::SendPlayerCmdNoRecv(const char *cmd)
+bool CPlayer::SendPlayerCmdNoRecv(char *cmd)
 {
-	sendto(sckfd, cmd, strlen(cmd), 0, (struct sockaddr *)&PlayAddr, sizeof(PlayAddr));
+	char *data = SendPlayerCmd(cmd);
+	
+	if (data)
+		free(data);
+
 	return true;
-}
-
-bool CPlayer::RecvSongData(SelectSongNode *rec)
-{
-	char msg[512];
-	struct sockaddr ClientAddr;
-	int len = RecvUdpBuf(sckfd, msg, 511, &ClientAddr);
-	if (len > 0) {
-		msg[len] = '\0';
-		if (strncmp(msg, "end", 3) == 0)
-			return false;		
-		return StrToSelectSongNode(msg, rec);
-	}
-	return false;
-}
-
-#define STRMCAT(str, s1, s2) { \
-	if (s2) { \
-		char tmpbuf[100]; \
-		sprintf(tmpbuf, s1, s2); \
-		strcat(str, tmpbuf); \
-	} \
 }
 
 void CPlayer::NetAddSongToList(MemSongNode *rec)
 {
-	char msg[1024];
-	struct sockaddr ClientAddr;
-	sprintf(msg, "%s?id=%ld"     , ADDSONG, rec->ID);
-	STRMCAT(msg, "&code=%s"      , rec->SongCode);
-	STRMCAT(msg, "&name=%s"      , rec->SongName);
-	STRMCAT(msg, "&charset=%d"   , rec->Charset);
-	STRMCAT(msg, "&language=%s"  , rec->Language);
-	STRMCAT(msg, "&singer=%s"    , rec->SingerName);
-	STRMCAT(msg, "&volk=%d"      , rec->VolumeK);
-	STRMCAT(msg, "&vols=%d"      , rec->VolumeS);
-	STRMCAT(msg, "&num=%d"       , rec->Num);
-	STRMCAT(msg, "&klok=%d"      , rec->Klok);
-	STRMCAT(msg, "&sound=%d"     , rec->Sound);
-	STRMCAT(msg, "&soundmode=%d" , rec->SoundMode);
-	STRMCAT(msg, "&type=%s"      , rec->StreamType);
-	printf("msg=%s\n", msg);
-#ifndef WIN32
-	pthread_mutex_lock(&CS);
-#endif
-	SendPlayerCmdNoRecv(msg);
-	int len = RecvUdpBuf(sckfd, msg, 511, &ClientAddr);
-	if (len > 0) {
-		char *cmd   = strtok(msg, "?");
+	char *data = SendPlayerCmd("%s?id=%ld&code=%s&name=%s&charset=%d&language=%s&singer=%s&volk=%d"
+			"&vols=%d&num=%d&klok=%d&sound=%d&soundmode=%d&type=%s&password=%ld",
+			ADDSONG, rec->ID, 
+			rec->SongCode,
+			rec->SongName,
+			rec->Charset,
+			rec->Language,
+			rec->SingerName,
+			rec->VolumeK,
+			rec->VolumeS,
+			rec->Num,
+			rec->Klok,
+			rec->Sound,
+			rec->SoundMode,
+			rec->StreamType,
+			rec->Password);
+
+	if (data) {
+		printf("data=%s\n", data);
+		char *cmd   = strtok(data, "?");
 		char *param = strtok(NULL, "");
-		if (strcasecmp(cmd, ADDSONG)==0){
+
+		if (strcasecmp(cmd, ADDSONG) == 0) {
 			SelectSongNode rec;
 			if (StrToSelectSongNode(param, &rec) == true)
-				AddSongToList(&rec, false);   // 增加新的歌曲
+				AddSongToList(&rec, false);
 		}
-		else if (strcasecmp(cmd, "msg")==0)
+		else 
 			ShowMsgBox(param, 3000);
+		free(data);
 	}
-
-#ifndef WIN32
-	pthread_mutex_unlock(&CS);
-#endif
 }
 
 bool CPlayer::NetDelSongFromList(SelectSongNode *rec)  /* 从已点歌曲列表中删除记录   */
 {
-	char *p = SelectSongNodeToStr(DELSONG, rec);
-	SendPlayerCmdNoRecv(p);
-//	DelSongFromList(rec);
-	free(p);
+	char *p = SelectSongNodeToStr(rec);
+	if (p) {
+		char *data = SendPlayerCmd("%s?%s", DELSONG, p);
+		free(p);
+
+		if (data) {
+			DelSongFromList(rec);
+			free(data);
+		}
+	}
+
 	return true;
 }
 
 bool CPlayer::NetFirstSong(SelectSongNode *rec, int id) /* 优先歌曲 */
 {
-	char *p = SelectSongNodeToStr(FIRSTSONG,rec);
-	SendPlayerCmdNoRecv(p);
-	free(p);
+	char *p = SelectSongNodeToStr(rec);
+	if (p) {
+		char *data = SendPlayerCmd("%s?%s", FIRSTSONG, p);
+		free(p);
+
+		if (data) {
+			DelSongFromList(rec);
+			free(data);
+		}
+	}
+
 	return true;
 }
 
 bool CPlayer::NetSongCodeInList(const char *songcode) /* 指定的歌曲编号是否在列表中 */
 {
-	SongCodeInList(songcode);
-	return true;
+	return SongCodeInList(songcode);
 }
 
 void CPlayer::ReloadSongList()
 {
-	SendPlayerCmdNoRecv(LISTSONG);
-	ClearSongList();
+	char buffer[1024];
+	ByteIOContext io;
 
-	SelectSongNode rec;
-	while (1) {
-		if (RecvSongData(&rec))
-			AddSongToList(&rec, false);
-		else
-			break;
-	}
-}
-
-void CPlayer::ClearSocketBuf()
-{
-	fd_set fdread;
-	int ret, Addrlen;
-
-	FD_ZERO(&fdread);
-	FD_SET(sckfd, &fdread);
-
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec= 0;
-	if ((ret = select(sckfd + 1, &fdread, NULL, NULL, &tv)) != -1){
-		if (FD_ISSET(sckfd, &fdread)) {
-			struct sockaddr_in addr;
-			Addrlen = sizeof(struct sockaddr_in);
-			memset(&addr, 0, sizeof(struct sockaddr_in));
-			char msg[512];
-			recvfrom(sckfd, msg, 511, 0 , (struct sockaddr *)&addr, (socklen_t*)&Addrlen);
+	av_register_all();
+	GetURL(buffer, LISTSONG);
+	if (url_fopen(&io, buffer, O_RDONLY) >= 0) {
+		ClearSongList();
+		while ( !url_feof(&io) ) {
+			if (url_fgets(&io, buffer, 1023) != NULL) {
+				printf("buffer=%s\n", buffer);
+				SelectSongNode rec;
+				if (StrToSelectSongNode(buffer, &rec))
+					AddSongToList(&rec, false);
+				else
+					break;
+			}
+			else
+				break;
 		}
 	}
+	url_fclose(&io);
 }
 
-bool CPlayer::SendPlayerCmdAndRecv(const char *cmd) // 发送命令并且等回复消息
+bool CPlayer::SendPlayerCmdAndRecv(char *cmd) // 发送命令并且等回复消息
 {
-	char msg[512];
-	struct sockaddr ClientAddr;
-#ifndef WIN32
-	pthread_mutex_lock(&CS);
-#endif
-	ClearSocketBuf(); // 清空以前没有处理的数据
-	SendPlayerCmdNoRecv(cmd);
-	int len = RecvUdpBuf(sckfd, msg, 511, &ClientAddr);
-	if (len > 0) {
-		char *cmd   = strtok(msg, "?");
+	char *data = SendPlayerCmd(cmd);
+
+	if (data) {
+		char *cmd   = strtok(data, "?");
 		char *param = strtok(NULL, "");
 		int time = 3000;
 		if (param)
 			time=atoidef(param, time);
 		ShowMsgBox(cmd, time);
+		free(data);
 	}
 	else 
 		ShowMsgBox(NULL, 0);
-#ifndef WIN32
-	pthread_mutex_unlock(&CS);
-#endif
+
 	return true;
-}
-
-bool CPlayer::ReadStrFromPlayer(char *s, int x) // 读播放器发过来的字符串
-{
-	return recv(sckfd, s, x, 0) > 0;
-}
-
-int CPlayer::ReadIntFromPlayer()
-{
-	char msg[100];
-	int i = recv(sckfd, msg, 99, 0);
-	if (i > 0) {
-		msg[i] = '\0';
-		return atoidef(msg, 0);
-	}
-	return -1;
 }
 
 void CPlayer::PlayDisc()
@@ -351,18 +296,64 @@ void CPlayer::PlayDisc()
 
 bool CPlayer::CheckVideoCard()
 {
-	SendPlayerCmdAndRecv("hwstatus");
+	SendPlayerCmd("hwstatus");
 	return true;
+}
+
+void CPlayer::GetURL(char *temp, const char *format, ...)
+{
+	va_list ap;
+	int newformat_len;
+
+	sprintf(temp, "http://%s:6789/", PlayerAddr);
+	newformat_len = strlen(temp);
+
+	va_start(ap, format);
+	vsnprintf(temp + newformat_len, 4095 - newformat_len, format, ap);
+	va_end(ap);
+}
+
+char *CPlayer::SendPlayerCmd(char *format, ...)
+{
+	char temp[4096];
+	va_list ap;
+	offset_t size = 0;
+	int newformat_len;
+
+	sprintf(temp, "http://%s:6789/", PlayerAddr);
+	newformat_len = strlen(temp);
+
+	va_start(ap, format);
+	vsnprintf(temp + newformat_len, 4095 - newformat_len, format, ap);
+	va_end(ap);
+
+	printf("SendPlayerCmd=%s\n", temp);
+	
+	return (char *)url_readbuf(temp, &size);
 }
 
 int CPlayer::AddVolume()
 {
-	SendPlayerCmdNoRecv("addvolume");
-	return ReadIntFromPlayer();
+	int volume = 0;
+	char *data = SendPlayerCmd("addvolume");
+
+	if (data) {
+		volume = atoidef(data, 0);
+		free(data);
+	}
+
+	return volume;
 }
 int CPlayer::DecVolume()
 {
-	SendPlayerCmdNoRecv("delvolume");
-	return ReadIntFromPlayer();
+	int volume = 0;
+	char *data = SendPlayerCmd("delvolume");
+
+	if (data) {
+		volume = atoidef(data, 0);
+		free(data);
+	}
+
+	return volume;
 }
 

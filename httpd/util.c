@@ -101,9 +101,10 @@ void VirtualHostDefinition(FILE *in)
 
 	strcpy(thevhost->host, "");
 	strcpy(thevhost->DOCUMENTROOT, defaulthost.DOCUMENTROOT);
-	strcpy(thevhost->DEFAULTPAGE, defaulthost.DEFAULTPAGE);
-	strcpy(thevhost->CGIBINDIR, defaulthost.CGIBINDIR);
-	strcpy(thevhost->CGIBINROOT, defaulthost.CGIBINROOT);
+	strcpy(thevhost->DEFAULTPAGE , defaulthost.DEFAULTPAGE);
+	strcpy(thevhost->CGIBINDIR   , defaulthost.CGIBINDIR);
+	strcpy(thevhost->CGIBINROOT  , defaulthost.CGIBINROOT);
+	strcpy(thevhost->VIDEODIR    , defaulthost.VIDEODIR);
 
 	while(!feof(in))
 	{
@@ -127,6 +128,8 @@ void VirtualHostDefinition(FILE *in)
 		        strcpy(thevhost->DEFAULTPAGE, ptr2);
 		else if(!gstricmp(ptr1, "CgiBinDir"))
 		        strcpy(thevhost->CGIBINDIR, ptr2);
+		else if(!gstricmp(ptr1, "VideoDir"))
+		        strcpy(thevhost->VIDEODIR, ptr2);
 		else if(!gstricmp(ptr1, "CgiBinRoot"))
 		        strcpy(thevhost->CGIBINROOT, ptr2);
 	}
@@ -176,6 +179,8 @@ void readinconfig()
 			strcpy(defaulthost.DEFAULTPAGE, ptr2);
 		else if(!gstricmp(ptr1, "CgiBinDir"))
 			strcpy(defaulthost.CGIBINDIR, ptr2);
+		else if(!gstricmp(ptr1, "VideoDir"))
+			strcpy(defaulthost.VIDEODIR, ptr2);
 		else if(!gstricmp(ptr1, "CgiBinRoot"))
 			strcpy(defaulthost.CGIBINROOT, ptr2);
 		else if(!gstricmp(ptr1, "ServerPort"))
@@ -207,7 +212,7 @@ int gstricmp(char *string1, char *string2)
 
 void Log(char *format, ...)
 {
-#if 0
+#if 1
 	FILE *logfile;
 	time_t t;
 	struct tm *tm;
@@ -230,6 +235,7 @@ void Log(char *format, ...)
 	/* temp2[200] overflow patch */
 	temp2 = (char *)malloc((strlen(temp) + strlen(datetime_final) + 5));
 	sprintf(temp2, "%s - %s\n", datetime_final, temp);
+	printf(temp2);
 	sprintf(logfilename, "%s/ghttpd.log", SERVERROOT);
 	free(temp);
 

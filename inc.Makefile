@@ -4,7 +4,8 @@ LD     = $(CROSS_COMPILE)gcc
 AR     = $(CROSS_COMPILE)ar
 RANLIB = $(CROSS_COMPILE)ranlib
 
-INCS +=-Werror -Wundef -Wall -pipe -Os
+INCS +=-Wundef -Wall -pipe -Os
+#INCS +=-Werror -Wundef -Wall -pipe -Os
 CFLAGS += $(INCS) $(CPPFLAGS)
 
 OBJS=$(addprefix objects/, $(addsuffix .o, $(basename $(notdir $(SRC)))))
@@ -37,7 +38,7 @@ $(TARGET): $(OBJS)
 
 $(BIN): $(OBJS)
 	@ln -s `g++ -print-file-name=libstdc++.a` -f
-	$(LD) $(OBJS) $(LIBS) -o $@ -s
+	$(LD) $(OBJS) $(LIBS) -o $@
 	@unlink libstdc++.a 
 	
 subdirs:

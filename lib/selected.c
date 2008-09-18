@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+
 #ifdef WIN32
      #include <windows.h>
 #else
@@ -9,12 +11,7 @@
 #include "selected.h"
 #include "strext.h"
 
-PlaySongList SelectedList = {0,0,0,NULL};
-
-struct tagCMD {
-	const char *cmdstr;
-	PlayCmd cmd;
-};
+PlaySongList SelectedList;
 
 const char *ADDSONG   = "addsong";
 const char *DELSONG   = "delsong";
@@ -22,46 +19,13 @@ const char *FIRSTSONG = "firstsong";
 const char *LISTSONG  = "listsong";
 const char *PLAYSONG  = "playsong";
 
-#define CMDSIZE pcUnknown
-static struct tagCMD CMD[CMDSIZE] = {
-	{"addsong"      , pcAddSong       },
-	{"delsong"      , pcDelSong       },
-	{"firstsong"    , pcFirstSong     },
-	{"listsong"     , pcListSong      },
-	{"playsong"     , pcPlaySong      },
-	{"setvolume"    , pcSetVolume     },
-	{"audioswitch"  , pcAudioSwitch   },
-	{"audio"	, pcAudioSet	  },
-	{"setmute"      , pcSetMute       },
-	{"playcode"     , pcPlayCode      },
-	{"playnext"     , pcPlayNext      },
-	{"PauseContinue", pcPauseContinue },
-	{"addvolume"    , pcAddVolume     },
-	{"delvolume"    , pcDelVolume     },
-	{"Lock"         , pcLock          },
-	{"unlock"       , pcUnlock        },
-	{"replay"       , pcReplay        },
-	{"osdtext"      , pcOsdText       },
-	{"mac"          , pcMACIP         },
-	{"MaxVolume"    , pcMaxVolume     },
-	{"119"          , pc119           },
-	{"runscript"    , pcRunScript     },
-	{"HiSong"       , pcHiSong        },
-	{"MsgBox"	, pcMsgBox	  },
-	{"hwstatus"     , pchwStatus      },
-	{"ReSongDB"	, pcReloadSongDB  },
-	{"SetVolumeK"   , pcSetVolumeK    },
-	{"SetVolumeS"   , pcSetVolumeS    },
-};
-
 static pthread_cond_t count_nonzero;
-static pthread_mutex_t mutex;
 
 #define THREADLOCK 1
 #ifdef  THREADLOCK
 static pthread_mutex_t count_lock;
-	#define LOCK() pthread_mutex_lock(&mutex)
-	#define UNLOCK() pthread_mutex_unlock(&mutex)
+	#define LOCK() pthread_mutex_lock(&SelectedList.lock)
+	#define UNLOCK() pthread_mutex_unlock(&SelectedList.lock)
 #else
 	#define LOCK()
 	#define UNLOCK()
@@ -77,21 +41,10 @@ void NoSongUnlock(void)
 	pthread_cond_signal(&count_nonzero);
 }
 
-PlayCmd StrToPlayCmd(char *cmd)
-{
-	int i;
-	for (i=0;i<CMDSIZE;i++){
-//		if (!strncasecmp(CMD[i].cmdstr, cmd, strlen(CMD[i].cmdstr)))
-		if (!strcasecmp(CMD[i].cmdstr, cmd))
-			return CMD[i].cmd;
-	}
-	return pcUnknown;
-}
-
 void InitSongList(void)
 {
-	SelectedList.count = 0;
-	pthread_mutex_init(&mutex, NULL);
+	memset(&SelectedList, 0, sizeof(PlaySongList));
+	pthread_mutex_init(&SelectedList.lock, NULL);
 #ifdef  THREADLOCK
 	pthread_mutex_init(&count_lock, NULL);
 #endif
@@ -107,10 +60,13 @@ void ClearSongList(void)
 
 bool StrToSelectSongNode(const char *msg, SelectSongNode *rec)
 {
+	int count =0;
 	if (msg == NULL) return false;
-	char *tmp = strdup(msg);
 	if (!rec) return false;
+
+	char *tmp = strdup(msg);
 	memset(rec, 0, sizeof(SelectSongNode));
+	
 	char *x = strtok(tmp, "&");
 	while (x) {
 		char *sub = strstr(x, "=");
@@ -133,43 +89,66 @@ bool StrToSelectSongNode(const char *msg, SelectSongNode *rec)
 		else if (!strcmp(x, "sound"))     rec->Sound     = atoidef(sub, '0');
 		else if (!strcmp(x, "soundmode")) rec->SoundMode = atoidef(sub, '0');
 		else if (!strcmp(x, "type"))      strcpy(rec->StreamType, sub);
+		else if (!strcmp(x, "password"))  rec->Password  = atoidef(sub, '0');
+
 		x = strtok(NULL, "&");
+		count ++;
 	}
 	free(tmp);
-	return true;
+
+	return count;
 }
 
-#define STRMCAT(str, s1, s2) { \
-	if (s2) { \
-	char tmpbuf[100]; \
-	sprintf(tmpbuf, s1, s2); \
-	strcat(str, tmpbuf); \
-	} \
+#define STRMCAT(str, s1, s2) {           \
+	if (s2) {                        \
+		char tmpbuf[100];        \
+		sprintf(tmpbuf, s1, s2); \
+		strcat(str, tmpbuf);     \
+	}                                \
 }
-
 char *SelectSongNodeToStr(const char *cmd, SelectSongNode *rec)  /* 将歌曲结构，转换成字符串 */
 {
 	char msg[1024];
+	memset(msg, 0, 1024);
 	if (cmd)
-		sprintf(msg, "%s?id=%ld", cmd, rec->ID);
-	else
-		sprintf(msg, "id=%ld", rec->ID);
-	STRMCAT(msg, "&code=%s", rec->SongCode);
-	STRMCAT(msg, "&name=%s", rec->SongName);
-	STRMCAT(msg, "&charset=%d", rec->Charset);
-	STRMCAT(msg, "&language=%s", rec->Language);
-	STRMCAT(msg, "&singer=%s", rec->SingerName);
-	STRMCAT(msg, "&volk=%d", rec->VolumeK);
-	STRMCAT(msg, "&vols=%d", rec->VolumeS);
-	STRMCAT(msg, "&num=%d", rec->Num);
-	STRMCAT(msg, "&klok=%d", rec->Klok);
-	STRMCAT(msg, "&sound=%d", rec->Sound);
-	STRMCAT(msg, "&soundmode=%d", rec->SoundMode);
-	STRMCAT(msg, "&type=%s", rec->StreamType);
-	char *p = (char*)malloc(strlen(msg) + 1);
-	strcpy(p, msg);
-	return p;
+		STRMCAT(msg, "%s?"  , cmd            );
+	STRMCAT(msg, "id=%ld"       , rec->ID        );
+	STRMCAT(msg, "&code=%s"     , rec->SongCode  );
+	STRMCAT(msg, "&name=%s"     , rec->SongName  );
+	STRMCAT(msg, "&charset=%d"  , rec->Charset   );
+	STRMCAT(msg, "&language=%s" , rec->Language  );
+	STRMCAT(msg, "&singer=%s"   , rec->SingerName);
+	STRMCAT(msg, "&volk=%d"     , rec->VolumeK   );
+	STRMCAT(msg, "&vols=%d"     , rec->VolumeS   );
+	STRMCAT(msg, "&num=%d"      , rec->Num       );
+	STRMCAT(msg, "&klok=%d"     , rec->Klok      );
+	STRMCAT(msg, "&sound=%d"    , rec->Sound     );
+	STRMCAT(msg, "&soundmode=%d", rec->SoundMode );
+	STRMCAT(msg, "&type=%s"     , rec->StreamType);
+	STRMCAT(msg, "&password=%ld", rec->Password  );
+
+	return strdup(msg);
 }
+#undef STRMCAT
+
+static char *StreamType[] = {
+	"DIVX",                // divx file playback (audio = MP3)
+	"M1S",                 // MPEG1 system playback
+	"VOB",                 // MPEG2 VOB playback
+	"MP3",                 // mp3 audio file playback
+	"DIVX_PCM",            // divx file playback (audio = PCM)
+	"DIVX_RPCM",           // divx file playback (audio = reversed PCM)
+	"M2P",                 // MPEG2 program playback
+	"M2T",                 // MPEG2 transport playback
+	"M4T",                 // MPEG4 transport playback
+	"MP4",                 // mp4 file playback
+	"MP4_MP3AUDIO",        // mp4 file playback, audio = mp3
+	"MPEG4_VIDEO",         // video MPEG4 bitstream playback
+	"MPEG2_VIDEO",         // video MPEG2 bitstream playback
+	"M4P",                 // MPEG4 program playback
+	"PCM",                 // PCM play
+	NULL
+};
 
 SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc)   /* 向已点歌曲列表中增加记录 */
 {
@@ -177,6 +156,14 @@ SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc)   /* 向已点歌曲
 //	DEBUG_OUT("SongName=%s\n", rec->SongName);
 //	DEBUG_OUT("Klok=%d\n", rec->Klok);
 //	DEBUG_OUT("Sound=%d\n", rec->Sound);
+//
+	int i  = 0;
+
+	if (rec == NULL) return NULL;
+	while (strcmp(rec->StreamType, StreamType[i]) && StreamType[i+1] != NULL)
+		i++;
+
+	if (StreamType[i] == NULL) return NULL;
 	LOCK();
 	if (autoinc)
 		rec->ID = SelectedList.MaxID++;
@@ -279,13 +266,14 @@ void PrintSelectSongNode(SelectSongNode Node)
 	DEBUG_OUT("Charset=%d\n", Node.Charset);         // 字符集
 	DEBUG_OUT("Language=%s\n", Node.Language);       // 语言
 	DEBUG_OUT("SingerName=%s\n", Node.SingerName);   // 歌星姓名
-	DEBUG_OUT("VolumeK=%d\n", Node.VolumeK);         // 歌星姓名
-	DEBUG_OUT("VolumeS=%d\n", Node.VolumeS);         // 歌星姓名
-	DEBUG_OUT("Num=%d\n", Node.Num);                 // 歌星姓名
-	DEBUG_OUT("Klok=%c\n", Node.Klok);               // 歌星姓名
-	DEBUG_OUT("Sound=%c\n", Node.Sound);             // 歌星姓名
-	DEBUG_OUT("SoundMode=%d\n", Node.SoundMode);     // 歌星姓名
-	DEBUG_OUT("StreamType=%s\n\n", Node.StreamType); // 歌星姓名
+	DEBUG_OUT("VolumeK=%d\n", Node.VolumeK);         //
+	DEBUG_OUT("VolumeS=%d\n", Node.VolumeS);         //
+	DEBUG_OUT("Num=%d\n", Node.Num);                 //
+	DEBUG_OUT("Klok=%c\n", Node.Klok);               //
+	DEBUG_OUT("Sound=%c\n", Node.Sound);             //
+	DEBUG_OUT("SoundMode=%d\n", Node.SoundMode);     //
+	DEBUG_OUT("StreamType=%s\n\n", Node.StreamType); //
+	DEBUG_OUT("Password=%ld\n\n", Node.Password);    //
 }
 
 void PrintSelectSong(void)

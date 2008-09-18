@@ -39,6 +39,7 @@ void CEncryptStream::ReadToMemSongNode(MemSongNode *Node)
 		Node->Sound      = tmprec.Sound;
 		Node->SoundMode  = tmprec.SoundMode;
 		Node->StreamType = strdup(tmprec.StreamType);
+		Node->Password   = tmprec.Password;
 	}
 }
 

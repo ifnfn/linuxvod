@@ -54,6 +54,7 @@ typedef struct tagMemSongNode{
 	char Sound;           // 原唱音轨
 	char SoundMode;       // 声音模式
 	char *StreamType;     // 流格式
+	long Password;        //
 }MemSongNode;
 
 struct tagMemPinYin {         // 内存表中的拼音表
@@ -77,6 +78,7 @@ typedef struct tagSongListNode
 	char Sound;
 	char SoundMode;
 	char StreamType[StreamTypeLen];
+	long Password;
 }SongListNode;
 
 typedef struct tagPinYin{
@@ -128,6 +130,7 @@ public:
 	bool Eof       (void);                                    // 是否到了最后面一页
 	bool Locate(const char *FieldName, long value);           // 数字定位
 	MemSongNode *GetNameByCode(const char *Code);             // 得到指定歌曲编号的歌曲记录
+	char *GetStringByCode(const char *Code);
 	void SetPerPageNum(int pagenum);                          // 设置每页显示的行数
 	long GetCurPageNo(void);                                  // 得到当前页号
 	long TotalPageCount;                                      // 总页数

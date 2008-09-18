@@ -5,8 +5,6 @@
 #include <string.h>
 #include <semaphore.h>
 
-#include "songdata.h"
-
 #define _LARGEFILE64_SOURCE 1
 #define ALLOW_OS_CODE
 #include "rmexternalapi.h"
@@ -43,7 +41,8 @@ enum tagMediaType {
 #ifdef NETPLAYER
 #	define CHKREG
 #else
-#	define CHKREG {if (CheckKtvRegCode() == false) exit(0);}
+//#	define CHKREG {if (CheckKtvRegCode() == false) exit(0);}
+#	define CHKREG 
 #endif
 
 #define MUSICTRACK 0
@@ -62,11 +61,11 @@ typedef struct tagINFO{
 	RMTDisc *Disc;
 	RMTcontrolInterface InterFaceCtrl;   // 解压接口
 	RMcontrolInterfaceInputType type;    // 输入接口类型 PUSH FILE 两种
-	RMTpushControl PushCtrl;             // PUSH播放器控制器
-	RMTfileControl FileCtrl;             // 文件播放器控制器
-	RMTdvdControl  DvdCtrl;              // DVD 播放器控制器
-	RMTvcdControl  VcdCtrl;              // VCD 播放器控制器
-	RMTcddaControl CddaCtrl;             // CDDA播放器控制器
+	RMTpushControl     PushCtrl;         // PUSH播放器控制器
+	RMTfileControl     FileCtrl;         // 文件播放器控制器
+	RMTdvdControl      DvdCtrl;          // DVD 播放器控制器
+	RMTvcdControl      VcdCtrl;          // VCD 播放器控制器
+	RMTcddaControl     CddaCtrl;         // CDDA播放器控制器
 	RMTpropertyControl PropCtrl;         // 播放器属性控制器
 	RMuint32 flags;
 
@@ -100,6 +99,8 @@ typedef struct tagINFO{
 	char IP[IPLEN];         // 本机的IP 地址
 	char MAC[21];           // 本机的MAC 地址
 	char ServerIP[IPLEN];   // 服务器IP 地址
+	struct sockaddr addr_sin;
+	int HaveHW;
 } INFO;
 
 #define SETBLACKFRAME(PropCtrl) RMFSetPropertyValue(PropCtrl, RM_PROPERTY_HWLIB, "BOARDINFO_SET", "ebiCommand", ebiCommand_VideoHwBlackFrame)
@@ -124,11 +125,11 @@ void PlayerResumeMute (INFO *pInfo);
 void PausePlayer      (INFO *pInfo);
 void ContinuePlayer   (INFO *pInfo);
 
-RMTbuffer *GetPushDataBuf      (INFO *pInfo); // 得到一个缓冲区
-PlayerState PauseContinuePlayer(INFO *pInfo); // 暂停继续
-void RunSoundMode(INFO *pInfo, char *param);  // 运行脚本
+RMTbuffer *GetPushDataBuf      (INFO *pInfo);       // 得到一个缓冲区
+PlayerState PauseContinuePlayer(INFO *pInfo);       // 暂停继续
+void RunSoundMode(INFO *pInfo, const char *param);  // 运行脚本
 
-int  PlayAudio(INFO *pInfo, char *type, \
+int PlayAudio(INFO *pInfo, char *type, \
 		RMuint32 samplerate, \
 		RMuint32 numberofchannels, \
 		RMuint32 numberofbitspersample, const char *file);

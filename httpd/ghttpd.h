@@ -27,15 +27,14 @@ typedef struct
 	char DEFAULTPAGE[255];
 	char CGIBINDIR[255];
 	char CGIBINROOT[255];
+	char VIDEODIR[255];
 } t_vhost;
 
 unsigned long count_vhosts();
 int gstricmp(char *string1, char *string2);
 int serveconnection(int sockfd);
 int does_file_exist(char *filename);
-void getmimetype(char *filename, char *mimetype);
 int isDirectory(char *filename);
-void showdir(char *directory, int sockfd, t_vhost *thehost);
 void readinconfig();
 void Log(char *format, ...);
 void getfileline(char *line, FILE *in);

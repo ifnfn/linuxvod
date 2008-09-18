@@ -249,9 +249,9 @@ void BitToByte(char *Out, const bool *In, int bits)
 
 typedef struct deshead
 {
-	unsigned char Ver; //版本
-	long TLen;//文件长度
-	char DesKey[17];//DES密钥密文
+	unsigned char Ver; // 版本
+	long TLen;         // 文件长度
+	char DesKey[17];   // DES密钥密文
 } DesHead;
 
 #define BUFSIZE (1024*4)
@@ -373,7 +373,7 @@ bool DesDecryptFile(const char *infile, const char *outfile, const char *KeyStr)
 		// 在缓冲区中解密
 		DesCrypt(databuf,databuf,len, KeyStr, strlen(KeyStr), DECRYPT);
 		// 将明文写入输出文件
-		deshead.TLen -= fwrite(databuf,len < deshead.TLen?len:deshead.TLen, 1, fh_out);
+		deshead.TLen -= fwrite(databuf,1, len < deshead.TLen?len:deshead.TLen, fh_out);
 	}
 	fclose(fh_in);
 	fclose(fh_out);

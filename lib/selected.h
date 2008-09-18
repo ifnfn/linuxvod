@@ -20,6 +20,8 @@
 #else
 	#include <semaphore.h>
 #endif
+#include <pthread.h>
+
 /*============================================================================*/
 
 typedef struct tagSelectSongNode{
@@ -36,77 +38,25 @@ typedef struct tagSelectSongNode{
 	char Sound;           // 原唱音轨
 	char SoundMode;       // 声音模式
 	char StreamType[6];   // 流格式
+	long Password;        // 
 }SelectSongNode;
 
 typedef struct tagPLAYSONGLIST {
 	long MaxID;           // 最大编号，自增
 	int count;            // 歌曲数量
 	int MaxCount;         // 曾经最大记录数
+
+	pthread_mutex_t lock;
 	SelectSongNode *items;// 歌曲资料数组
 } PlaySongList;
 
 extern PlaySongList SelectedList;
-
-typedef enum tagPlayCmd {
-	pcAddSong      , // 增加歌曲
-	pcDelSong      , // 删除歌曲
-	pcFirstSong    , // 优先歌曲
-	pcListSong     , // 歌曲列表
-	pcPlaySong     , // 播放第一首歌曲
-	pcSetMute      , // 设置静音
-	pcSetVolume    , // 设置音量,界面部分收到该命令，显示音量大小
-	pcPlayCode     , // 播放指定编号的歌曲
-	pcPlayNext     , // 播放下一首
-	pcReplay       , // 重唱
-	pcOsdText      , // OSD 操作,界面部分收到该命令，显示提示消息
-	pcPauseContinue, // 暂停/继续
-	pcAddVolume    , // 增加音量
-	pcDelVolume    , // 减少音量
-	pcAudioSwitch  , // 原伴唱切换
-	pcAudioSet     ,
-	pcLock         , // 播放器锁定
-	pcUnlock       , // 播放器解锁
-	pcMACIP        , // 由MAC得到IP
-	pcMaxVolume    , // 设置最大音量
-	pc119          , // 火警开始
-	pcHiSong       , // HI模式切换
-	pcRunScript    , // 运行脚本
-	pcMsgBox       ,
-	pcReloadSongDB ,
-	pchwStatus     , // 硬件状态
-	pcSetVolumeS   ,
-	pcSetVolumeK   ,
-	pcUnknown        // 不知名操作
-} PlayCmd;
 
 extern const char *ADDSONG;
 extern const char *DELSONG;
 extern const char *FIRSTSONG;
 extern const char *LISTSONG;
 extern const char *PLAYSONG;
-
-/*
-"setvolume"
-"audioswitch"
-"audio"
-"setmute"
-"playcode"
-"playnext"
-"PauseContinue"
-"addvolume"
-"delvolume"
-"Lock"
-"unlock"
-"replay"
-"osdtext"
-"mac"
-"MaxVolume"
-"119"
-"runscript"
-"HiSong"
-"MsgBox"
-"ReSongDB" 
-*/
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,7 +65,6 @@ extern "C" {
 inline void NoSongUnlock(void);
 inline void NoSongLock(void);
 void InitSongList(void);
-PlayCmd StrToPlayCmd(char *cmd);                                 /* 将字母串命令，转换成命令        */
 void ClearSongList(void);                                        /* 清空本地已点歌曲列表            */
 SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc);/* 向已点歌曲列表中增加记录,返回ID */
 SelectSongNode* AddSongToListFrist(SelectSongNode *rec);         /* 向已点歌曲列表增加第一首        */

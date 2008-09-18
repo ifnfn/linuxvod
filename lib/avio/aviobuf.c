@@ -332,7 +332,7 @@ int url_fgetc(ByteIOContext *s)
 		if (s->buf_ptr < s->buf_end)
 			return *s->buf_ptr++;
 		else
-			return URL_EOF;
+			return EOF; //TODO
 	}
 }
 

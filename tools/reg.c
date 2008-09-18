@@ -35,10 +35,6 @@ int main(int argc, char **argv)
 			strcpy(cmd, binplay);
 			strcat(cmd, "& 1> /dev/tty3 2> /dev/tty3");
 			system(cmd);
-
-//			strcpy(cmd, "rm -f ");
-//			strcat(cmd, binplay);
-//			system(cmd);
 		}
 	}
 	else if (argc == 3) {

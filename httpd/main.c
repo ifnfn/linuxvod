@@ -1,22 +1,3 @@
-/*
-GazTek HTTP Daemon (ghttpd)
-Copyright (C) 1999  Gareth Owen <gaz@athene.co.uk>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -36,10 +17,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <syslog.h>
 
 #include "ghttpd.h"
-//#include "../ktv++/ui/createindex.h"
 
 void signal_handler(int signum);
-int IndexServiceThread(void *p);
 int inetd_server();
 
 unsigned long no_vhosts = 0;
@@ -50,13 +29,12 @@ char SERVERTYPE[255] = "Standalone";
 char SERVERROOT[255] = "/usr/local/ghttpd";
 
 t_vhost defaulthost;
-//CKeywordIndex keyindex;
 
 int main(int argc, char **argv)
 {
 	int xx=0, sockfd, new_fd, numbytes=0;  /* listen on sock_fd, new connection on new_fd */
-	struct sockaddr_in my_addr;    /* my address information */
-	struct sockaddr_in their_addr; /* connector's address information */
+	struct sockaddr_in my_addr;            /* my address information */
+	struct sockaddr_in their_addr;         /* connector's address information */
 	int sin_size, i;
 	struct timeval tv;
 	fd_set readfds, exceptfds;
@@ -67,9 +45,9 @@ int main(int argc, char **argv)
 	 */
 
 	strcpy(defaulthost.DOCUMENTROOT, "/usr/local/ghttpd/htdocs");
-	strcpy(defaulthost.DEFAULTPAGE, "index.html");
-	strcpy(defaulthost.CGIBINDIR, "/cgi-bin");
-	strcpy(defaulthost.CGIBINROOT, "/usr/local/ghttpd/cgi-bin");
+	strcpy(defaulthost.DEFAULTPAGE , "index.html");
+	strcpy(defaulthost.CGIBINDIR   , "/cgi-bin");
+	strcpy(defaulthost.CGIBINROOT  , "/usr/local/ghttpd/cgi-bin");
 
 	/*
 	 * Count the virtual hosts and allocate the memory
@@ -104,13 +82,17 @@ int main(int argc, char **argv)
            twice in a row, without waiting for the (ip, port) tuple
            to time out. */
         i = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void*)&i, i);
+        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void*)&i, sizeof(i));
 
 
-	my_addr.sin_family = AF_INET;         /* host byte order */
-	my_addr.sin_port = htons(SERVERPORT);     /* short, network byte order */
-	my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP */
-	bzero(&(my_addr.sin_zero), 8);        /* zero the rest of the struct */
+	my_addr.sin_family = AF_INET;             /* host byte order             */
+	my_addr.sin_port = htons(SERVERPORT);     /* short, network byte order   */
+	my_addr.sin_addr.s_addr = INADDR_ANY;     /* auto-fill with my IP        */
+	bzero(&(my_addr.sin_zero), 8);            /* zero the rest of the struct */
+
+//n=1;
+ /* 如果服务器终止后,服务器可以第二次快速启动而不用等待一段时间  */
+// setsockopt(listen_fd,SOL_SOCKET,SO_REUSEADDR,&n,sizeof(int)); 
 
 	if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1)
 	{
@@ -129,32 +111,11 @@ int main(int argc, char **argv)
 
 	// Set up signal handlers so we can clear up our child processes
 	signal(SIGTERM, signal_handler);
-	signal(SIGHUP, signal_handler);
-	signal(SIGINT, signal_handler);
+	signal(SIGHUP , signal_handler);
+	signal(SIGINT , signal_handler);
 	signal(SIGCHLD, signal_handler);
 
-#if 0
-	xx = fork();
-	if(xx==-1)
-	{
-		printf("FATAL ERROR, Could not fork() ghttpd into background\n");
-		syslog(LOG_CRIT, "Could not fork() ghttpd into background\n");
-		closelog();
-		exit(1);
-	}
-	if(xx != 0)	// Parent...
-		exit(0);
-#endif
-
-//	printf("ghttpd launched into background, PID = %d\n", getpid());
-
 	closelog();	// End of all the syslog errors, anything else written to ghttpd.log
-
-	/* drop any priveledges we have */
-//	if ((pw = getpwnam("nobody")) != NULL) {
-//		setgid(pw->pw_gid);
-//		setuid(pw->pw_uid);
-//	}
 
 	while(1) {  /* main accept() loop */
 		sin_size = sizeof(struct sockaddr_in);
@@ -163,8 +124,7 @@ int main(int argc, char **argv)
 			continue;
 
 		if (!fork()) { /* this is the child process */
-			while(1)
-			{
+			while(1) {
 				close(sockfd);
 				FD_ZERO(&readfds);
 				FD_SET(new_fd, &readfds);
@@ -177,10 +137,10 @@ int main(int argc, char **argv)
 				if(FD_ISSET(new_fd, &exceptfds))
 					break;
 
-				if(FD_ISSET(new_fd, &readfds))
-				{
+				if(FD_ISSET(new_fd, &readfds)) {
 					setenv("REMOTE_ADDR", (char *)inet_ntoa(their_addr.sin_addr), 1);
-					if(serveconnection(new_fd)==-1) break;
+					if(serveconnection(new_fd)==-1) 
+						break;
 				}
 				else
 					break;
@@ -204,35 +164,33 @@ int main(int argc, char **argv)
  */
 int inetd_server()
 {
-  struct sockaddr_in their_addr; /* connector's address information */
-  size_t sval = sizeof(their_addr);
-  struct passwd *pw;
+	struct sockaddr_in their_addr; /* connector's address information */
+	size_t sval = sizeof(their_addr);
+	struct passwd *pw;
 
-  /* not really needed if using tcp_wrappers */
-  if (getpeername(0, (struct sockaddr *) &their_addr, &sval) < 0) {
-	 exit(1);
-  }
+	/* not really needed if using tcp_wrappers */
+	if (getpeername(0, (struct sockaddr *) &their_addr, &sval) < 0) {
+		exit(1);
+	}
 
-  /* drop any priveleges we have */
-  if ((pw = getpwnam("nobody")) != NULL) {
-	 setgid(pw->pw_gid);
-	 setuid(pw->pw_uid);
-  }
+	/* drop any priveleges we have */
+	if ((pw = getpwnam("nobody")) != NULL) {
+		setgid(pw->pw_gid);
+		setuid(pw->pw_uid);
+	}
 
-  Log("Connection from %s", inet_ntoa(their_addr.sin_addr));
-  setenv("REMOTE_ADDR", (char *)inet_ntoa(their_addr.sin_addr), 1);
+	Log("Connection from %s", inet_ntoa(their_addr.sin_addr));
+	setenv("REMOTE_ADDR", (char *)inet_ntoa(their_addr.sin_addr), 1);
 
-  serveconnection(0);
+	serveconnection(0);
 
-  return 0;
+	return 0;
 }
 
 void signal_handler(int signum)
 {
 	if(signum == SIGCHLD)
-	{
 		while(waitpid(-1,NULL,WNOHANG) > 0); /* clean up child processes */
-	}
 	else if(signum == SIGHUP)
 		readinconfig();
 	else

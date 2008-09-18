@@ -21,7 +21,8 @@ ifeq ($(ENABLE_NETPLAYER), yes)
 	RMCFLAGS += -DNETPLAYER
 	SRC += $(LIBSRC)
 else
-	LDFLAGS += -lplayctrl
+#	LDFLAGS += -lplayctrl
+	SRC += $(LIBSRC)
 endif
 
 export COMPILKIND += withthreads withdl
@@ -29,9 +30,9 @@ USE_STD_LIB=1
 LOCAL_MAKEFILE := Makefile
 RMCFLAGS += -I../ -I../../lib
 RMCFLAGS += -I/RMF/RMF_src/externalapi/rmf -I/RMF/RMF_src/externalapi/rmproperties/include -DDATAPATH=\"/ktvdata\"
-RMCFLAGS += -I/RMF/RUA_src/realmagichwl/include
+RMCFLAGS += -I/RMF/RUA_src/realmagichwl/include -g
 LDFLAGS  += -L/RMF/lib -lrmcaribbeanapi -ljpeg -lm -L. -L../../lib -lktv
-LDFLAGS  += -s
+LDFLAGS  += -g
 
 ifeq ($(ENABLE_OSDMENU), yes)
         RMCFLAGS += -DOSDMENU

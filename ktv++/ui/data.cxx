@@ -472,6 +472,39 @@ MemSongNode *CData::GetNameByCode(const char *Code)
 	return NULL;
 }
 
+#define STRMCAT(str, s1, s2) {           \
+	if (s2) {                        \
+		char tmpbuf[100];        \
+		sprintf(tmpbuf, s1, s2); \
+		strcat(str, tmpbuf);     \
+	}                                \
+}
+char *CData::GetStringByCode(const char *Code)
+{             
+	if (Code == NULL) return NULL;
+
+	MemSongNode *rec = GetNameByCode(Code);
+	char msg[1024] = "";
+
+	sprintf(msg, "id=%ld", rec->ID);
+	STRMCAT(msg, "&code=%s"     , rec->SongCode);
+	STRMCAT(msg, "&name=%s"     , rec->SongName);
+	STRMCAT(msg, "&charset=%d"  , rec->Charset);
+	STRMCAT(msg, "&language=%s" , rec->Language);
+	STRMCAT(msg, "&singer=%s"   , rec->SingerName);
+	STRMCAT(msg, "&volk=%d"     , rec->VolumeK);
+	STRMCAT(msg, "&vols=%d"     , rec->VolumeS);
+	STRMCAT(msg, "&num=%d"      , rec->Num);
+	STRMCAT(msg, "&klok=%d"     , rec->Klok);
+	STRMCAT(msg, "&sound=%d"    , rec->Sound);
+	STRMCAT(msg, "&soundmode=%d", rec->SoundMode);
+	STRMCAT(msg, "&type=%s"     , rec->StreamType);
+	STRMCAT(msg, "&password=%ld", rec->Password);
+	
+	return strdup(msg);
+}
+#undef STRMCAT
+
 void CData::AllocFFilterMemory(long Count)
 {
 	if (Count <=0 ) return;

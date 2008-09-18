@@ -9,6 +9,7 @@
 #include "ini.h"
 #include "strext.h"
 #include "avio/avio.h"
+#include "crypt/aes.h"
 
 int SongMaxNumber     = 100;
 int VolumeValue       = 40;
@@ -53,7 +54,7 @@ char *GetLocalFile(char *code, char *ext) // 查找文件
 	for (i = 0; i < DirCount; ++i) {
 		for (j = 0; j < 5; ++j) {
 			sprintf(filename, "%s/%s.%s", DirList[i], code, extname[j]);
-			printf("filename=%s\n", filename);
+//			printf("filename=%s\n", filename);
 			if (FileExists(filename)) {
 				if (ext)
 					strcpy(ext, extname[j]);
@@ -63,6 +64,26 @@ char *GetLocalFile(char *code, char *ext) // 查找文件
 	}
 	filename[0] = '\0';
 	return NULL;
+}
+
+char *GetHttpURL(char *code, long passwd)
+{
+	static char url[256];
+//	char pass_str[17] = {0, };
+//	char *tmp;
+
+	sprintf(url, "/tmp/file/%s", code);
+//	tmp = GetPassword(passwd, pass_str, 16);
+//	if (tmp == NULL)
+//		sprintf(url, "/tmp/file/%s_cnsczd", code);
+//	else
+//		sprintf(url, "/tmp/file/%s_%s", code, tmp);
+
+//	tmp = AesEncryptAndBase64DefaultPwd(url);
+//	sprintf(url, "/tmp/file/%s", url);
+//	free(tmp);
+
+	return url;
 }
 
 void ReadPlayIniConfig(char *PlayIni, char *VideoIni)

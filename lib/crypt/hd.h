@@ -17,6 +17,8 @@ bool GetDesPwd    (const char *dev , char *despwd);
 bool CreateRegCode(const char *publickey, char *regcode);
 bool DecAndEncFile(const char *oldfile, const char *oldpwd, const char *newfile, const char *newpwd);
 bool CheckKtvRegCode();
+void MD5(char *text, char *md5, int len);
+void CreateKey(const char *data, char *key);
 
 #ifdef __cplusplus
 }

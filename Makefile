@@ -5,7 +5,7 @@ SUBDIRS= lib ktv++ httpd tools
 
 -include inc.Makefile
 
-CLEANFILE += system.gz
+CLEANFILE += system.gz cscope* tags
 	
 md5:
 	make -C ktv++ md5

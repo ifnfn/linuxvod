@@ -28,6 +28,8 @@ send:
 gtalk:
 	$(CC) gtalk.c -I../lib `pkg-config loudmouth-1.0 --cflags --libs` \
 	`pkg-config sqlite --libs` -lktv -L../lib -s -o $@
+video:
+	$(CC) video.c -D_FILE_OFFSET_BITS=64 -D_REENTRANT -DFUSE_USE_VERSION=25 -o video -lfuse -I../lib/crypt -lktv -L../lib
 clean:
 	rm $(BIN) -rf
 	make -C hwscan clean

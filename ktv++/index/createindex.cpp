@@ -118,6 +118,7 @@ void CKeywordIndex::Data2Data(SongListNode* To, SystemFields* From)
 	To->Klok      = From->Klok;
 	To->Sound     = From->Sound;
 	To->SoundMode = From->SoundMode;
+	To->Password  = From->Password;
 #if 0
 	printf("Code %s = %s\n", To->SongCode, From->SongCode);
 	printf("\tName %s = %s\n", To->SongName, From->SongName);

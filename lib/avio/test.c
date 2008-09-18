@@ -8,7 +8,7 @@
 int main(int argc, char **argv)
 {
 	av_register_all();
-#if 0
+#if 1
 	ByteIOContext io, *h = &io;
 	unsigned char buffer[100];
 	int len, i;

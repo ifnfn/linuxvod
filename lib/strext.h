@@ -20,7 +20,7 @@
 	#include <windows.h>
 #endif
 
-//#define DEBUG
+#define DEBUG
 #ifndef DEBUG
 #	define DEBUG_OUT(s...)
 #else

@@ -49,6 +49,7 @@ typedef struct tagSystemFields {
 	uint8_t Sound;                  // 原唱音轨
 	uint8_t SoundMode;              // 声音模式
 	char StreamType[StreamTypeLen]; // 视频格式
+	long Password;
 	uint8_t IsNewSong;              // 新歌推荐
 }SystemFields;
 

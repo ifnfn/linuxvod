@@ -14,22 +14,23 @@
 #include "playcontrol.h"
 #include "config.h"
 #include "osnet.h"
+#include "songdata.h"
 #include "crypt/hd.h"
 #ifdef OSDMENU
 #include "osd.h"
 #endif
 
-static INFO Info;
-
 static void *PlayVstpQueueThread(void *val)
 {
 	INFO *tmpInfo = val;
+#ifdef NETPLAYER
 	RMTbuffer *sentbuffer;
 	unsigned int readBytes;
+#endif
 	CHKREG
 	while (!tmpInfo->quit){
-		if (tmpInfo->PlayStatus == stStop){         // 如果已播放完
-			if (!SongListFirstPlay(&Info)){         // 如果播放列表中第一首播不了，
+		if (tmpInfo->PlayStatus == stStop){                     // 如果已播放完
+			if (!SongListFirstPlay(tmpInfo)){               // 如果播放列表中第一首播不了，
 				if (tmpInfo->PlaySelect  == psSelected)
 					DeleteFirstSongList();          // 删除第一首歌
 				usleep(10);
@@ -40,6 +41,7 @@ static void *PlayVstpQueueThread(void *val)
 			usleep(10);
 			continue;
 		}
+#ifdef NETPLAYER
 		if (tmpInfo->type == RM_INPUT_PUSH) {
 			while (tmpInfo->PlayStatus != stStop) {
 				sentbuffer = GetPushDataBuf(tmpInfo);
@@ -48,7 +50,7 @@ static void *PlayVstpQueueThread(void *val)
 					break;
 				}
 				readBytes = ReadUrl(tmpInfo->PlayVstp, (char*)sentbuffer->buffer, sentbuffer->bufferSize); // 读数据
-				if (readBytes == 0) {// 如果数据已经读完,加入usleep,
+				if (readBytes == 0) {    // 如果数据已经读完,加入usleep,
 					usleep(10);      // 等待播放完成
 				}
 				sentbuffer->dataSize = readBytes;
@@ -60,42 +62,145 @@ static void *PlayVstpQueueThread(void *val)
 				RMFPushBuffer(tmpInfo->PushCtrl, sentbuffer);
 			}
 //			PlayerResumeMute(tmpInfo);
-		}
-//		else if (tmpInfo->type == RM_INPUT_FILE) {
-		else {
+		} else 
+#endif
+		{
 			while (tmpInfo->PlayStatus != stStop)
 				usleep(1000);
 		}
 		StopPlayer(tmpInfo);     // 停止播放器
 		if (!tmpInfo->KeepSongList)
 			DeleteFirstSongList();
-		if (!tmpInfo->PlayCancel)
+		if (!tmpInfo->PlayCancel) {
 			usleep(NextDelayTime *1000);
+			CHKREG
+		}
 	}
 	return NULL;
 }
 
-static void PBToC(unsigned char *msg)
+#define BACKLOG 150
+static int CreateTCPBind(int port)
 {
-	int i=0;
-	int len=strlen((char*)msg);
-	for(;i<len;i++)
-		if (msg[i] == 255){
-			msg[i] = 0;
-			break;
-		}
+	int sockfd, n;                         /* listen on sock_fd, new connection on new_fd */
+	struct sockaddr_in my_addr;            /* my address information */
+
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+		printf("socket: Could create a socket, exiting\n");
+		return 0;
+	}
+
+ 	/* 如果服务器终止后,服务器可以第二次快速启动而不用等待一段时间  */
+        n = 1;
+        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void*)&n, sizeof(n));
+
+	my_addr.sin_family = AF_INET;         /* host byte order             */
+	my_addr.sin_port = htons(port);       /* short, network byte order   */
+	my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP        */
+	bzero(&(my_addr.sin_zero), 8);        /* zero the rest of the struct */
+
+	if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr)) == -1) {
+		printf("bind: Could not bind to port, exiting\n");
+		exit(1);
+	}
+
+	if (listen(sockfd, BACKLOG) == -1) {
+		printf("listen: Unable to do a listen()\n");
+		exit(1);
+	}
+	printf("Create TCP Server at port %d\n", port);
+
+	return sockfd;
 }
+
+static int ConnectWorkThread(INFO *pInfo, int sockfd)
+{
+#define SIZE 1024
+	char tempdata[SIZE], *ptr;
+	char tempstring[SIZE];
+	unsigned int loop=0;
+	int numbytes=0;
+	int err = -1;
+	struct sockaddr_in sa;
+	int addrlen = sizeof(struct sockaddr_in);
+	char * stringpos = NULL;
+	char status[10];
+
+//	tempdata = (char *)malloc(SIZE);
+//	tempstring = (char *)malloc(SIZE);
+
+	memset(tempdata, 0, SIZE);
+	memset(tempstring, 0, SIZE);
+#undef SIZE
+
+	while(!strstr(tempdata, "\r\n\r\n") && !strstr(tempdata, "\n\n")) {
+		if ((numbytes=recv(sockfd, tempdata+numbytes, 4096-numbytes, 0))==-1) 
+			goto end;
+	}
+	for(loop=0; loop<4096 && tempdata[loop]!='\n' && tempdata[loop]!='\r'; loop++)
+		tempstring[loop] = tempdata[loop];
+
+	tempstring[loop] = '\0';
+	ptr = strtok(tempstring, " ");
+
+	if (ptr == NULL) 
+		goto end;
+
+	if (strcmp(ptr, "GET") && strcmp(ptr, "POST"))
+		goto end;
+
+	strcpy(status, ptr);
+	ptr = strtok(NULL, " ");
+	if (ptr == NULL) {
+		goto end;
+	}
+
+	getpeername(sockfd, (struct sockaddr *)&sa, (socklen_t*)&addrlen);
+//	printf("Connection from %s, request = \"%s %s\"\n", inet_ntoa(sa.sin_addr), status, ptr);
+
+	// ***** PATCH *****
+	// Replaces %20s of the message string by blanks
+	while (strstr(ptr,"%20")!=NULL) {
+		stringpos = strstr(ptr, "%20");
+		*stringpos = (char)32;
+		strcpy(stringpos+1, stringpos+3);
+	}
+	// ***** END *****
+
+	if (strcmp(status, "GET") == 0) {
+		char *cmd = ptr +1, *param;
+		param = strstr(ptr, "?");
+		if (param != NULL) { 
+			param[0] = '\0'; 
+			param++;
+		}
+
+		process(pInfo, cmd, param, sockfd);
+	}
+	else if (strcmp(status, "POST") == 0){
+
+	}
+	err = 0;
+end:
+//	if (tempdata) 	free(tempdata);
+//	if (tempstring) free(tempstring);
+
+	close(sockfd);
+	return err;
+}
+
 
 int main(int argc, char **argv)
 {
+	int sockfd;
 #ifndef NETPLAYER
-	remove(argv[0]);
+//	remove(argv[0]);
 #endif	
 	CHKREG
-	bool havehw = InitInfo(&Info);
-	if (!havehw) {                                   // 如果没有找到硬件
+	INFO Info;
+	InitInfo(&Info);
+	if (Info.HaveHW == 0) {                                   // 如果没有找到硬件
 		DEBUG_OUT("CreatePlayer Error.\n");
-//		exit(-1);
 	}
 	char playurl[512], videourl[512];
 #ifdef NETPLAYER
@@ -116,214 +221,29 @@ int main(int argc, char **argv)
 	for (i=0; i<OSDCount;i++)
 		CreateThreadList(OSDList[i]);
 #endif
-	if (CreateUdpBind(PLAYERUDPPORT) <= 0) return -1;
+
+	sockfd = CreateTCPBind(PLAYERUDPPORT);
+	if (sockfd <= 0)
+		return -1;
 
 //	RunSoundMode(&Info, "0");
 	pthread_t PlayPthread = 0;
 	pthread_create(&PlayPthread, NULL, &PlayVstpQueueThread, (void *)(&Info));
 
-	char msg[512];
-	char tmp[512];
-	char *cmd=NULL, *param=NULL;
-	PlayCmd playcmd;
-	struct sockaddr addr_sin;
-
 	CHKREG
-	while(!Info.quit){
-		if (RecvUdpBuf(msg, 511, &addr_sin) > 0){
-			strcpy(tmp, msg);
-			cmd   = strtok(msg , "?");
-			param = strtok(NULL, "");
-			playcmd = StrToPlayCmd(cmd);
-			printf("cmd=%s,param=%s, playcmd=%d\n", cmd, param, playcmd);
-			switch (playcmd){
-				case pcAddSong:
-				case pcDelSong:
-				case pcFirstSong:
-					if (Info.lock == true) continue;
-				case pcListSong:
-					ProcessRecv(playcmd, param, addr_sin);
-					if ((playcmd == pcAddSong) && (SelectedList.count == 1) && (DefaultCount > 0) &&
-					   ((Info.PlaySelect == psDefault) || (Info.PlaySelect == psSelected)))
-					{// 如果有默认歌，则停掉默认歌
-						Info.KeepSongList = true;
-						StopPlayer(&Info);
-					}
-					break;
-				case pcPauseContinue:
-				{
-					PlayerState tmpStatus = PauseContinuePlayer(&Info);
-					if (tmpStatus == stPlaying)
-						PlayerSendPrompt(mptContinue, &addr_sin);
-					else if (tmpStatus == stPause)
-						PlayerSendPrompt(mptPause, &addr_sin);
-					break;
-				}
-				case pcAddVolume:
-					AddVolume(&Info, +5);
-					PlayerSendInt(Info.volume, &addr_sin);
-					break;
-				case pcDelVolume:
-					AddVolume(&Info, -5);
-					PlayerSendInt(Info.volume, &addr_sin);
-					break;
-				case pcAudioSwitch:
-					AudioSwitchPlayer(&Info);
-					if (Info.CurTrack)
-						PlayerSendPrompt(mptMusic, &addr_sin);
-					else
-						PlayerSendPrompt(mptSong, &addr_sin);
-					break;
-				case pcAudioSet:
-					if (strcasecmp(param, "sound") == 0){
-						Info.CurTrack = SOUNDTRACK;
-						SetAudioChannel(&Info);
-						PlayerSendPrompt(mptSong, &addr_sin);
-					}
-					else if (strcasecmp(param, "music") == 0) {
-						Info.CurTrack = MUSICTRACK;
-						SetAudioChannel(&Info);
-						PlayerSendPrompt(mptMusic, &addr_sin);
-					}
-					break;
-				case pcSetMute:
-//					printf("pcSetMute\n");
-					if (MuteSwitchPlayer(&Info)) // 静音切换
-						PlayerSendStr("静音?0", &addr_sin);
-					else
-						PlayerSendStr("", &addr_sin);
-					break;
-				case pcPlayNext:
-					PlayerMute(&Info);
-					ContinuePlayer(&Info);
-					Info.PlayCancel = true;
-					if (Info.PlaySelect == psHiSong)  // 如果是HI模式，切换到SlectedDefault
-						Info.PlaySelect = psSelected;
-					Info.PlayStatus   = stStop;
-//					StopPlayer(&Info);
-					break;
-				case pcReplay:
-					ReplayPlayer(&Info);
-					break;
-				case pcLock:
-					Info.lock = true;
-					break;
-				case pcUnlock:
-					Info.lock = false;
-					StartPlayer(&Info);
-					break;
-				case pcOsdText:
-				{
-#ifdef OSDMENU
-					char tmp[512] = "text=";
-					strcat(tmp, param);
-					CreateScrollTextStr(0, tmp);
-#endif
-					break;
-				}
-				case pcSetVolume:
-					if (param) Info.volume = atoi(param);
-					break;
-				case pcSetVolumeK:
-					if (param) {
-						Info.CurTrack = MUSICTRACK;
-						SetAudioChannel(&Info);
-						PlayerSendPrompt(mptMusic, &addr_sin);
 
-						Info.PlayingSong.VolumeK = atoi(param);
-						AddVolume(&Info, 0);
-					}
-					break;
-				case pcSetVolumeS:
-					if (param) {
-						Info.CurTrack = SOUNDTRACK;
-						SetAudioChannel(&Info);
-						PlayerSendPrompt(mptSong, &addr_sin);
+	while(1) {
+		int new_fd;
+		struct sockaddr their_addr;
+		int sin_size = sizeof(struct sockaddr_in);
 
-						Info.PlayingSong.VolumeS = atoi(param);
-						AddVolume(&Info, 0);
-					}
-					break;
-				case pcPlayCode:
-					if (param){
-						char tmp[50];
-						strcpy(tmp, param);
-						char *code = strtok(tmp, ",");
-						char *ext  = strtok(NULL, ",");
-						if (ext == NULL) ext ="M1S";
-
-						strcpy(Info.PlayingSong.SongCode, code);
-						strcpy(Info.PlayingSong.StreamType, ext);
-#ifndef NETPLAYER
-						char *tmpfile = GetLocalFile(code, NULL);
-						if (tmpfile)
-							strcpy(Info.VideoFile, tmpfile);
-						else
-							Info.VideoFile[0]='\0';
-#else
-						sprintf(Info.VideoFile, "code=%s", code);
-#endif
-						Info.MediaType = mtFILE;
-						StartPlayer(&Info);
-						Info.KeepSongList = true;
-					}
-					break;
-				case pcMACIP:
-					if (strcasecmp(Info.MAC, param) == 0) PlayerSendStr(Info.IP, &addr_sin);
-					break;
-				case pcMaxVolume:         // 设置最大音量
-					if (param) Info.maxvolume = atoi(param);
-					AddVolume(&Info, 0);  // 最大音量生效
-					break;
-				case pc119:               // 火警
-					if (Info.PlaySelect == ps119) {
-//						printf("119 psSelected\n");
-						Info.PlaySelect = psSelected;
-					}
-					else {
-						Info.PlaySelect = ps119;
-//						printf("119 ps119\n");
-					}
-					Info.KeepSongList = true;
-					Info.PlayCancel   = true;
-					Info.PlayStatus   = stStop;
-					NoSongUnlock();
-					break;
-				case pcHiSong:
-					if (HiSongCount == 0) break;       // 如果没有设置HI歌，不进入HI模式
-					if (Info.PlaySelect == psHiSong){  // 如果是HI模式，切换到SlectedDefault
-						Info.PlaySelect = psSelected;
-					}
-					else if ( (Info.PlaySelect == psSelected) || (Info.PlaySelect == psDefault) ) {
-						Info.PlaySelect = psHiSong;
-					}
-					Info.KeepSongList = true;
-					Info.PlayCancel   = true;
-					Info.PlayStatus   = stStop;
-					NoSongUnlock();
-					break;
-				case pcPlaySong:
-					break;
-				case pcRunScript:
-					DEBUG_OUT("RunScript: %s\n", param);
-					RunSoundMode(&Info, param);
-					break;
-				case pcUnknown:
-					PBToC((unsigned char*)tmp);
-					SendToBroadCast(tmp);
-					break;
-				case pchwStatus:
-					if (!havehw)
-						PlayerSendStr("没有找解压卡", &addr_sin);
-					else
-						PlayerSendStr("", &addr_sin);
-					break;
-				case pcMsgBox:
-				case pcReloadSongDB:
-					break;
-			}
-		}
+		if ((new_fd = accept(sockfd, (struct sockaddr *)&their_addr, (socklen_t*)&sin_size)) == -1)
+			continue;
+		AppendClientToList(their_addr);
+		ConnectWorkThread(&Info, new_fd);
+		close(new_fd);
 	}
+
 	ClientLogin(false);
 	CloseUdpSocket();
 	return 0;
