@@ -21,8 +21,8 @@ ifeq ($(ENABLE_NETPLAYER), yes)
 	RMCFLAGS += -DNETPLAYER
 	SRC += $(LIBSRC)
 else
-#	LDFLAGS += -lplayctrl
-	SRC += $(LIBSRC)
+	LDFLAGS += -lplayctrl
+#	SRC += $(LIBSRC)
 endif
 
 export COMPILKIND += withthreads withdl

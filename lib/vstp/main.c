@@ -23,7 +23,7 @@ int main(int argc, char**argv)
 		long size = 0;
 		do{     // 如果已连接
 			readBytes = ReadUrl(PlayVstp, buffer, sizeof(buffer)-1); // 读数据
-			printf("readbytes=%d\n", readBytes);
+//			printf("readbytes=%d\n", readBytes);
 			fwrite(buffer, readBytes, 1, fp);
 			size+=readBytes;
 		} while (!EofUrl(PlayVstp));

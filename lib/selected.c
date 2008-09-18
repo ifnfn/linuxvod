@@ -179,13 +179,6 @@ SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc)   /* 向已点歌曲
 	return SelectedList.items + SelectedList.count - 1;
 }
 
-SelectSongNode* AddSongToListFrist(SelectSongNode *rec)
-{
-	SelectSongNode* i = AddSongToList(rec, true);
-	FirstSong(rec, 0);
-	return i;
-}
-
 bool DelSongFromList(SelectSongNode *rec) /* 从已点歌曲列表中删除记录 */
 {
 	int i = SongIndex(rec);

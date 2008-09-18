@@ -110,7 +110,6 @@ void CData::FreeDataDB(void)
 {
 	// ÊÍ·Å¸èÇúÊı×é
 	if (SongLists) {
-		printf("FHead.SongCount=%ld\n", FHead.SongCount);
 		for (int i=0;i<FHead.SongCount;i++)
 			FreeMemSongNode(SongLists + i);
 		free(SongLists);

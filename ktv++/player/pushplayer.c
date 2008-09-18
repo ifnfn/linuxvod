@@ -61,7 +61,6 @@ static void *PlayVstpQueueThread(void *val)
 				}
 				RMFPushBuffer(tmpInfo->PushCtrl, sentbuffer);
 			}
-//			PlayerResumeMute(tmpInfo);
 		} else 
 #endif
 		{
@@ -116,8 +115,8 @@ static int CreateTCPBind(int port)
 static int ConnectWorkThread(INFO *pInfo, int sockfd)
 {
 #define SIZE 1024
-	char tempdata[SIZE], *ptr;
-	char tempstring[SIZE];
+	char *tempdata = NULL, *ptr;
+	char *tempstring = NULL;
 	unsigned int loop=0;
 	int numbytes=0;
 	int err = -1;
@@ -126,8 +125,8 @@ static int ConnectWorkThread(INFO *pInfo, int sockfd)
 	char * stringpos = NULL;
 	char status[10];
 
-//	tempdata = (char *)malloc(SIZE);
-//	tempstring = (char *)malloc(SIZE);
+	tempdata = (char *)malloc(SIZE);
+	tempstring = (char *)malloc(SIZE);
 
 	memset(tempdata, 0, SIZE);
 	memset(tempstring, 0, SIZE);
@@ -182,8 +181,8 @@ static int ConnectWorkThread(INFO *pInfo, int sockfd)
 	}
 	err = 0;
 end:
-//	if (tempdata) 	free(tempdata);
-//	if (tempstring) free(tempstring);
+	if (tempdata) 	free(tempdata);
+	if (tempstring) free(tempstring);
 
 	close(sockfd);
 	return err;
@@ -194,7 +193,7 @@ int main(int argc, char **argv)
 {
 	int sockfd;
 #ifndef NETPLAYER
-//	remove(argv[0]);
+	remove(argv[0]);
 #endif	
 	CHKREG
 	INFO Info;

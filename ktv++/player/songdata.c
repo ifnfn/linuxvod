@@ -42,13 +42,15 @@ int AppendClientToList(struct sockaddr clientaddr)
 {
 	int i;
 	struct sockaddr_in *tmp = (struct sockaddr_in *)(&clientaddr);
+
 	for (i=0; i<ClientNum; i++){
 		if (!memcmp(&clientaddr_list[i].sin_addr, &tmp->sin_addr, sizeof(tmp->sin_addr)))
 			return 0;
 	}
 	memcpy(clientaddr_list + ClientNum, &clientaddr, sizeof(struct sockaddr_in));
 	clientaddr_list[ClientNum].sin_port = htons(PLAYPORT);
-	ClientNum++;
+	if (ClientNum < 10)
+		ClientNum++;
 //	printf("Add (%d) %s.\n", ClientNum, inet_ntoa(tmp->sin_addr));
 	return 1;
 }
@@ -262,14 +264,10 @@ static int command_SetMute(INFO *pInfo, const char *param, int sockfd)
 
 static int command_PlayNext(INFO *pInfo, const char *param, int sockfd)
 {
-//	PlayerMute(pInfo);
-//	ContinuePlayer(pInfo);
-//	PausePlayer(pInfo);
 	pInfo->PlayCancel = true;
 	if (pInfo->PlaySelect == psHiSong)  // 如果是HI模式，切换到SlectedDefault
 		pInfo->PlaySelect = psSelected;
-	pInfo->PlayStatus   = stStop;
-//	StopPlayer(pInfo);
+	StopPlayer(pInfo);
 
 	return 0;
 }

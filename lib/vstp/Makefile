@@ -1,4 +1,4 @@
-LIB=../libktv.a
+LIB=../libktv.a ../libnetio.a
 
 SRC += vstp.c
 

@@ -41,8 +41,8 @@ enum tagMediaType {
 #ifdef NETPLAYER
 #	define CHKREG
 #else
-//#	define CHKREG {if (CheckKtvRegCode() == false) exit(0);}
-#	define CHKREG 
+#	define CHKREG {if (CheckKtvRegCode() == false) exit(0);}
+//#	define CHKREG 
 #endif
 
 #define MUSICTRACK 0

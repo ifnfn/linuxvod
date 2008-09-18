@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ftw.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 #include "memtest.h"
 
@@ -12,15 +15,6 @@
 
 static CSongIndex songindex;
 static CSingerIndex singerindex;
-
-static int sqlitecallback(void *NotUsed, int argc, char **argv, char **azColName)
-{
-	int i;
-	for(i=0; i<argc; i++)
-		printf("%s", argv[i] ? argv[i] : "");
-	printf("\n");
-	return 0;
-}
 
 #if 0
 inline static char *ToUTF8(unsigned char charset, char *in)
@@ -41,7 +35,16 @@ inline static char *ToUTF8(unsigned char charset, char *in)
 #define ToUTF8(a,b) b
 #endif
 
-static int CreateSQLCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+static int SqliteCallback(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	int i;
+	for(i=0; i<argc; i++)
+		printf("%s", argv[i] ? argv[i] : "");
+	printf("\n");
+	return 0;
+}
+
+static int CreateSQLCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	int i;
 	char sql[1204*2];
@@ -57,12 +60,12 @@ static int CreateSQLCallBack(void *NotUsed, int argc, char **argv, char **azColN
 	strcat(sql, azColName[argc-1]);
 	strcat(sql, "]) VALUES(");
 	for (i=0; i<argc - 1; i++) {
-		strcat(sql, "'");
+		strcat(sql, "\"");
 		if (argv[i])
 			strcat(sql, argv[i]);
 		else
 			strcat(sql, "NULL");
-		strcat(sql, "',");
+		strcat(sql, "\",");
 	}
 	strcat(sql, "'");
 	if (argv[argc-1])
@@ -76,7 +79,7 @@ static int CreateSQLCallBack(void *NotUsed, int argc, char **argv, char **azColN
 	return 0;
 }
 
-static int SongDataCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+static int SongDataCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	CKeywordIndex *index = (CKeywordIndex *)NotUsed;
 	SystemFields data;
@@ -123,7 +126,7 @@ static int SongDataCallBack(void *NotUsed, int argc, char **argv, char **azColNa
 	return 0;
 }
 
-static int HotSongDataCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+static int HotSongDataCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	CSongIndex *index = (CSongIndex *)NotUsed;
 	SystemFields data;
@@ -136,7 +139,7 @@ static int HotSongDataCallBack(void *NotUsed, int argc, char **argv, char **azCo
 	return 0;
 }
 
-static int AddSingerCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+static int AddSingerCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	CKeywordIndex *index = (CKeywordIndex *)NotUsed;
 	if (argv[1]) index->AddIndexNode(argv[1], F_SINGER); else return 0;
@@ -151,19 +154,37 @@ static int AddSingerCallBack(void *NotUsed, int argc, char **argv, char **azColN
 	return 0;
 }
 
-static int PasswordCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+static int PasswordCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	char passwd[33] = "";
 	long long password = atoll(argv[1]);
 
-	if (GetPassword(password, passwd, 16) )
+	if (GetPassword(password, passwd, 16) ) {
+		char filename[100];
+		struct stat statbuf;
+		char *extname[] = {"div", "divx", "dat", "m1s", "vob", "avi", NULL};
+		int i =0;
+
+		while (extname[i]) {
+			sprintf(filename, "./%s.%s", argv[0], extname[i]);
+			if (stat(filename, &statbuf) == 0){
+				printf("aes e %s %s.aes %s\n", filename, argv[0], passwd);
+				printf("if [ -f %s.aes ]; then\n"
+						"rm -f %s\n"
+						"fi\n", argv[0], filename);
+				return 0;
+			}
+			i++;
+		}
+			
 		printf("%s\t%s\n", argv[0], passwd);
+	}
 	
 //	printf("%s=%s\n", azColName[0], argv[0]);
 	return 0;
 }
 
-static int UpdateCallBack(void *NotUsed, int argc, char **argv, char **azColName)
+static int UpdateCallback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	int *update = (int *) NotUsed;
 	*update = atoi(argv[0]);
@@ -181,7 +202,7 @@ static int haveDBdata(sqlite *db, const char *code)
 	sprintf(sql, "SELECT code FROM system WHERE code='%s'", code);
 //	printf("%s(%s): %s\n", __FUNCTION__, code, sql);
 
-	sqlite_exec(db, sql, UpdateCallBack, &count, NULL);
+	sqlite_exec(db, sql, UpdateCallback, &count, NULL);
 	return count;
 }
 
@@ -380,13 +401,13 @@ int main(int argc, char **argv)
 	}
 
 	if (show_password) {
-		strcpy(sql, "select code,password from system");
+		strcpy(sql, "select code,password from system where havesong=1");
 		if (fields[0] != '*') {
-			strcat(sql, " where code='");
+			strcat(sql, " and code='");
 			strcat(sql, fields);
 			strcat(sql, "'");
 		}
-		sqlite_exec(db, sql, PasswordCallBack, NULL, &zErrMsg);
+		sqlite_exec(db, sql, PasswordCallback, NULL, &zErrMsg);
 		return 0;
 	}
 	if (setupdate) {
@@ -396,7 +417,7 @@ int main(int argc, char **argv)
 
 	if (strcasecmp(sql, ""))
 	{
-		sqlite_exec(db, sql, sqlitecallback, 0, &zErrMsg);
+		sqlite_exec(db, sql, SqliteCallback, 0, &zErrMsg);
 		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=1;", NULL, NULL, NULL);
 		return 1;
 	}
@@ -416,7 +437,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!update) {
-		sqlite_exec(db, "SELECT IndexTag FROM UpdateIndex;", UpdateCallBack, &update, NULL);
+		sqlite_exec(db, "SELECT IndexTag FROM UpdateIndex;", UpdateCallback, &update, NULL);
 		sqlite_exec(db, "UPDATE UpdateIndex SET IndexTag=0;", NULL, NULL, NULL);
 	}
 
@@ -424,7 +445,7 @@ int main(int argc, char **argv)
 		sprintf(sql, "SELECT %s from %s;", fields, tablename);
 		printf("%s\n", sql);
 		printf("BEGIN TRANSACTION;\n");
-		sqlite_exec(db, sql, CreateSQLCallBack, tablename, &zErrMsg);
+		sqlite_exec(db, sql, CreateSQLCallback, tablename, &zErrMsg);
 		printf("COMMIT;\n");
 	}
 	if (update) {
@@ -434,17 +455,17 @@ int main(int argc, char **argv)
 			IndexLocal(db, indexpath);
 		char *sql_1 = "SELECT id,name,sex,pinyin FROM singer WHERE name in (\
 				SELECT singer1 FROM system WHERE havesong=1) AND visible=1 ORDER by num DESC;";
-		sqlite_exec(db, sql_1, AddSingerCallBack, &songindex, &zErrMsg);
+		sqlite_exec(db, sql_1, AddSingerCallback, &songindex, &zErrMsg);
 
 		char *sql_2 = "SELECT code,name,class,language,singer1,singer2,singer3,singer4,\
 				pinyin,wbh,videotype,charset,volumek,volumes,num,klok,sound,soundmode,\
 				isnewsong FROM system WHERE havesong=1 ORDER BY Num, PinYin, Name;";
 
-		sqlite_exec(db, sql_2, SongDataCallBack, &songindex, &zErrMsg);
+		sqlite_exec(db, sql_2, SongDataCallback, &songindex, &zErrMsg);
 		songindex.CodeHashSort();
 
 		char *sql_3 = "SELECT code, PinYin, PlayNum FROM system WHERE havesong=1 ORDER BY playnum DESC LIMIT 1000";
-		sqlite_exec(db, sql_3, HotSongDataCallBack, &songindex, &zErrMsg);
+		sqlite_exec(db, sql_3, HotSongDataCallback, &songindex, &zErrMsg);
 		sqlite_close(db);
 		songindex.SaveFile(songfile);
 		singerindex.SaveFile(singerfile);

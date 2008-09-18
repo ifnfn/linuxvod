@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#define SELF_AES
+
 extern const int av_aes_size;
-//#define SELF_AES
 #ifdef SELF_AES
 typedef struct AVAES{
 	uint8_t round_key[15][4][4];

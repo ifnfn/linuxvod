@@ -651,10 +651,10 @@ char *GetPassword(long long id, char *passwd, int len)
 #ifdef TEST
 int main(int argc, char **argv)
 {
-	char passwd[33] = {0, };
-	GetPassword(atoll(argv[1]), passwd, 16);
-	printf("passwd=%s\n", passwd);
-	return 0;
+//	char passwd[33] = {0, };
+//	GetPassword(atoll(argv[1]), passwd, 16);
+//	printf("passwd=%s\n", passwd);
+//	return 0;
 //	printf("AesFile=%d\n", sizeof(AesHead));
 //
 //	AesDecryptFile("a", "b", "cnsczd");

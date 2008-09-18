@@ -29,10 +29,10 @@ bool CKtvApplication::GlobalInputProcess(int KtvKeyValue)
 {
 	switch(KtvKeyValue)
 	{
-		case DIKC_KLOK       : return player->SendPlayerCmdAndRecv("audioswitch"  );
+		case DIKC_KLOK       : return player->SendPlayerCmdNoRecv ("audioswitch"  );
 		case DIKC_NEXT       : return player->SendPlayerCmdNoRecv ("playnext"     );
 		case DIKC_REPLAY     : return player->SendPlayerCmdNoRecv ("replay"       );
-		case DIKC_PAUSE      : return player->SendPlayerCmdAndRecv("PauseContinue");
+		case DIKC_PAUSE      : return player->SendPlayerCmdNoRecv ("PauseContinue");
 		case DIKC_HIFI       : return player->SendPlayerCmdNoRecv ("HiSong"       );
 		case DIKC_DJ1        : return player->SendPlayerCmdNoRecv ("runscript=dj1");
 		case DIKC_DJ2        : return player->SendPlayerCmdNoRecv ("runscript=dj2");

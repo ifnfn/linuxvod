@@ -67,7 +67,6 @@ inline void NoSongLock(void);
 void InitSongList(void);
 void ClearSongList(void);                                        /* 清空本地已点歌曲列表            */
 SelectSongNode* AddSongToList(SelectSongNode *rec, bool autoinc);/* 向已点歌曲列表中增加记录,返回ID */
-SelectSongNode* AddSongToListFrist(SelectSongNode *rec);         /* 向已点歌曲列表增加第一首        */
 bool DelSongIndex(int index);                                    /* 删除指定位置的歌曲              */
 bool DelSongFromList(SelectSongNode *rec);                       /* 从已点歌曲列表中删除记录        */
 int  SongIndex(SelectSongNode *rec);                             /* 在已点歌曲列表中的顺序号        */

@@ -57,7 +57,7 @@ static int64_t FindSongUrl(vstp_t *vstp)
 		len = recvfrom(fd, msg, 511, 0 , (struct sockaddr *)&sin, (socklen_t*)&Addrlen);
 		if (len > 0) {
 			msg[len] = 0;
-			printf("msg=%s\n", msg);
+//			printf("msg=%s\n", msg);
 			char* cmd = strtok(recvstr, " ");
 			if (!strcasecmp(cmd, "URL")) {
 				char* purl = strtok(NULL, "|");

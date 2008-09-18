@@ -1,4 +1,4 @@
-LIB=../libktv.a
+LIB=../libnetio.a
 
 ifndef CONFIGDEFINE
 CONFIGDEFINE   =

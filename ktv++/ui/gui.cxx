@@ -44,7 +44,7 @@ void CBaseGui::GetXyRect(RECT rect, TAlign align, char *text, int len, int *x, i
 	{
 		case taBottom:
 		case taCenter:
-			UnTextExtent(text, len, &cx, &cy, 0);
+			UnTextExtent(text, len, &cx, &cy);
 			if (align.valign == taCenter)
 				*y = (rect.bottom + rect.top - cy)/2;
 			else
@@ -60,7 +60,7 @@ void CBaseGui::GetXyRect(RECT rect, TAlign align, char *text, int len, int *x, i
 		case taRightJustify:
 		case taCenter:
 			if ((cx == 0) || (cy==0))
-				UnTextExtent(text, len, &cx, &cy, 0);
+				UnTextExtent(text, len, &cx, &cy);
 			if (align.align == taCenter)
 				*x = (rect.right + rect.left - cx)/2 + 1;
 			else
@@ -110,16 +110,6 @@ static __inline__ uint16_t Swap16(uint16_t x)
 #endif
 }
 
-#define DFBCHECK(x...)                                                \
-{                                                                     \
-	DFBResult err;                                                \
-	err = x;                                                      \
-	if (err != DFB_OK) {                                          \
-		fprintf( stderr, "%s <%d>:\n\t", __FILE__, __LINE__ );\
-		DirectFBErrorFatal( #x, err );                        \
-	}                                                             \
-}
-
 bool ConRectToRgn(DFBRectangle *rect, DFBRegion *region)
 {
 	if (rect == NULL || region == NULL)
@@ -150,9 +140,12 @@ CDirectFBGui::CDirectFBGui():CBaseGui(), MtvDFB(NULL), MtvWindow(NULL), MtvSurfa
 
 bool CDirectFBGui::GraphicInit(int argc, char **argv)
 {
-	DFBCHECK(DirectFBInit(&argc, &argv));
+	IDirectFBInputDevice *InputDevice = NULL;
+	DFBResult err;
 
-	DFBCHECK(DirectFBCreate(&MtvDFB));
+	DirectFBInit(&argc, &argv);
+
+	DirectFBCreate(&MtvDFB);
 	DFBWindowDescription win_dsc;
 	DFBDisplayLayerConfig layer_config;
 	// Create main surface
@@ -163,7 +156,7 @@ bool CDirectFBGui::GraphicInit(int argc, char **argv)
 //	surface_dsc.caps   = DSCAPS_VIDEOONLY;
 //	surface_dsc.caps   = DSCAPS_DOUBLE;
 
-	DFBCHECK( MtvDFB->GetDisplayLayer(MtvDFB, DLID_PRIMARY, &MtvLayer) );
+	MtvDFB->GetDisplayLayer(MtvDFB, DLID_PRIMARY, &MtvLayer);
 
 	layer_config.flags      = DLCONF_BUFFERMODE;
 //	layer_config.buffermode = DLBM_BACKSYSTEM;
@@ -180,6 +173,15 @@ bool CDirectFBGui::GraphicInit(int argc, char **argv)
 
 	MtvLayer->CreateWindow(MtvLayer, &win_dsc, &MtvWindow);
 	MtvWindow->CreateEventBuffer(MtvWindow, &MtvEventBuffer);
+
+	err = MtvDFB->GetInputDevice(MtvDFB, DIDID_MOUSE, &InputDevice);
+	if (err != DFB_OK)
+		DirectFBError( "IDirectFBInput->CreateDevice for mouse failed", err);
+
+	err = MtvDFB->GetInputDevice(MtvDFB, DIDID_KEYBOARD, &InputDevice);
+	if (err != DFB_OK)
+		DirectFBError( "IDirectFBInput->CreateDevice for mouse failed", err);
+	
 	MtvWindow->SetOptions(MtvWindow, (DFBWindowOptions) (DWOP_ALPHACHANNEL | DWOP_OPAQUE_REGION));
 	MtvWindow->SetOpacity(MtvWindow, 0xff);
 	MtvWindow->PutAtop(MtvWindow, MtvWindow);
@@ -208,11 +210,12 @@ void CDirectFBGui::DrawFillRect(RECT rect, TColor color)
 	DrawRectangle(rect, color);
 }
 
-bool CDirectFBGui::UnTextExtent(char *text,int len, int *w, int *h, int extwidth)
+bool CDirectFBGui::UnTextExtent(char *text,int len, int *w, int *h)
 {
 	const uint16_t *text16 = (uint16_t*)text;
 	const uint16_t *ch = text16;
 	int swapped = 0;
+	int ascender, descender;
 
 	*w = *h = 0;
 	DFBRectangle GlyphRect;
@@ -236,19 +239,13 @@ bool CDirectFBGui::UnTextExtent(char *text,int len, int *w, int *h, int extwidth
 		if ( swapped ) {
 			c = Swap16(c);
 		}
-		uint16_t OldIndex = c;
-		if ((OldIndex >= 'A' && OldIndex <= 'Z') ||
-			(OldIndex >= 'a' && OldIndex <= 'z') ||
-			OldIndex == 0x20 ||
-			(OldIndex >= '0' && OldIndex <= '9') || OldIndex == 0x20)
-			OldIndex = 'O';
-		else if(OldIndex & 0x8080)
-			OldIndex = 0x9896;
-
-		MtvFont->GetGlyphExtents(MtvFont, OldIndex, &GlyphRect, NULL);
-		*w += GlyphRect.w + extwidth;
-		*h  = (*h < GlyphRect.h ? GlyphRect.h : *h);
+		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, NULL);
+		*w += GlyphRect.w + GlyphRect.x;
 	}
+	MtvFont->GetAscender (MtvFont, &ascender);
+	MtvFont->GetDescender(MtvFont, &descender);
+	*h = ascender - descender;
+
 	return true;
 }
 
@@ -395,6 +392,7 @@ void CDirectFBGui::SetFont(CKtvFont *font)
 	if (!font->GetHandle()) {
 		IDirectFBFont *tmpFont = NULL;
 		DFBFontDescription MtvFontDesc;
+
 		MtvFontDesc.flags = (DFBFontDescriptionFlags)(DFDESC_WIDTH | DFDESC_HEIGHT);
 		MtvFontDesc.width = (font->size() > 0 ? ConvertFSizeToPixer(font->size()) : FONT_SIZE);
 		MtvFontDesc.height= (font->size() > 0 ? ConvertFSizeToPixer(font->size()) : FONT_SIZE);
@@ -409,10 +407,10 @@ void CDirectFBGui::SetFont(CKtvFont *font)
 	{
 		MtvFont = (IDirectFBFont *)(font->GetHandle() );
 		if (MtvFont != NULL)
-			DFBCHECK(MtvSurface->SetFont(MtvSurface, MtvFont));
+			MtvSurface->SetFont(MtvSurface, MtvFont);
 		CurFont = font;
 	}
-	DFBCHECK(MtvSurface->SetColor(MtvSurface,font->color.r,font->color.g,font->color.b,font->color.a));
+	MtvSurface->SetColor(MtvSurface,font->color.r,font->color.g,font->color.b,font->color.a);
 }
 
 void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool unicode)
@@ -439,6 +437,7 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 	const uint16_t *text = (uint16_t*)cBuf;
 	const uint16_t *ch = text;
 	int swapped = 0;
+
 	for (; *ch; ++ch )
 	{
 		uint16_t c = *ch;
@@ -456,6 +455,8 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 		}
 		if ( swapped )
 			c = Swap16(c);
+		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, NULL);
+		CurX += GlyphRect.x;
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX-1, CurY-1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX+1, CurY+1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX-1, CurY+1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
@@ -464,21 +465,9 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX+1, CurY  , (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX  , CurY+1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX  , CurY-1, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
-
-		uint16_t OldIndex = c;
-		if ((OldIndex >= 'A' && OldIndex <= 'Z') ||
-			(OldIndex >= 'a' && OldIndex <= 'z') ||
-			 OldIndex == 0x20 ||
-			(OldIndex >= '0' && OldIndex <= '9') || OldIndex == 0x20)
-		{
-			OldIndex = 'O';
-		}
-		else if(OldIndex & 0x8080)
-			OldIndex = 0x9896;
-		MtvFont->GetGlyphExtents(MtvFont, OldIndex, &GlyphRect, NULL);
-		CurX += GlyphRect.w + 2;
+		CurX += GlyphRect.w;
 	}
-	DFBCHECK(MtvSurface->SetColor(MtvSurface, CurFont->color.r, CurFont->color.g, CurFont->color.b, CurFont->color.a));
+	MtvSurface->SetColor(MtvSurface, CurFont->color.r, CurFont->color.g, CurFont->color.b, CurFont->color.a);
 
 	CurX = x;
 	CurY = y;
@@ -499,19 +488,10 @@ void CDirectFBGui::DrawText(const char *value, RECT rect, TAlign align, bool uni
 		}
 		if ( swapped )
 			c = Swap16(c);
+		MtvFont->GetGlyphExtents(MtvFont, c, &GlyphRect, NULL);
+		CurX += GlyphRect.x;
 		MtvSurface->DrawGlyph(MtvSurface, c, CurX, CurY, (DFBSurfaceTextFlags)(DSTF_TOPLEFT));
-		uint16_t OldIndex = c;
-		if ((OldIndex >= 'A' && OldIndex <= 'Z') ||
-			(OldIndex >= 'a' && OldIndex <= 'z') ||
-			OldIndex == 0x20 ||
-			(OldIndex >= '0' && OldIndex <= '9') || OldIndex == 0x20)
-		{
-			OldIndex = 'O';
-		}
-		else if(OldIndex & 0x8080)
-			OldIndex = 0x9896;
-		MtvFont->GetGlyphExtents(MtvFont, OldIndex, &GlyphRect, NULL);
-		CurX += GlyphRect.w + 2;
+		CurX += GlyphRect.w;
 	}
 }
 
@@ -552,6 +532,7 @@ void CDirectFBGui::DrawSoundBar(int volume)
 	int sprite = 0;
 	int i;
 	int r,g,b;
+
 	if (currect) {
 		DFBRectangle source_rect;
 		source_rect.x = currect->left - BakFace_rect.left;
@@ -559,32 +540,33 @@ void CDirectFBGui::DrawSoundBar(int volume)
 		source_rect.w = currect->right - currect->left;
 		source_rect.h = currect->bottom - currect->top;
 		MtvSurface->Blit(MtvSurface, MtvBakSurface, &source_rect, currect->left, currect->top);
-	} else
-		MtvSurface->Blit(MtvSurface, MtvBakSurface, NULL, 0, 0);
-
+	}
 
 	currect = &volrect;
 	MtvSurface->SetDrawingFlags(MtvSurface, DSDRAW_NOFX);
 	r=0; g=255; b=0;
 	for (i=0; i<20; i++)
 	{
-		if (i<10) r =255/10*i; else g=255/10*(20-i);
-		MtvSurface->SetColor(MtvSurface,r,g,b,0x00);
+		if (i<10) 
+			r =255/10*i; 
+		else 
+			g=255/10*(20-i);
+		MtvSurface->SetColor(MtvSurface, r, g, b, 0x00);
 		if (i == 0)
 			sprite = 0;
 		else
 			sprite = i * SOUND_SPRITE;
 		if (i < volume / 5)
 			MtvSurface->FillRectangle(MtvSurface,
-					SOUND_WINDOW_LEFT + sprite + i *SOUND_RECT_WIDTH,
+					SOUND_WINDOW_LEFT + sprite + i * SOUND_RECT_WIDTH,
 					SOUND_WINDOW_TOP,
-					SOUND_RECT_WIDTH,
+					SOUND_RECT_WIDTH - 1,
 					SOUND_RECT_HEIGHT);
 		else
 			MtvSurface->DrawRectangle(MtvSurface,
-					SOUND_WINDOW_LEFT + sprite + i *SOUND_RECT_WIDTH,
+					SOUND_WINDOW_LEFT + sprite + i * SOUND_RECT_WIDTH,
 					SOUND_WINDOW_TOP,
-					SOUND_RECT_WIDTH,
+					SOUND_RECT_WIDTH - 1,
 					SOUND_RECT_HEIGHT);
 	}
 	Flip();
@@ -942,10 +924,10 @@ void CSDLGui::DrawLine(int x1, int y1, int x2, int y2)
 	SDL_DrawLine(shadow, x1, y1, x2, y2, 0);
 }
 
-bool CSDLGui::UnTextExtent(char *text,int len, int *w, int *h, int extwidth)  // 返回Unicode字符串的长度
+bool CSDLGui::UnTextExtent(char *text,int len, int *w, int *h)  // 返回Unicode字符串的长度
 {
 	TTF_SizeUNICODE((TTF_Font*)CurFont->GetHandle(), (const Uint16 *)text, w, h);
-	*w += extwidth;
+
 	return true;
 }
 
@@ -1183,9 +1165,7 @@ void CSpheGui::FreeBackground(void *background)
 
 void CSpheGui::SetShadow(void *EmptyShadow)
 {
-	printf("%s\n", __FUNCTION__);
 	Shadow = (BITMAP*)EmptyShadow;
-	printf("................................\n");
 }
 
 void CSpheGui::UpdateShadow(RECT *rect)
@@ -1245,7 +1225,7 @@ void CSpheGui::DrawLine(int x1, int y1, int x2, int y2)
 {
 }
 
-bool CSpheGui::UnTextExtent(char *text,int len, int *w, int *h, int extwidth)
+bool CSpheGui::UnTextExtent(char *text,int len, int *w, int *h)
 {
 	return false;
 }

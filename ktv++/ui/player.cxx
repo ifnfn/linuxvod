@@ -80,13 +80,13 @@ CPlayer::~CPlayer()
 bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 {
 	char msg[512];
+	int update = 0;
 	int size = RecvUdpBuf(udpsvrfd, msg, 511);
 
 	if (size>0) {
-		printf("...................................msg=%s\n", msg);
 		char *cmd = strtok(msg, "?");
 		char *param = strtok(NULL, "");
-		printf("cmd:%s, param:%s\n", cmd, param);
+//		printf("cmd:%s, param:%s\n", cmd, param);
 		SelectSongNode rec;
 
 		if (strcasecmp(cmd, "addsong") == 0) {
@@ -96,19 +96,20 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 		else if (strcasecmp(cmd, "delsong") == 0) {
 			StrToSelectSongNode(param, &rec);
 			DelSongFromList(&rec);
+			update = 1;
 		}
 		else if (strcasecmp(cmd, "firstsong") == 0) {
 			StrToSelectSongNode(param, &rec);
 			FirstSong(&rec, 1);
 		}
 		else if (strcasecmp(cmd, "PauseContinue") == 0) {
-			printf("pcPauseContinue\n");
+//			printf("pcPauseContinue\n");
 			ShowMsgBox(param, 2000);
 		}
 		else if (strcasecmp(cmd, "MsgBox") == 0) {
 			char *m = strtok(param, ",");
 			int t = atoidef(strtok(NULL, ","), 0);
-			printf("%s, %d\n", m, t);
+//			printf("%s, %d\n", m, t);
 			ShowMsgBox(m, t);
 			return true;
 		}
@@ -133,8 +134,10 @@ bool CPlayer::RecvPlayerCmd() /* 处理播放器发过来的命令 */
 			}
 		}
 		CBaseWindow *tmp = stack->WindowTop();
-		if (tmp)
+		if (tmp && update) {
+			printf("stack->WindowTop Paint\n");
 			tmp->Paint();
+		}
 		return true;
 	}
 	return false;
@@ -256,7 +259,7 @@ void CPlayer::ReloadSongList()
 		ClearSongList();
 		while ( !url_feof(&io) ) {
 			if (url_fgets(&io, buffer, 1023) != NULL) {
-				printf("buffer=%s\n", buffer);
+//				printf("buffer=%s\n", buffer);
 				SelectSongNode rec;
 				if (StrToSelectSongNode(buffer, &rec))
 					AddSongToList(&rec, false);
@@ -333,7 +336,7 @@ char *CPlayer::SendPlayerCmd(char *format, ...)
 	vsnprintf(temp + newformat_len, 4095 - newformat_len, format, ap);
 	va_end(ap);
 
-	printf("SendPlayerCmd=%s\n", temp);
+//	printf("SendPlayerCmd=%s\n", temp);
 	
 	return (char *)url_readbuf(temp, &size);
 }
@@ -344,7 +347,7 @@ int CPlayer::AddVolume()
 	char *data = SendPlayerCmd("addvolume");
 
 	if (data) {
-		printf("AddVolume:%s\n", data);
+//		printf("AddVolume:%s\n", data);
 		volume = atoidef(data, 0);
 		free(data);
 	}
@@ -357,7 +360,7 @@ int CPlayer::DecVolume()
 	char *data = SendPlayerCmd("delvolume");
 
 	if (data) {
-		printf("DecVolume:%s\n", data);
+//		printf("DecVolume:%s\n", data);
 		volume = atoidef(data, 0);
 		free(data);
 	}

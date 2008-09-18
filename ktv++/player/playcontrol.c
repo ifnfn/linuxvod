@@ -295,8 +295,8 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 		pInfo->MediaType = mtDISC;
 	}
 	else {
-//		char *tmpfile = GetLocalFile(pInfo->PlayingSong.SongCode, NULL); // 读取本地文件
-		char *tmpfile = GetHttpURL(pInfo->PlayingSong.SongCode, pInfo->PlayingSong.Password); // 读取本地文件
+		char *tmpfile = GetLocalFile(pInfo->PlayingSong.SongCode, NULL); // 读取本地文件
+//		char *tmpfile = GetHttpURL(pInfo->PlayingSong.SongCode, pInfo->PlayingSong.Password); // 读取本地文件
 		printf("tmpfile=%s\n", tmpfile);
 		if (tmpfile) {// 如果本地文件存在
 			strcpy(pInfo->VideoFile, tmpfile);
@@ -693,7 +693,7 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 	Wnd_type hwnd;
 
 	if (pInfo->InterFaceCtrl != NULL) {
-		printf(".............................RMFCloseControlInterface(pInfo->InterFaceCtrl);\n");
+//		printf(".............................RMFCloseControlInterface(pInfo->InterFaceCtrl);\n");
 		RMFCloseControlInterface(pInfo->InterFaceCtrl);
 		pInfo->InterFaceCtrl = NULL;
 	}
@@ -781,6 +781,8 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 			break;
 	}
 
+	PlayerResumeMute(pInfo);
+
 	return true;
 }
 
@@ -795,33 +797,35 @@ void ExitPlayer(INFO *pInfo) // 关闭播放器
 
 void StopPlayer(INFO *pInfo)
 {
-//	if (pInfo->PlayStatus == stStop) return;
-	switch (pInfo->type) {
-		case RM_INPUT_FILE:
-			RMFStopFile(pInfo->FileCtrl);
-			break;
+	if (pInfo->PlayStatus != stStop){
+		PlayerMute(pInfo);
+		switch (pInfo->type) {
+			case RM_INPUT_FILE:
+				RMFStopFile(pInfo->FileCtrl);
+				break;
 #ifdef NETPLAYER
-		case RM_INPUT_PUSH:
-			RMFStopPUSH(pInfo->PushCtrl);           // 停止播放
-			CloseUrl(pInfo->PlayVstp);              // 关闭流媒体通道
-			RMFFlushPUSH(pInfo->PushCtrl, TRUE);    // 播放缓冲区刷新
-			sem_destroy(&pInfo->g_sem);
-			break;
+			case RM_INPUT_PUSH:
+				RMFStopPUSH(pInfo->PushCtrl);           // 停止播放
+				CloseUrl(pInfo->PlayVstp);              // 关闭流媒体通道
+				RMFFlushPUSH(pInfo->PushCtrl, TRUE);    // 播放缓冲区刷新
+				sem_destroy(&pInfo->g_sem);
+				break;
 #endif
-		case RM_INPUT_CDDA:
-			RMFCDDAStop(pInfo->CddaCtrl);
-			RMFCDDAClose(pInfo->CddaCtrl);
-			break;
-		case RM_INPUT_VCD:
-			RMFVCDStop(pInfo->VcdCtrl);
-			RMFVCDClose(pInfo->VcdCtrl);
-			break;
-		case RM_INPUT_DVD:
-			RMFDVDStop(pInfo->DvdCtrl);
-			break;
-		case RM_INPUT_DISC:
-		default:
-			break;
+			case RM_INPUT_CDDA:
+				RMFCDDAStop(pInfo->CddaCtrl);
+				RMFCDDAClose(pInfo->CddaCtrl);
+				break;
+			case RM_INPUT_VCD:
+				RMFVCDStop(pInfo->VcdCtrl);
+				RMFVCDClose(pInfo->VcdCtrl);
+				break;
+			case RM_INPUT_DVD:
+				RMFDVDStop(pInfo->DvdCtrl);
+				break;
+			case RM_INPUT_DISC:
+			default:
+				break;
+		}
 	}
 	if (pInfo->InterFaceCtrl != NULL) {
 		RMFCloseControlInterface(pInfo->InterFaceCtrl);
@@ -844,8 +848,7 @@ RMTbuffer *GetPushDataBuf(INFO *pInfo)          // 初始化播放信息
 inline void ReplayPlayer(INFO *pInfo) // 重唱
 {
 	pInfo->KeepSongList = true;
-	pInfo->PlayStatus   = stStop;
-//	StopPlayer(pInfo);
+	StopPlayer(pInfo);
 }
 
 void RunSoundMode(INFO *pInfo, const char *param)
@@ -984,8 +987,8 @@ static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message
 			sem_post(&tmpInfo->g_sem);
 			break;
 		case RM_MESSAGE_EOS:               // 播放完毕信号
-			if (ShowJpeg(tmpInfo->rua, Background) == false)
-				SETBLACKFRAME(tmpInfo->PropCtrl);
+//			if (ShowJpeg(tmpInfo->rua, Background) == false)
+//				SETBLACKFRAME(tmpInfo->PropCtrl);
 #if 0
 			if (Advertising){ // 如果两首歌曲显示广告图片
 				const char *tmpfile="/ktvdata/adtmp.jpg";
@@ -994,7 +997,7 @@ static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message
 					ShowJpeg(tmpInfo->rua, tmpfile);
 			}
 #endif
-			tmpInfo->PlayStatus = stStop;
+			StopPlayer(tmpInfo);
 			break;
 		case RM_MESSAGE_DEMUX_DROP_DATA:
 			RMFFlushPUSH(tmpInfo->PushCtrl, TRUE);

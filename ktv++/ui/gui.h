@@ -77,7 +77,7 @@ public:
 	virtual void DrawRectangle(RECT rect,TColor color) = 0;       // 画框，color框的颜色
 	virtual void DrawFillRect(RECT rect, TColor color) = 0;       // 画填充框, color为填充色
 	virtual void DrawLine(int x1, int y1, int x2, int y2) = 0;    // 画线
-	virtual bool UnTextExtent(char *text,int len, int *w, int *h, int extwidth=0) = 0;
+	virtual bool UnTextExtent(char *text,int len, int *w, int *h) = 0;
 	                                                              // 返回字符串的长度
 	virtual void SetFont(CKtvFont *font) = 0;                     // 设置新的字体
 	virtual void DrawText(const char *value, RECT rect,TAlign align, bool unicode=true) = 0;  // 显字字符串
@@ -118,7 +118,7 @@ public:
 	virtual void DrawRectangle(RECT rect,TColor color);               // 画框，color框的颜色
 	virtual void DrawFillRect(RECT rect, TColor color);
 	virtual void DrawLine(int x1, int y1, int x2, int y2);
-	virtual bool UnTextExtent(char *text,int len, int *w, int *h, int extwidth=0);
+	virtual bool UnTextExtent(char *text,int len, int *w, int *h);
 	                                                                  // 返回Unicode字符串的长度
 	virtual void SetFont(CKtvFont *font);                             // 设置新的字体
 	virtual void DrawText(const char *value,RECT rect,TAlign align, bool unicode=true);          // 显字字符串
@@ -175,7 +175,7 @@ public:
 
 	virtual void DrawFillRect(RECT rect, TColor color);
 	virtual void DrawLine(int x1, int y1, int x2, int y2);
-	virtual bool UnTextExtent(char *text,int len, int *w, int *h, int extwidth=0);
+	virtual bool UnTextExtent(char *text,int len, int *w, int *h);
 	                                                                  // 返回Unicode字符串的长度
 	virtual void SetFont(CKtvFont *font);                             // 设置新的字体
 	virtual void DrawText(const char *value,RECT rect,TAlign align, bool unicode=true);
@@ -224,7 +224,7 @@ public:
 
 	virtual void DrawFillRect(RECT rect, TColor color);
 	virtual void DrawLine(int x1, int y1, int x2, int y2);
-	virtual bool UnTextExtent(char *text,int len, int *w, int *h, int extwidth=0);
+	virtual bool UnTextExtent(char *text,int len, int *w, int *h);
 	                                                                  // 返回Unicode字符串的长度
 	virtual void SetFont(CKtvFont *font);                             // 设置新的字体
 	virtual void DrawText(const char *value,RECT rect,TAlign align, bool unicode=true);

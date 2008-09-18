@@ -178,7 +178,8 @@ void CBaseWindow::DrawPlayStatus()
 void CMsgWindow::ShowMsgBox(const char *msg, int timeout)
 {
 	if (msg) {
-		if (box == VOLUME_BOX) CleanMsg();
+		if (box != MSG_BOX)
+			CleanMsg();
 		TColor c = {0xFF,0,0, 0xFF};
 		gui->DrawFillRect(msgrect, c);
 		TAlign align = {taCenter, taCenter};
@@ -194,7 +195,8 @@ void CMsgWindow::ShowMsgBox(const char *msg, int timeout)
 
 void CMsgWindow::ShowVolume(int volume)
 {
-	if (box == MSG_BOX) CleanMsg();
+	if (box != VOLUME_BOX)
+		CleanMsg();
 	gui->DrawSoundBar(volume);
 	StartTimer(MSG_TIMER_ID, 3000);
 	box = VOLUME_BOX;
@@ -225,8 +227,10 @@ CMsgWindow::CMsgWindow(const char *name):CKtvWindow(name), MsgFont(NULL), box(NO
 void CMsgWindow::CleanMsg()
 {
 	CBaseWindow *tmp = stack->WindowTop();
-	if (tmp)
+	if (tmp) {
+		printf("..............................................................................\n");
 		tmp->Paint();
+	}
 }
 
 void CMsgWindow::TimerWork()
