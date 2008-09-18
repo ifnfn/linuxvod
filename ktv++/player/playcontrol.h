@@ -107,23 +107,27 @@ typedef struct tagINFO{
 void ConvertToTime(RMuint32 totalSeconds, RMuint32 *hours, RMuint32 *minutes, RMuint32 *seconds); // 时间转换函数
 bool GetDiscDetect(const char* device, char *url);
 
-void DeleteFirstSongList(void);              // 删除已点歌曲中第一首歌
-bool SongListFirstPlay(INFO *pInfo);         // 播放已点歌曲中第一首歌
-int  GetRealVolume    (INFO *pInfo);         // 计算实际音量
-bool MuteSwitchPlayer (INFO *pInfo);         // 静音切换
-void AddVolume        (INFO *pInfo, int v);  // 音量增值，v 为正增加音量，为负值时减少音量
-void AudioSwitchPlayer(INFO *pInfo);         // 原伴唱切换
-void SetAudioChannel  (INFO *pInfo);         // 设置原伴唱
-bool InitInfo         (INFO *pInfo);         // 初始化播放器
-void ExitPlayer       (INFO *pInfo);         // 关闭播放器
-bool StartPlayer      (INFO *pInfo);         // 播放
-void StopPlayer       (INFO *pInfo);         // 停止播唱
-void ReplayPlayer     (INFO *pInfo);         // 播放器重唱
-RMTbuffer *GetPushDataBuf      (INFO *pInfo);// 得到一个缓冲区
-PlayerState PauseContinuePlayer(INFO *pInfo);// 暂停继续
-void RunSoundMode(INFO *pInfo, char *param); // 运行脚本
+void DeleteFirstSongList(void);               // 删除已点歌曲中第一首歌
+bool SongListFirstPlay(INFO *pInfo);          // 播放已点歌曲中第一首歌
+int  GetRealVolume    (INFO *pInfo);          // 计算实际音量
+bool MuteSwitchPlayer (INFO *pInfo);          // 静音切换
+void AddVolume        (INFO *pInfo, int v);   // 音量增值，v 为正增加音量，为负值时减少音量
+void AudioSwitchPlayer(INFO *pInfo);          // 原伴唱切换
+void SetAudioChannel  (INFO *pInfo);          // 设置原伴唱
+bool InitInfo         (INFO *pInfo);          // 初始化播放器
+void ExitPlayer       (INFO *pInfo);          // 关闭播放器
+bool StartPlayer      (INFO *pInfo);          // 播放
+void StopPlayer       (INFO *pInfo);          // 停止播唱
+void ReplayPlayer     (INFO *pInfo);          // 播放器重唱
+void PlayerMute       (INFO *pInfo);
+void PlayerResumeMute (INFO *pInfo);
+void PausePlayer      (INFO *pInfo);
+void ContinuePlayer   (INFO *pInfo);
 
-void PlayerMute(INFO *pInfo);
+RMTbuffer *GetPushDataBuf      (INFO *pInfo); // 得到一个缓冲区
+PlayerState PauseContinuePlayer(INFO *pInfo); // 暂停继续
+void RunSoundMode(INFO *pInfo, char *param);  // 运行脚本
+
 int  PlayAudio(INFO *pInfo, char *type, \
 		RMuint32 samplerate, \
 		RMuint32 numberofchannels, \

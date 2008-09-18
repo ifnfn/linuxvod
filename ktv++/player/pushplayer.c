@@ -59,6 +59,7 @@ static void *PlayVstpQueueThread(void *val)
 				}
 				RMFPushBuffer(tmpInfo->PushCtrl, sentbuffer);
 			}
+//			PlayerResumeMute(tmpInfo);
 		}
 //		else if (tmpInfo->type == RM_INPUT_FILE) {
 		else {
@@ -193,6 +194,8 @@ int main(int argc, char **argv)
 						PlayerSendStr("", &addr_sin);
 					break;
 				case pcPlayNext:
+					PlayerMute(&Info);
+					ContinuePlayer(&Info);
 					Info.PlayCancel = true;
 					if (Info.PlaySelect == psHiSong)  // 如果是HI模式，切换到SlectedDefault
 						Info.PlaySelect = psSelected;

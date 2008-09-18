@@ -101,6 +101,18 @@ static int UpdateCallBack(void *NotUsed, int argc, char **argv, char **azColName
 
 static char *zErrMsg = 0;
 
+static int haveDBdata(sqlite *db, const char *code)
+{
+	int count = 0;
+	char sql[256];
+
+	sprintf(sql, "SELECT code FROM system WHERE code='%s'", code);
+//	printf("%s(%s): %s\n", __FUNCTION__, code, sql);
+
+	sqlite_exec(db, sql, UpdateCallBack, &count, NULL);
+	return count;
+}
+
 int IndexFromServer(sqlite *db)
 {
 	if (db ==NULL) return -1;
@@ -156,6 +168,7 @@ int IndexFromServer(sqlite *db)
 
 static sqlite *localdb = NULL;
 static long filenum =0;
+static int view_nodata = 0;
 
 static int fn(const char *file, const struct stat *sb, int flag)
 {
@@ -178,8 +191,13 @@ static int fn(const char *file, const struct stat *sb, int flag)
 			(strcasecmp(extname, "div" ) == 0) )
 		{
 			filenum++;
+			if (view_nodata == 1) {
+				if (haveDBdata(localdb, code) == 0)
+					printf("rm %s\n", file);
+			}
 			sprintf(buf, "UPDATE system SET havesong=1,filesize=%ld WHERE code='%s';", sb->st_size, code);
 			sqlite_exec(localdb, buf, NULL, 0, NULL);
+
 		}
 	}
 	return 0;
@@ -193,7 +211,7 @@ int IndexLocal(sqlite *db, const char *indexpath)
 	filenum =0;
 	ftw(indexpath, fn, 500);
 	sqlite_exec(db, "COMMIT;", NULL , 0, NULL);
-	printf("\n\nFound Song Number: %ld\n", filenum);
+	fprintf(stderr, "\n\nFound Song Number: %ld\n", filenum);
 	return filenum;
 }
 
@@ -214,7 +232,7 @@ int main(int argc, char **argv)
 	char sqlfile[512]="";
 	int setupdate=0;
 	char ch;
-	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:hnlpu"))!= -1)
+	while ((ch = getopt(argc, argv, "q:f:s:a:b:d:hnlpuv"))!= -1)
 	{
 		switch (ch)
 		{
@@ -249,10 +267,16 @@ int main(int argc, char **argv)
 				print = 1;
 				break;
 			case 'm':
-				setupdate=1;
+				setupdate = 1;
+				break;
+			case 'v':
+				view_nodata = 1;
 				break;
 			case 'h':
-				printf("Usage: %s [-u] [-q <sqlfile>] [-f <songfile>] [-s <sql command>] [-a <songdatafile>] [-b <singerdatafile>] [-d <video>] [-l/-n] [-h] [-m]\n", argv[0]);
+				printf("Usage: %s [-u] [-q <sqlfile>] [-f <songfile>] [-s <sql command>]"
+					"[-a <songdatafile>] "
+					"[-b <singerdatafile>] " 
+					"[-d <video>] [-l/-n] [-m] [-v] [-h]\n", argv[0]);
 				exit(0);
 		}
 	}

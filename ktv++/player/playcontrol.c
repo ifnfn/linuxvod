@@ -227,7 +227,7 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 				char tmp[512] = "text=";
 				strcat(tmp, "下一首：");
 				strcat(tmp, SelectedList.items[1].SongName);
-				printf("tmp=%s\n", tmp);
+//				printf("tmp=%s\n", tmp);
 #ifdef OSDMENU
 				CleanScrollTextList(0);
 				CreateScrollTextStr(0, tmp);
@@ -314,10 +314,8 @@ bool SongListFirstPlay(INFO *pInfo) // 播放已点歌曲列表中第一首
 
 bool MuteSwitchPlayer(INFO *pInfo)
 {
-	if (pInfo->Mute) {
-		pInfo->Mute = false;
-		AddVolume(pInfo, 0);
-	}
+	if (pInfo->Mute)
+		PlayerResumeMute(pInfo);
 	else
 		PlayerMute(pInfo);
 	return pInfo->Mute;
@@ -325,11 +323,17 @@ bool MuteSwitchPlayer(INFO *pInfo)
 
 void PlayerMute(INFO *pInfo)
 {
-		pInfo->Mute = true;
-		if (pInfo->rua) {
-			RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeRight", 0);
-			RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeLeft",  0);
-		}
+	pInfo->Mute = true;
+	if (pInfo->rua) {
+		RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeRight", 0);
+		RMFSetPropertyValue(pInfo->PropCtrl, RM_PROPERTY_HWLIB, "AUDIO_SET", "eaVolumeLeft",  0);
+	}
+}
+
+void PlayerResumeMute(INFO *pInfo)
+{
+	pInfo->Mute = false;
+	AddVolume(pInfo, 0);
 }
 
 void AddVolume(INFO *pInfo, int v)
@@ -682,7 +686,7 @@ static bool InitVideo(INFO *pInfo) // 初始化视频设置
 		RMFCloseControlInterface(pInfo->InterFaceCtrl);
 		pInfo->InterFaceCtrl = 0;
 	}
-	printf("InitVideo\n");
+//	printf("InitVideo\n");
 	if (pInfo->MediaType == mtFILE){
 		sprintf(url, FILEURL, 0, pInfo->PlayingSong.StreamType, pInfo->VideoFile);
 	}
@@ -863,6 +867,7 @@ bool StartPlayer(INFO *pInfo)
 			return false;
 		}
 	}
+	PlayerResumeMute(pInfo);
 	if (!InitVideo(pInfo)) {
 		DEBUG_OUT("InitVideo Error.\n");
 		return false;
@@ -873,63 +878,69 @@ bool StartPlayer(INFO *pInfo)
 	pInfo->StartGetStream = true;
 	if (EnabledSound)
 		RunSoundMode(pInfo, NULL);
-	if (strcasecmp(pInfo->PlayingSong.StreamType, "DIVX") == 0)
-		SetAudioChannel(pInfo);
-	else
-		AddVolume(pInfo, 0);
+//	if (strcasecmp(pInfo->PlayingSong.StreamType, "DIVX") == 0)
+	SetAudioChannel(pInfo);
+//	else
+//		AddVolume(pInfo, 0);
 	return true;
+}
+
+void PausePlayer(INFO *pInfo)
+{
+	switch (pInfo->type){
+		case RM_INPUT_FILE:
+			RMFPauseFile(pInfo->FileCtrl);
+			break;
+		case RM_INPUT_PUSH:
+			RMFPausePUSH(pInfo->PushCtrl);
+			break;
+		case RM_INPUT_VCD:
+			RMFVCDPause(pInfo->VcdCtrl);
+			break;
+		case RM_INPUT_CDDA:
+			RMFCDDAPause(pInfo->CddaCtrl);
+			break;
+		case RM_INPUT_DVD:
+			RMFDVDPause_Off(pInfo->DvdCtrl);
+			break;
+		case RM_INPUT_DISC:
+		default:
+			return;
+	}
+	pInfo->PlayStatus = stPause;
+}
+
+void ContinuePlayer(INFO *pInfo)
+{
+	switch (pInfo->type) {
+		case RM_INPUT_FILE:
+			RMFPlayFile(pInfo->FileCtrl);
+			break;
+		case RM_INPUT_PUSH:
+			RMFPlayPUSH(pInfo->PushCtrl);
+			break;
+		case RM_INPUT_VCD:
+			RMFVCDPlay(pInfo->VcdCtrl);
+			break;
+		case RM_INPUT_CDDA:
+			RMFCDDAPlay(pInfo->CddaCtrl);
+			break;
+		case RM_INPUT_DVD:
+			RMFDVDPause_On(pInfo->DvdCtrl);
+			break;
+		case RM_INPUT_DISC:
+		default:
+			return;
+	}		
+	pInfo->PlayStatus = stPlaying;
 }
 
 PlayerState PauseContinuePlayer(INFO *pInfo)
 {
-	if (pInfo->PlayStatus == stPlaying){
-		printf("Playing --> Pause\n");
-		switch (pInfo->type){
-			case RM_INPUT_FILE:
-				RMFPauseFile(pInfo->FileCtrl);
-				break;
-			case RM_INPUT_PUSH:
-				RMFPausePUSH(pInfo->PushCtrl);
-				break;
-			case RM_INPUT_VCD:
-				RMFVCDPause(pInfo->VcdCtrl);
-				break;
-			case RM_INPUT_CDDA:
-				RMFCDDAPause(pInfo->CddaCtrl);
-				break;
-			case RM_INPUT_DVD:
-				RMFDVDPause_Off(pInfo->DvdCtrl);
-				break;
-				 case RM_INPUT_DISC:
-			default:
-				break;
-		}
-		pInfo->PlayStatus = stPause;
-	}
-	else if (pInfo->PlayStatus == stPause){
-		printf("Pause --> Playing\n");
-		switch (pInfo->type) {
-			case RM_INPUT_FILE:
-				RMFPlayFile(pInfo->FileCtrl);
-				break;
-			case RM_INPUT_PUSH:
-				RMFPlayPUSH(pInfo->PushCtrl);
-				break;
-			case RM_INPUT_VCD:
-				RMFVCDPlay(pInfo->VcdCtrl);
-				break;
-			case RM_INPUT_CDDA:
-				RMFCDDAPlay(pInfo->CddaCtrl);
-				break;
-			case RM_INPUT_DVD:
-				RMFDVDPause_On(pInfo->DvdCtrl);
-				break;
-			case RM_INPUT_DISC:
-			default:
-				break;
-		}
-		pInfo->PlayStatus = stPlaying;
-	}
+	if (pInfo->PlayStatus == stPlaying)
+		PausePlayer(pInfo);
+	else if (pInfo->PlayStatus == stPause)
+		ContinuePlayer(pInfo);
 	return pInfo->PlayStatus;
 }
 
@@ -969,13 +980,13 @@ static void callback(RMTcontrolInterface ctrl, void *userData, RMmessage message
 		case RM_MESSAGE_ACMODECHANGE:
 			break;
 		case RM_MESSAGE_FRAME_INDEX:
-			printf("RM_MESSAGE_FRAME_INDEX: tmpInfo->StartGetStream=%d\n", tmpInfo->StartGetStream);
+//			printf("RM_MESSAGE_FRAME_INDEX: tmpInfo->StartGetStream=%d\n", tmpInfo->StartGetStream);
 			if (tmpInfo->StartGetStream) {
 				if (strcasecmp(tmpInfo->PlayingSong.StreamType, "DIVX") == 0)
 					tmpInfo->StartGetStream = false;
 				else
 					tmpInfo->StartGetStream = ReadSongTrack(tmpInfo) < 1;
-				printf("%s: tmpInfo->StartGetStream=%d\n", __FUNCTION__, tmpInfo->StartGetStream);
+//				printf("%s: tmpInfo->StartGetStream=%d\n", __FUNCTION__, tmpInfo->StartGetStream);
 				if (!tmpInfo->StartGetStream) {
 					PRINTTRACK(tmpInfo->CurTrack);
 					SetAudioChannel(tmpInfo);
