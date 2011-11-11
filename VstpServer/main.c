@@ -12,7 +12,7 @@
 
 #include <assert.h>
 
-#include <sqlite.h>
+//#include <sqlite.h>
 
 #include "vstpserver.h"
 #include "osnet.h"

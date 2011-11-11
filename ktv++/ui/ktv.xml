@@ -1,0 +1,1881 @@
+<?xml version="1.0" encoding="GBK"?>
+<mtv mainwindow="MainForm">
+  <window name="commonoptions" backgroup="MainForm" font="Lime24">
+    <font name="boardfont" use="黑体,36,clRed,GBK"/>
+    <font name="singerfont" use="黑体,30,clYellow,GBK"/>
+    <font name="numfont" use="黑体,32,clWhite,GBK"/>
+    <font name="wbhfont" use="黑体,30,clGreen,GBK"/>
+    <font name="Lime24" use="黑体,24,clRed,GBK"/>
+    <font name="Yellow24" use="黑体,24,clYellow,GBK"/>
+    <font name="Red32" use="黑体,32,clRed,GBK"/>
+    <font name="msgfont" use="黑体,18,clYellow,GBK"/>
+    <option name="NextSongLabel" valign="center">
+      <font name="Lime24"/>
+      <rect left="78" top="18" right="453" bottom="62"/>
+    </option>
+    <option name="BackGroupImage">
+      <key use="DIKC_BackGroupImage"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="Klok">
+      <key use="DIKC_KLOK"/>
+      <rect left="87" top="490" right="181" bottom="539"/>
+    </option>
+    <option name="NextSong">
+      <key use="DIKC_NEXT"/>
+      <rect left="183" top="492" right="259" bottom="539"/>
+    </option>
+    <option name="Replay">
+      <key use="DIKC_REPLAY"/>
+      <rect left="262" top="492" right="340" bottom="539"/>
+    </option>
+    <option name="Pause">
+      <key use="DIKC_PAUSE"/>
+      <rect left="341" top="492" right="466" bottom="539"/>
+    </option>
+    <option name="AddVolume">
+      <key use="DIKC_VOLUME_UP"/>
+      <rect left="453" top="547" right="546" bottom="591"/>
+    </option>
+    <option name="DecVolume">
+      <key use="DIKC_VOLUME_DOWN"/>
+      <rect left="548" top="546" right="641" bottom="591"/>
+    </option>
+    <option name="PageUp">
+      <key use="DIKC_PAGE_UP"/>
+      <rect left="468" top="494" right="545" bottom="539"/>
+    </option>
+    <option name="PageDown">
+      <key use="DIKC_PAGE_DOWN"/>
+      <rect left="547" top="493" right="626" bottom="539"/>
+    </option>
+    <option name="Result">
+      <key use="DIKC_ESCAPE"/>
+      <rect left="629" top="492" right="708" bottom="540"/>
+    </option>
+    <option name="Selected">
+      <key use="DIKC_SELECT"/>
+      <rect left="44" top="544" right="192" bottom="594"/>
+      <link use="SelectedForm"/>
+    </option>
+    <option name="HIFI">
+      <key use="DIKC_HIFI"/>
+      <rect left="359" top="547" right="450" bottom="591"/>
+    </option>
+    <option name="DJ1">
+      <key use="DIKC_DJ1"/>
+      <rect left="6" top="112" right="28" bottom="141"/>
+    </option>
+    <option name="DJ2">
+      <key use="DIKC_DJ2"/>
+      <rect left="6" top="144" right="28" bottom="172"/>
+    </option>
+    <option name="DJ3">
+      <key use="DIKC_DJ3"/>
+      <rect left="6" top="174" right="28" bottom="204"/>
+    </option>
+    <option name="DJ4">
+      <key use="DIKC_DJ4"/>
+      <rect left="7" top="207" right="26" bottom="231"/>
+    </option>
+    <option name="Record">
+      <key use="DIKC_RECORD"/>
+      <rect left="3" top="83" right="67" bottom="98"/>
+    </option>
+    <option name="PlayRecord">
+      <key use="DIKC_PLAYREC"/>
+      <rect left="78" top="78" right="168" bottom="94"/>
+    </option>
+    <option name="First">
+      <key use="DIKC_FIRST"/>
+      <rect left="194" top="545" right="275" bottom="593"/>
+      <filter use="优先"/>
+      <title use="优先"/>
+      <link use="SelectedForm"/>
+    </option>
+    <option name="Delete">
+      <key use="DIKC_DELETE"/>
+      <rect left="277" top="546" right="355" bottom="594"/>
+      <filter use="删歌"/>
+      <title use="删歌"/>
+      <link use="SelectedForm"/>
+    </option>
+    <option name="Mute">
+      <key use="DIKC_MUTE"/>
+      <rect left="642" top="545" right="761" bottom="592"/>
+    </option>
+  </window>
+  <window name="MainForm" backgroup="MainForm" left="0" top="0" right="800" bottom="600">
+    <option name="ChangeTheme">
+      <key use="DIKC_PLUNGINS"/>
+      <link use="PlunginsForm"/>
+      <rect left="504" top="16" right="758" bottom="60"/>
+    </option>
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="252" top="102" right="502" bottom="186"/>
+      <title use="语言点歌"/>
+      <link use="YuYanForm"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="252" top="191" right="502" bottom="275"/>
+      <title use="类别点歌"/>
+      <link use="ClassForm"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="252" top="280" right="502" bottom="364"/>
+      <title use="歌星点歌"/>
+      <link use="SingerClassFrm"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="252" top="369" right="502" bottom="453"/>
+      <title use="字首拼音"/>
+      <link use="PinYinForm"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="511" top="101" right="765" bottom="185"/>
+      <title use="字首笔划"/>
+      <link use="WBHForm"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="511" top="190" right="765" bottom="274"/>
+      <title use="字数点歌"/>
+      <link use="WordNumForm"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="511" top="279" right="765" bottom="363"/>
+      <title use="热门歌曲"/>
+      <filter use="热门歌曲"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="511" top="368" right="765" bottom="452"/>
+      <title use="更多功能"/>
+      <filter use="更多功能"/>
+      <link use="OtherForm"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="DJ1"/>
+    <option name="DJ2"/>
+    <option name="DJ3"/>
+    <option name="DJ4"/>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Result"/>
+    <option name="Mute"/>
+  </window>
+  <window name="PinYinForm" backgroup="PinYinForm" left="0" top="0" right="800" bottom="600">
+    <option name="PyLabel">
+      <font use="黑体,36,clWhite,GBK"/>
+      <key use="DIKC_NULL"/>
+      <rect left="222" top="77" right="552" bottom="129"/>
+    </option>
+    <option name="Clear">
+      <key use="DIKC_DELETE"/>
+      <rect left="262" top="131" right="419" bottom="182"/>
+    </option>
+    <option name="Enter">
+      <key use="DIKC_ENTER"/>
+      <rect left="423" top="131" right="578" bottom="183"/>
+      <title use="拼音点歌"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="up">
+      <key use="DIKC_UP"/>
+    </option>
+    <option name="down">
+      <key use="DIKC_DOWN"/>
+    </option>
+    <option name="Board1">
+      <font name="boardfont"/>
+      <rect left="238" top="294" right="760" bottom="356"/>
+      <key use="DIKC_NULL"/>
+    </option>
+    <option name="Board2">
+      <font name="boardfont"/>
+      <rect left="238" top="358" right="760" bottom="420"/>
+      <key use="DIKC_NULL"/>
+    </option>
+    <option name="Board3">
+      <font name="boardfont"/>
+      <rect left="238" top="422" right="760" bottom="484"/>
+      <key use="DIKC_NULL"/>
+    </option>
+    <option name="CharA">
+      <key use="DIKC_A"/>
+      <rect left="239" top="295" right="303" bottom="354"/>
+      <title use="A"/>
+    </option>
+    <option name="CharB">
+      <key use="DIKC_B"/>
+      <rect left="305" top="295" right="369" bottom="354"/>
+      <title use="B"/>
+    </option>
+    <option name="CharC">
+      <key use="DIKC_C"/>
+      <rect left="371" top="295" right="435" bottom="354"/>
+      <title use="C"/>
+    </option>
+    <option name="CharD">
+      <key use="DIKC_D"/>
+      <rect left="437" top="295" right="501" bottom="354"/>
+      <title use="D"/>
+    </option>
+    <option name="CharE">
+      <key use="DIKC_E"/>
+      <rect left="503" top="295" right="565" bottom="354"/>
+      <title use="E"/>
+    </option>
+    <option name="CharF">
+      <key use="DIKC_F"/>
+      <rect left="567" top="295" right="626" bottom="354"/>
+      <title use="F"/>
+    </option>
+    <option name="CharG">
+      <key use="DIKC_G"/>
+      <rect left="628" top="295" right="693" bottom="354"/>
+      <title use="G"/>
+    </option>
+    <option name="CharH">
+      <key use="DIKC_H"/>
+      <rect left="696" top="295" right="760" bottom="354"/>
+      <title use="H"/>
+    </option>
+    <option name="CharJ">
+      <key use="DIKC_J"/>
+      <rect left="239" top="358" right="302" bottom="420"/>
+      <title use="J"/>
+    </option>
+    <option name="CharK">
+      <key use="DIKC_K"/>
+      <rect left="304" top="358" right="367" bottom="420"/>
+      <title use="K"/>
+    </option>
+    <option name="CharL">
+      <key use="DIKC_L"/>
+      <rect left="369" top="358" right="432" bottom="420"/>
+      <title use="L"/>
+    </option>
+    <option name="CharM">
+      <key use="DIKC_M"/>
+      <rect left="434" top="358" right="500" bottom="420"/>
+      <title use="M"/>
+    </option>
+    <option name="CharN">
+      <key use="DIKC_N"/>
+      <rect left="503" top="358" right="565" bottom="420"/>
+      <title use="N"/>
+    </option>
+    <option name="CharO">
+      <key use="DIKC_O"/>
+      <rect left="568" top="358" right="627" bottom="420"/>
+      <title use="O"/>
+    </option>
+    <option name="CharP">
+      <key use="DIKC_P"/>
+      <rect left="629" top="358" right="694" bottom="420"/>
+      <title use="P"/>
+    </option>
+    <option name="CharQ">
+      <key use="DIKC_Q"/>
+      <rect left="697" top="358" right="760" bottom="420"/>
+      <title use="Q"/>
+    </option>
+    <option name="CharR">
+      <key use="DIKC_R"/>
+      <rect left="239" top="423" right="302" bottom="483"/>
+      <title use="R"/>
+    </option>
+    <option name="CharS">
+      <key use="DIKC_S"/>
+      <rect left="304" top="423" right="370" bottom="483"/>
+      <title use="S"/>
+    </option>
+    <option name="CharT">
+      <key use="DIKC_T"/>
+      <rect left="372" top="423" right="435" bottom="483"/>
+      <title use="T"/>
+    </option>
+    <option name="CharW">
+      <key use="DIKC_W"/>
+      <rect left="437" top="423" right="502" bottom="483"/>
+      <title use="W"/>
+    </option>
+    <option name="CharX">
+      <key use="DIKC_X"/>
+      <rect left="504" top="423" right="565" bottom="483"/>
+      <title use="X"/>
+    </option>
+    <option name="CharY">
+      <key use="DIKC_Y"/>
+      <rect left="568" top="423" right="627" bottom="483"/>
+      <title use="Y"/>
+    </option>
+    <option name="CharZ">
+      <key use="DIKC_Z"/>
+      <rect left="629" top="423" right="694" bottom="483"/>
+      <title use="Z"/>
+    </option>
+    <option name="Char?">
+      <key use="DIKC_?"/>
+      <rect left="698" top="423" right="760" bottom="483"/>
+      <title use="?"/>
+    </option>
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="0" top="0" right="0" bottom="0"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Result"/>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="PageUp"/>
+    <option name="PageDown"/>
+  </window>
+  <window name="SingerForm" backgroup="SingerForm" left="0" top="0" right="800" bottom="600" font="Yellow24">
+    <option name="singer1">
+      <font name="singerfont"/>
+      <rect left="89" top="105" right="246" bottom="282"/>
+    </option>
+    <option name="singer2">
+      <font name="singerfont"/>
+      <rect left="263" top="105" right="420" bottom="282"/>
+    </option>
+    <option name="singer3">
+      <font name="singerfont"/>
+      <rect left="437" top="105" right="594" bottom="282"/>
+    </option>
+    <option name="singer4">
+      <font name="singerfont"/>
+      <rect left="610" top="105" right="767" bottom="282"/>
+    </option>
+    <option name="singer5">
+      <font name="singerfont"/>
+      <rect left="89" top="298" right="246" bottom="475"/>
+    </option>
+    <option name="singer6">
+      <font name="singerfont"/>
+      <rect left="263" top="298" right="420" bottom="475"/>
+    </option>
+    <option name="singer7">
+      <font name="singerfont"/>
+      <rect left="437" top="298" right="594" bottom="475"/>
+    </option>
+    <option name="singer8">
+      <font name="singerfont"/>
+      <rect left="611" top="298" right="768" bottom="475"/>
+    </option>
+    <option name="num1" align="center" valign="bottom">
+      <key use="DIKC_1"/>
+      <rect left="89" top="105" right="246" bottom="275"/>
+      <title use="歌星1"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num2" align="center" valign="bottom">
+      <key use="DIKC_2"/>
+      <rect left="263" top="105" right="420" bottom="275"/>
+      <title use="歌星2"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num3" align="center" valign="bottom">
+      <key use="DIKC_3"/>
+      <rect left="437" top="105" right="594" bottom="275"/>
+      <title use="歌星3"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num4" align="center" valign="bottom">
+      <key use="DIKC_4"/>
+      <rect left="610" top="105" right="767" bottom="275"/>
+      <title use="歌星4"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num5" align="center" valign="bottom">
+      <key use="DIKC_5"/>
+      <rect left="89" top="298" right="246" bottom="468"/>
+      <title use="歌星5"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num6" align="center" valign="bottom">
+      <key use="DIKC_6"/>
+      <rect left="263" top="298" right="420" bottom="468"/>
+      <title use="歌星6"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num7" align="center" valign="bottom">
+      <key use="DIKC_7"/>
+      <rect left="437" top="298" right="594" bottom="468"/>
+      <title use="歌星7"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="num8" align="center" valign="bottom">
+      <key use="DIKC_8"/>
+      <rect left="611" top="298" right="768" bottom="468"/>
+      <title use="歌星8"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="CharA">
+      <key use="DIKC_A"/>
+      <rect left="95" top="71" right="123" bottom="102"/>
+      <title use="A"/>
+    </option>
+    <option name="CharB">
+      <key use="DIKC_B"/>
+      <rect left="124" top="71" right="152" bottom="102"/>
+      <title use="B"/>
+    </option>
+    <option name="CharC">
+      <key use="DIKC_C"/>
+      <rect left="153" top="71" right="181" bottom="102"/>
+      <title use="C"/>
+    </option>
+    <option name="CharD">
+      <key use="DIKC_D"/>
+      <rect left="182" top="71" right="209" bottom="102"/>
+      <title use="D"/>
+    </option>
+    <option name="CharE">
+      <key use="DIKC_E"/>
+      <rect left="209" top="71" right="236" bottom="102"/>
+      <title use="E"/>
+    </option>
+    <option name="CharF">
+      <key use="DIKC_F"/>
+      <rect left="237" top="71" right="261" bottom="102"/>
+      <title use="F"/>
+    </option>
+    <option name="CharG">
+      <key use="DIKC_G"/>
+      <rect left="262" top="71" right="291" bottom="102"/>
+      <title use="G"/>
+    </option>
+    <option name="CharH">
+      <key use="DIKC_H"/>
+      <rect left="292" top="71" right="321" bottom="102"/>
+      <title use="H"/>
+    </option>
+    <option name="CharJ">
+      <key use="DIKC_J"/>
+      <rect left="322" top="71" right="347" bottom="102"/>
+      <title use="J"/>
+    </option>
+    <option name="CharK">
+      <key use="DIKC_K"/>
+      <rect left="348" top="71" right="378" bottom="102"/>
+      <title use="K"/>
+    </option>
+    <option name="CharL">
+      <key use="DIKC_L"/>
+      <rect left="379" top="71" right="403" bottom="102"/>
+      <title use="L"/>
+    </option>
+    <option name="CharM">
+      <key use="DIKC_M"/>
+      <rect left="404" top="71" right="435" bottom="102"/>
+      <title use="M"/>
+    </option>
+    <option name="CharN">
+      <key use="DIKC_N"/>
+      <rect left="436" top="71" right="466" bottom="102"/>
+      <title use="N"/>
+    </option>
+    <option name="CharO">
+      <key use="DIKC_O"/>
+      <rect left="467" top="71" right="497" bottom="102"/>
+      <title use="O"/>
+    </option>
+    <option name="CharP">
+      <key use="DIKC_P"/>
+      <rect left="498" top="71" right="524" bottom="102"/>
+      <title use="P"/>
+    </option>
+    <option name="CharQ">
+      <key use="DIKC_Q"/>
+      <rect left="525" top="71" right="554" bottom="102"/>
+      <title use="Q"/>
+    </option>
+    <option name="CharR">
+      <key use="DIKC_R"/>
+      <rect left="555" top="71" right="583" bottom="102"/>
+      <title use="R"/>
+    </option>
+    <option name="CharS">
+      <key use="DIKC_S"/>
+      <rect left="584" top="71" right="609" bottom="102"/>
+      <title use="S"/>
+    </option>
+    <option name="CharT">
+      <key use="DIKC_T"/>
+      <rect left="610" top="71" right="635" bottom="102"/>
+      <title use="T"/>
+    </option>
+    <option name="CharW">
+      <key use="DIKC_W"/>
+      <rect left="636" top="71" right="672" bottom="102"/>
+      <title use="W"/>
+    </option>
+    <option name="CharX">
+      <key use="DIKC_X"/>
+      <rect left="673" top="71" right="701" bottom="102"/>
+      <title use="X"/>
+    </option>
+    <option name="CharY">
+      <key use="DIKC_Y"/>
+      <rect left="702" top="71" right="729" bottom="102"/>
+      <title use="Y"/>
+    </option>
+    <option name="CharZ">
+      <key use="DIKC_Z"/>
+      <rect left="730" top="71" right="758" bottom="102"/>
+      <title use="Z"/>
+    </option>
+    <option name="left">
+      <key use="DIKC_LEFT"/>
+    </option>
+    <option name="right">
+      <key use="DIKC_RIGHT"/>
+    </option>
+    <option name="enter">
+      <key use="DIKC_ENTER"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="PageUp"/>
+    <option name="PageDown"/>
+    <option name="Result"/>
+  </window>
+  <window name="SingerClassFrm" backgroup="SingerClassFrm" left="0" top="0" right="800" bottom="600">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="197" top="103" right="483" bottom="186"/>
+      <title use="港台男歌星"/>
+      <link use="SingerForm"/>
+      <filter use="港台男"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="485" top="103" right="782" bottom="186"/>
+      <title use="港台女歌星"/>
+      <link use="SingerForm"/>
+      <filter use="港台女"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="220" top="190" right="499" bottom="272"/>
+      <title use="国内男歌星"/>
+      <link use="SingerForm"/>
+      <filter use="大陆男"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="501" top="190" right="780" bottom="272"/>
+      <title use="国内女歌星"/>
+      <link use="SingerForm"/>
+      <filter use="大陆女"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="318" top="275" right="779" bottom="359"/>
+      <title use="乐队组合"/>
+      <link use="SingerForm"/>
+      <filter use="乐队"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="392" top="362" right="778" bottom="446"/>
+      <title use="国外歌星"/>
+      <link use="SingerForm"/>
+      <filter use="国外"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="Result"/>
+  </window>
+  <window name="YuYanForm" backgroup="YuYanForm" left="0" top="0" right="800" bottom="600">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="170" top="81" right="540" bottom="157"/>
+      <title use="国语歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="国语"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="151" top="160" right="402" bottom="238"/>
+      <title use="粤语歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="粤语"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="112" top="240" right="340" bottom="317"/>
+      <title use="台语歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="台语"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="96" top="321" right="308" bottom="399"/>
+      <title use="英文歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="英语"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="93" top="403" right="303" bottom="480"/>
+      <title use="日韩歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="日韩"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="21" top="85" right="147" bottom="210"/>
+      <title use="其他语言"/>
+      <link use="SongListForm"/>
+      <filter use="其他"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="Result"/>
+  </window>
+  <window name="ClassForm" backgroup="ClassForm" left="0" top="0" right="800" bottom="600">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="43" top="109" right="294" bottom="192"/>
+      <title use="生日喜庆"/>
+      <link use="SongListForm"/>
+      <filter use="生日喜庆"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="43" top="195" right="294" bottom="279"/>
+      <title use="DISCO"/>
+      <link use="SongListForm"/>
+      <filter use="Disco"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="43" top="283" right="294" bottom="367"/>
+      <title use="戏曲戏剧"/>
+      <link use="SongListForm"/>
+      <filter use="戏曲"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="43" top="373" right="294" bottom="457"/>
+      <title use="民族歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="民歌"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="300" top="109" right="551" bottom="189"/>
+      <title use="电影欣赏"/>
+      <link use="SongListForm"/>
+      <filter use="电影"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="307" top="194" right="553" bottom="276"/>
+      <title use="情歌对唱"/>
+      <link use="SongListForm"/>
+      <filter use="合唱"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="309" top="281" right="554" bottom="367"/>
+      <title use="革命歌曲"/>
+      <link use="SongListForm"/>
+      <filter use="革命"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="309" top="374" right="556" bottom="455"/>
+      <title use="经典怀旧"/>
+      <link use="SongListForm"/>
+      <filter use="怀旧"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="Result"/>
+  </window>
+  <window name="WordNumForm" backgroup="WordNumForm" left="0" top="0" right="800" bottom="600">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="192" top="91" right="349" bottom="183"/>
+      <title use="一字歌"/>
+      <link use="SongListForm"/>
+      <filter use="1字歌"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="124" top="158" right="285" bottom="246"/>
+      <title use="二字歌"/>
+      <link use="SongListForm"/>
+      <filter use="2字歌"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="80" top="238" right="282" bottom="317"/>
+      <title use="三字歌"/>
+      <link use="SongListForm"/>
+      <filter use="3字歌"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="51" top="312" right="221" bottom="388"/>
+      <title use="四字歌"/>
+      <link use="SongListForm"/>
+      <filter use="4字歌"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="15" top="395" right="213" bottom="468"/>
+      <title use="五字歌"/>
+      <link use="SongListForm"/>
+      <filter use="5字歌"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="460" top="82" right="662" bottom="178"/>
+      <title use="六字歌"/>
+      <link use="SongListForm"/>
+      <filter use="6字歌"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="406" top="166" right="577" bottom="250"/>
+      <title use="七字歌"/>
+      <link use="SongListForm"/>
+      <filter use="7字歌"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="341" top="239" right="516" bottom="317"/>
+      <title use="八字歌"/>
+      <link use="SongListForm"/>
+      <filter use="8字歌"/>
+    </option>
+    <option name="num9">
+      <key use="DIKC_9"/>
+      <rect left="296" top="322" right="487" bottom="397"/>
+      <title use="九字歌"/>
+      <link use="SongListForm"/>
+      <filter use="9字歌"/>
+    </option>
+    <option name="num0">
+      <key use="DIKC_0"/>
+      <rect left="254" top="392" right="440" bottom="473"/>
+      <title use="全部"/>
+      <link use="SongListForm"/>
+      <filter use="0字歌"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="Result"/>
+  </window>
+  <window name="NumLocateForm" backgroup="WordNumForm" left="0" top="0" right="800" bottom="600">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="177" top="78" right="377" bottom="153"/>
+      <title use="1"/>
+      <link use="SongListForm"/>
+      <filter use="1"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="133" top="159" right="331" bottom="235"/>
+      <title use="2"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="82" top="242" right="282" bottom="316"/>
+      <title use="3"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="28" top="315" right="233" bottom="398"/>
+      <title use="4"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="6" top="401" right="227" bottom="476"/>
+      <title use="5"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="464" top="82" right="664" bottom="180"/>
+      <title use="6"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="403" top="172" right="588" bottom="258"/>
+      <title use="7"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="345" top="238" right="519" bottom="322"/>
+      <title use="8"/>
+    </option>
+    <option name="num9">
+      <key use="DIKC_9"/>
+      <rect left="289" top="320" right="501" bottom="398"/>
+      <title use="9"/>
+    </option>
+    <option name="num0">
+      <key use="DIKC_0"/>
+      <rect left="250" top="392" right="443" bottom="471"/>
+      <title use="0"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="Result"/>
+  </window>
+  <window name="OtherForm" backgroup="OtherForm" left="0" top="0" right="800" bottom="600">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="166" top="87" right="380" bottom="185"/>
+      <title use="酒水小吃"/>
+      <link use=""/>
+      <filter use=""/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="110" top="186" right="305" bottom="283"/>
+      <title use="新歌推荐"/>
+      <link use="SongListForm"/>
+      <filter use="新歌推荐"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="48" top="283" right="273" bottom="371"/>
+      <title use="编号点歌"/>
+      <link use="InputCodeForm"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="40" top="378" right="278" bottom="477"/>
+      <title use="游戏娱乐"/>
+      <link use=""/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="428" top="92" right="586" bottom="206"/>
+      <title use="帮助说明"/>
+      <link use="HandWriteForm"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="507" top="209" right="708" bottom="281"/>
+      <title use="软件介绍"/>
+      <link use="SoftInfoForm"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="532" top="306" right="775" bottom="360"/>
+      <title use="上网冲浪"/>
+      <link use=""/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="532" top="393" right="800" bottom="474"/>
+      <title use="VIP"/>
+      <link use=""/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="Result"/>
+  </window>
+  <window name="SongListForm" backgroup="SongListForm" left="0" top="0" right="800" bottom="600" font="Red32">
+    <option name="MsgLabel" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="217" top="77" right="413" bottom="109"/>
+    </option>
+    <option name="PageNoLabel" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="439" top="79" right="720" bottom="112"/>
+    </option>
+    <option name="singer1" align="Right">
+      <font name="singerfont"/>
+      <activecolor use="clRed"/>
+      <rect left="500" top="162" right="783" bottom="211"/>
+    </option>
+    <option name="singer2" align="Right">
+      <font name="singerfont"/>
+      <activecolor use="clRed"/>
+      <rect left="500" top="216" right="783" bottom="265"/>
+    </option>
+    <option name="singer3" align="Right">
+      <font name="singerfont"/>
+      <activecolor use="clRed"/>
+      <rect left="500" top="270" right="783" bottom="319"/>
+    </option>
+    <option name="singer4" align="Right">
+      <font name="singerfont"/>
+      <activecolor use="clRed"/>
+      <rect left="500" top="324" right="783" bottom="373"/>
+    </option>
+    <option name="singer5" align="Right">
+      <font name="singerfont"/>
+      <activecolor use="clRed"/>
+      <rect left="500" top="378" right="783" bottom="427"/>
+    </option>
+    <option name="singer6" align="Right">
+      <font name="singerfont"/>
+      <activecolor use="clRed"/>
+      <rect left="500" top="432" right="783" bottom="481"/>
+    </option>
+    <option name="num0">
+      <key use="DIKC_0"/>
+      <rect left="3" top="82" right="58" bottom="154"/>
+      <link use="NumLocateForm"/>
+    </option>
+    <option name="num1">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_1"/>
+      <rect left="55" top="162" right="796" bottom="211"/>
+    </option>
+    <option name="num2">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_2"/>
+      <rect left="55" top="216" right="796" bottom="265"/>
+    </option>
+    <option name="num3">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_3"/>
+      <rect left="55" top="270" right="796" bottom="319"/>
+    </option>
+    <option name="num4">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_4"/>
+      <rect left="55" top="324" right="796" bottom="373"/>
+    </option>
+    <option name="num5">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_5"/>
+      <rect left="55" top="378" right="796" bottom="427"/>
+    </option>
+    <option name="num6">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_6"/>
+      <rect left="55" top="432" right="796" bottom="481"/>
+    </option>
+    <option name="CharA">
+      <key use="DIKC_A"/>
+      <rect left="73" top="126" right="100" bottom="155"/>
+      <title use="A"/>
+    </option>
+    <option name="CharB">
+      <key use="DIKC_B"/>
+      <rect left="102" top="126" right="129" bottom="155"/>
+      <title use="B"/>
+    </option>
+    <option name="CharC">
+      <key use="DIKC_C"/>
+      <rect left="131" top="126" right="158" bottom="155"/>
+      <title use="C"/>
+    </option>
+    <option name="CharD">
+      <key use="DIKC_D"/>
+      <rect left="160" top="126" right="187" bottom="155"/>
+      <title use="D"/>
+    </option>
+    <option name="CharE">
+      <key use="DIKC_E"/>
+      <rect left="189" top="126" right="215" bottom="155"/>
+      <title use="E"/>
+    </option>
+    <option name="CharF">
+      <key use="DIKC_F"/>
+      <rect left="216" top="126" right="240" bottom="155"/>
+      <title use="F"/>
+    </option>
+    <option name="CharG">
+      <key use="DIKC_G"/>
+      <rect left="241" top="126" right="270" bottom="155"/>
+      <title use="G"/>
+    </option>
+    <option name="CharH">
+      <key use="DIKC_H"/>
+      <rect left="271" top="126" right="300" bottom="155"/>
+      <title use="H"/>
+    </option>
+    <option name="CharJ">
+      <key use="DIKC_J"/>
+      <rect left="301" top="126" right="325" bottom="155"/>
+      <title use="J"/>
+    </option>
+    <option name="CharK">
+      <key use="DIKC_K"/>
+      <rect left="326" top="126" right="356" bottom="155"/>
+      <title use="K"/>
+    </option>
+    <option name="CharL">
+      <key use="DIKC_L"/>
+      <rect left="357" top="126" right="382" bottom="155"/>
+      <title use="L"/>
+    </option>
+    <option name="CharM">
+      <key use="DIKC_M"/>
+      <rect left="383" top="126" right="414" bottom="155"/>
+      <title use="M"/>
+    </option>
+    <option name="CharN">
+      <key use="DIKC_N"/>
+      <rect left="415" top="126" right="445" bottom="155"/>
+      <title use="N"/>
+    </option>
+    <option name="CharO">
+      <key use="DIKC_O"/>
+      <rect left="446" top="126" right="476" bottom="155"/>
+      <title use="O"/>
+    </option>
+    <option name="CharP">
+      <key use="DIKC_P"/>
+      <rect left="477" top="126" right="503" bottom="155"/>
+      <title use="P"/>
+    </option>
+    <option name="CharQ">
+      <key use="DIKC_Q"/>
+      <rect left="504" top="126" right="533" bottom="155"/>
+      <title use="Q"/>
+    </option>
+    <option name="CharR">
+      <key use="DIKC_R"/>
+      <rect left="535" top="126" right="562" bottom="155"/>
+      <title use="R"/>
+    </option>
+    <option name="CharS">
+      <key use="DIKC_S"/>
+      <rect left="563" top="126" right="588" bottom="155"/>
+      <title use="S"/>
+    </option>
+    <option name="CharT">
+      <key use="DIKC_T"/>
+      <rect left="589" top="126" right="615" bottom="155"/>
+      <title use="T"/>
+    </option>
+    <option name="CharW">
+      <key use="DIKC_W"/>
+      <rect left="616" top="126" right="651" bottom="155"/>
+      <title use="W"/>
+    </option>
+    <option name="CharX">
+      <key use="DIKC_X"/>
+      <rect left="652" top="126" right="680" bottom="155"/>
+      <title use="X"/>
+    </option>
+    <option name="CharY">
+      <key use="DIKC_Y"/>
+      <rect left="681" top="126" right="708" bottom="155"/>
+      <title use="Y"/>
+    </option>
+    <option name="CharZ">
+      <key use="DIKC_Z"/>
+      <rect left="709" top="126" right="736" bottom="155"/>
+      <title use="Z"/>
+    </option>
+    <option name="left">
+      <key use="DIKC_LEFT"/>
+    </option>
+    <option name="right">
+      <key use="DIKC_RIGHT"/>
+    </option>
+    <option name="enter">
+      <key use="DIKC_ENTER"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="PageUp"/>
+    <option name="PageDown"/>
+    <option name="Result"/>
+  </window>
+  <window name="WBHForm" backgroup="WBHForm" left="0" top="0" right="800" bottom="600" font="Red32">
+    <option name="LeftDel">
+      <key use="DIKC_LEFT"/>
+      <rect left="232" top="393" right="318" bottom="430"/>
+    </option>
+    <option name="MsgLabel" valign="center" align="left">
+      <font name="numfont"/>
+      <rect left="38" top="432" right="319" bottom="484"/>
+    </option>
+    <option name="WBH1" align="Right" valign="center">
+      <font name="wbhfont"/>
+      <rect left="400" top="413" right="469" bottom="484"/>
+      <key use="DIKC_1"/>
+      <title use="1"/>
+    </option>
+    <option name="WBH2" align="Right" valign="center">
+      <font name="wbhfont"/>
+      <rect left="473" top="413" right="542" bottom="484"/>
+      <key use="DIKC_2"/>
+      <title use="2"/>
+    </option>
+    <option name="WBH3" align="Right" valign="center">
+      <font name="wbhfont"/>
+      <rect left="546" top="413" right="615" bottom="484"/>
+      <key use="DIKC_3"/>
+      <title use="3"/>
+    </option>
+    <option name="WBH4" align="Right" valign="center">
+      <font name="wbhfont"/>
+      <rect left="619" top="413" right="688" bottom="484"/>
+      <key use="DIKC_4"/>
+      <title use="4"/>
+    </option>
+    <option name="WBH5" align="Right" valign="center">
+      <font name="wbhfont"/>
+      <rect left="692" top="413" right="761" bottom="484"/>
+      <key use="DIKC_5"/>
+      <title use="5"/>
+    </option>
+    <option name="singer1" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="504" top="110" right="780" bottom="159"/>
+    </option>
+    <option name="singer2" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="504" top="164" right="780" bottom="213"/>
+    </option>
+    <option name="singer3" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="504" top="218" right="780" bottom="267"/>
+    </option>
+    <option name="singer4" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="504" top="272" right="780" bottom="321"/>
+    </option>
+    <option name="singer5" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="504" top="326" right="780" bottom="375"/>
+    </option>
+    <option name="num1">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_6"/>
+      <rect left="58" top="110" right="790" bottom="159"/>
+    </option>
+    <option name="num2">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_7"/>
+      <rect left="58" top="164" right="790" bottom="213"/>
+    </option>
+    <option name="num3">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_8"/>
+      <rect left="58" top="218" right="790" bottom="267"/>
+    </option>
+    <option name="num4">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_9"/>
+      <rect left="58" top="272" right="790" bottom="321"/>
+    </option>
+    <option name="num5">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_0"/>
+      <rect left="58" top="326" right="790" bottom="375"/>
+    </option>
+    <option name="CharA">
+      <key use="DIKC_A"/>
+      <rect left="85" top="83" right="113" bottom="110"/>
+      <title use="A"/>
+    </option>
+    <option name="CharB">
+      <key use="DIKC_B"/>
+      <rect left="114" top="83" right="142" bottom="110"/>
+      <title use="B"/>
+    </option>
+    <option name="CharC">
+      <key use="DIKC_C"/>
+      <rect left="143" top="83" right="171" bottom="110"/>
+      <title use="C"/>
+    </option>
+    <option name="CharD">
+      <key use="DIKC_D"/>
+      <rect left="172" top="83" right="198" bottom="110"/>
+      <title use="D"/>
+    </option>
+    <option name="CharE">
+      <key use="DIKC_E"/>
+      <rect left="199" top="83" right="225" bottom="110"/>
+      <title use="E"/>
+    </option>
+    <option name="CharF">
+      <key use="DIKC_F"/>
+      <rect left="226" top="83" right="250" bottom="110"/>
+      <title use="F"/>
+    </option>
+    <option name="CharG">
+      <key use="DIKC_G"/>
+      <rect left="251" top="83" right="280" bottom="110"/>
+      <title use="G"/>
+    </option>
+    <option name="CharH">
+      <key use="DIKC_H"/>
+      <rect left="281" top="83" right="311" bottom="110"/>
+      <title use="H"/>
+    </option>
+    <option name="CharJ">
+      <key use="DIKC_J"/>
+      <rect left="312" top="83" right="336" bottom="110"/>
+      <title use="J"/>
+    </option>
+    <option name="CharK">
+      <key use="DIKC_K"/>
+      <rect left="337" top="83" right="366" bottom="110"/>
+      <title use="K"/>
+    </option>
+    <option name="CharL">
+      <key use="DIKC_L"/>
+      <rect left="367" top="83" right="391" bottom="110"/>
+      <title use="L"/>
+    </option>
+    <option name="CharM">
+      <key use="DIKC_M"/>
+      <rect left="392" top="83" right="424" bottom="110"/>
+      <title use="M"/>
+    </option>
+    <option name="CharN">
+      <key use="DIKC_N"/>
+      <rect left="425" top="83" right="455" bottom="110"/>
+      <title use="N"/>
+    </option>
+    <option name="CharO">
+      <key use="DIKC_O"/>
+      <rect left="456" top="83" right="486" bottom="110"/>
+      <title use="O"/>
+    </option>
+    <option name="CharP">
+      <key use="DIKC_P"/>
+      <rect left="487" top="83" right="513" bottom="110"/>
+      <title use="P"/>
+    </option>
+    <option name="CharQ">
+      <key use="DIKC_Q"/>
+      <rect left="514" top="83" right="543" bottom="110"/>
+      <title use="Q"/>
+    </option>
+    <option name="CharR">
+      <key use="DIKC_R"/>
+      <rect left="544" top="83" right="572" bottom="110"/>
+      <title use="R"/>
+    </option>
+    <option name="CharS">
+      <key use="DIKC_S"/>
+      <rect left="573" top="83" right="598" bottom="110"/>
+      <title use="S"/>
+    </option>
+    <option name="CharT">
+      <key use="DIKC_T"/>
+      <rect left="599" top="83" right="625" bottom="110"/>
+      <title use="T"/>
+    </option>
+    <option name="CharW">
+      <key use="DIKC_W"/>
+      <rect left="626" top="83" right="661" bottom="110"/>
+      <title use="W"/>
+    </option>
+    <option name="CharX">
+      <key use="DIKC_X"/>
+      <rect left="662" top="83" right="690" bottom="110"/>
+      <title use="X"/>
+    </option>
+    <option name="CharY">
+      <key use="DIKC_Y"/>
+      <rect left="691" top="83" right="718" bottom="110"/>
+      <title use="Y"/>
+    </option>
+    <option name="CharZ">
+      <key use="DIKC_Z"/>
+      <rect left="719" top="83" right="747" bottom="110"/>
+      <title use="Z"/>
+    </option>
+    <option name="left">
+      <key use="DIKC_LEFT"/>
+    </option>
+    <option name="right">
+      <key use="DIKC_RIGHT"/>
+    </option>
+    <option name="enter">
+      <key use="DIKC_ENTER"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="PageUp"/>
+    <option name="PageDown"/>
+    <option name="Result"/>
+  </window>
+  <window name="SelectedForm" backgroup="SelectedForm" left="0" top="0" right="800" bottom="600" font="Red32">
+    <option name="MsgLabel" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="220" top="92" right="306" bottom="148"/>
+    </option>
+    <option name="PageNoLabel" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="307" top="91" right="547" bottom="149"/>
+    </option>
+    <option name="singer1" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="511" top="169" right="785" bottom="217"/>
+    </option>
+    <option name="singer2" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="511" top="223" right="785" bottom="271"/>
+    </option>
+    <option name="singer3" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="511" top="277" right="785" bottom="325"/>
+    </option>
+    <option name="singer4" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="511" top="331" right="785" bottom="379"/>
+    </option>
+    <option name="singer5" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="511" top="385" right="785" bottom="433"/>
+    </option>
+    <option name="singer6" align="Right" valign="center">
+      <font name="singerfont"/>
+      <rect left="511" top="439" right="785" bottom="487"/>
+    </option>
+    <option name="num1" valign="center">
+      <font name="numfont"/>
+      <key use="DIKC_1"/>
+      <rect left="57" top="169" right="794" bottom="217"/>
+    </option>
+    <option name="num2" valign="center">
+      <font name="numfont"/>
+      <key use="DIKC_2"/>
+      <rect left="57" top="223" right="794" bottom="271"/>
+    </option>
+    <option name="num3" valign="center">
+      <font name="numfont"/>
+      <key use="DIKC_3"/>
+      <rect left="57" top="277" right="794" bottom="325"/>
+    </option>
+    <option name="num4" valign="center">
+      <font name="numfont"/>
+      <key use="DIKC_4"/>
+      <rect left="57" top="331" right="794" bottom="379"/>
+    </option>
+    <option name="num5" valign="center">
+      <font name="numfont"/>
+      <key use="DIKC_5"/>
+      <rect left="57" top="385" right="794" bottom="433"/>
+    </option>
+    <option name="num6" valign="center">
+      <font name="numfont"/>
+      <key use="DIKC_6"/>
+      <rect left="57" top="439" right="794" bottom="487"/>
+    </option>
+    <option name="SaveMyLove">
+      <key use="DIKC_8"/>
+      <rect left="595" top="75" right="752" bottom="113"/>
+      <filter use="Save"/>
+      <link use="MyLoveForm"/>
+    </option>
+    <option name="LoadMyLove">
+      <key use="DIKC_9"/>
+      <rect left="588" top="114" right="744" bottom="166"/>
+      <filter use="Load"/>
+      <link use="MyLoveForm"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First">
+      <link use=""/>
+    </option>
+    <option name="Delete">
+      <link use=""/>
+    </option>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="PageUp"/>
+    <option name="PageDown"/>
+    <option name="Result"/>
+  </window>
+  <window name="InputCodeForm" backgroup="InputCodeForm" left="150" top="100" right="650" bottom="500">
+    <option name="num0">
+      <key use="DIKC_0"/>
+      <rect left="423" top="42" right="463" bottom="83"/>
+      <title use="0"/>
+    </option>
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="35" top="42" right="76" bottom="83"/>
+      <title use="1"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="79" top="42" right="120" bottom="83"/>
+      <title use="2"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="122" top="42" right="163" bottom="83"/>
+      <title use="3"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="165" top="42" right="206" bottom="83"/>
+      <title use="4"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="207" top="42" right="248" bottom="83"/>
+      <title use="5"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="250" top="42" right="291" bottom="83"/>
+      <title use="6"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="293" top="42" right="335" bottom="83"/>
+      <title use="7"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="337" top="42" right="378" bottom="83"/>
+      <title use="8"/>
+    </option>
+    <option name="num9">
+      <key use="DIKC_9"/>
+      <rect left="380" top="42" right="421" bottom="83"/>
+      <title use="9"/>
+    </option>
+    <option name="Opt1">
+      <font use="黑体,36,clWhite,GBK"/>
+      <key use="DIKC_NULL"/>
+      <rect left="38" top="140" right="464" bottom="197"/>
+    </option>
+    <option name="Opt2">
+      <font use="黑体,36,clWhite,GBK"/>
+      <key use="DIKC_NULL"/>
+      <rect left="131" top="252" right="357" bottom="294"/>
+    </option>
+    <option name="Result">
+      <key use="DIKC_ESCAPE"/>
+      <rect left="440" top="251" right="474" bottom="328"/>
+    </option>
+    <option name="Left">
+      <key use="DIKC_LEFT"/>
+      <rect left="365" top="208" right="474" bottom="247"/>
+    </option>
+    <option name="delete">
+      <key use="DIKC_DELETE"/>
+      <rect left="401" top="251" right="437" bottom="327"/>
+    </option>
+    <option name="Ok">
+      <key use="DIKC_ENTER"/>
+      <rect left="364" top="250" right="399" bottom="326"/>
+    </option>
+  </window>
+  <window name="PlunginsForm" backgroup="PlunginsForm" left="125" top="120" right="675" bottom="480">
+    <option name="PageUp">
+      <key use="DIKC_PAGE_UP"/>
+      <rect left="1" top="85" right="48" bottom="169"/>
+    </option>
+    <option name="PageDown">
+      <key use="DIKC_PAGE_DOWN"/>
+      <rect left="1" top="176" right="49" bottom="263"/>
+    </option>
+    <option name="Result">
+      <key use="DIKC_ESCAPE"/>
+      <rect left="394" top="311" right="482" bottom="360"/>
+    </option>
+    <option name="Enter">
+      <key use="DIKC_ENTER"/>
+      <rect left="296" top="312" right="384" bottom="361"/>
+    </option>
+    <option name="ShowSample">
+      <rect left="64" top="52" right="496" bottom="307"/>
+    </option>
+  </window>
+  <window name="SoftInfoForm" backgroup="SoftInfoForm" left="125" top="120" right="675" bottom="480">
+    <option name="PageUp">
+      <key use="DIKC_PAGE_UP"/>
+      <rect left="1" top="85" right="48" bottom="169"/>
+    </option>
+    <option name="PageDown">
+      <key use="DIKC_PAGE_DOWN"/>
+      <rect left="1" top="176" right="49" bottom="263"/>
+    </option>
+    <option name="Result">
+      <key use="DIKC_ESCAPE"/>
+      <rect left="394" top="311" right="482" bottom="360"/>
+    </option>
+    <option name="Enter">
+      <key use="DIKC_ENTER"/>
+      <rect left="296" top="312" right="384" bottom="361"/>
+    </option>
+    <option name="ShowSample">
+      <rect left="64" top="52" right="496" bottom="307"/>
+    </option>
+  </window>
+  <window name="MyLoveForm" backgroup="MyLoveForm" left="150" top="100" right="650" bottom="500">
+    <option name="num1">
+      <key use="DIKC_1"/>
+      <rect left="35" top="38" right="77" bottom="86"/>
+      <title use="1"/>
+    </option>
+    <option name="num2">
+      <key use="DIKC_2"/>
+      <rect left="78" top="38" right="120" bottom="86"/>
+      <title use="2"/>
+    </option>
+    <option name="num3">
+      <key use="DIKC_3"/>
+      <rect left="121" top="38" right="163" bottom="86"/>
+      <title use="3"/>
+    </option>
+    <option name="num4">
+      <key use="DIKC_4"/>
+      <rect left="164" top="38" right="206" bottom="86"/>
+      <title use="4"/>
+    </option>
+    <option name="num5">
+      <key use="DIKC_5"/>
+      <rect left="207" top="38" right="249" bottom="86"/>
+      <title use="5"/>
+    </option>
+    <option name="num6">
+      <key use="DIKC_6"/>
+      <rect left="250" top="38" right="292" bottom="86"/>
+      <title use="6"/>
+    </option>
+    <option name="num7">
+      <key use="DIKC_7"/>
+      <rect left="293" top="38" right="335" bottom="86"/>
+      <title use="7"/>
+    </option>
+    <option name="num8">
+      <key use="DIKC_8"/>
+      <rect left="336" top="38" right="378" bottom="86"/>
+      <title use="8"/>
+    </option>
+    <option name="num9">
+      <key use="DIKC_9"/>
+      <rect left="379" top="38" right="420" bottom="86"/>
+      <title use="9"/>
+    </option>
+    <option name="num0">
+      <key use="DIKC_0"/>
+      <rect left="421" top="38" right="463" bottom="86"/>
+      <title use="0"/>
+    </option>
+    <option name="Opt1">
+      <font use="黑体,36,clWhite,GBK"/>
+      <key use="DIKC_PAGE_UP"/>
+      <rect left="39" top="140" right="464" bottom="199"/>
+    </option>
+    <option name="Opt2">
+      <font use="黑体,36,clWhite,GBK"/>
+      <key use="DIKC_PAGE_DOWN"/>
+      <rect left="131" top="253" right="357" bottom="312"/>
+    </option>
+    <option name="Enter">
+      <key use="DIKC_ENTER"/>
+      <rect left="373" top="268" right="413" bottom="346"/>
+    </option>
+    <option name="Result">
+      <key use="DIKC_ESCAPE"/>
+      <rect left="415" top="266" right="458" bottom="347"/>
+    </option>
+    <option name="Left">
+      <key use="DIKC_LEFT"/>
+      <rect left="126" top="315" right="264" bottom="351"/>
+    </option>
+    <option name="delete">
+      <key use="DIKC_DELETE"/>
+      <rect left="288" top="304" right="373" bottom="333"/>
+    </option>
+  </window>
+  <window name="HandWriteForm" backgroup="HandWriteForm" left="0" top="0" right="800" bottom="600" font="Red32">
+    <option name="SongNameLabel" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="11" top="86" right="516" bottom="154"/>
+    </option>
+    <option name="ReSetBtn">
+      <key use="DIKC_8"/>
+      <rect left="623" top="95" right="707" bottom="151"/>
+    </option>
+    <option name="OKLabel">
+      <key use="DIKC_9"/>
+      <rect left="523" top="97" right="614" bottom="151"/>
+      <title use="手写点歌"/>
+      <link use="SongListForm"/>
+    </option>
+    <option name="Input1" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="4" top="166" right="324" bottom="480"/>
+    </option>
+    <option name="Input2" align="center" valign="center">
+      <font name="msgfont"/>
+      <rect left="334" top="167" right="690" bottom="479"/>
+    </option>
+    <option name="num1">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_1"/>
+      <rect left="704" top="165" right="795" bottom="216"/>
+    </option>
+    <option name="num2">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_2"/>
+      <rect left="704" top="216" right="794" bottom="266"/>
+    </option>
+    <option name="num3">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_3"/>
+      <rect left="705" top="268" right="793" bottom="317"/>
+    </option>
+    <option name="num4">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_4"/>
+      <rect left="705" top="319" right="794" bottom="373"/>
+    </option>
+    <option name="num5">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_5"/>
+      <rect left="704" top="374" right="794" bottom="427"/>
+    </option>
+    <option name="cancel">
+      <font name="numfont"/>
+      <activecolor use="clRed"/>
+      <key use="DIKC_6"/>
+      <rect left="704" top="429" right="795" bottom="479"/>
+    </option>
+    <option name="enter">
+      <key use="DIKC_ENTER"/>
+    </option>
+    <option name="NextSongLabel">
+      <font name="Lime24"/>
+    </option>
+    <option name="Klok"/>
+    <option name="NextSong"/>
+    <option name="Replay"/>
+    <option name="Pause"/>
+    <option name="Selected"/>
+    <option name="HIFI"/>
+    <option name="Record"/>
+    <option name="PlayRecord"/>
+    <option name="First"/>
+    <option name="Delete"/>
+    <option name="AddVolume"/>
+    <option name="DecVolume"/>
+    <option name="Mute"/>
+    <option name="PageUp"/>
+    <option name="PageDown"/>
+    <option name="Result"/>
+  </window>
+</mtv>

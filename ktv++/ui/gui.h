@@ -61,7 +61,7 @@ public:
 	virtual void GuiRest(){}
 
 	virtual void DrawTextOpt(CKtvOption *opt, CKtvFont *font=NULL, bool update=false);
-	                                           // 输出Option操作项
+	// 输出Option操作项
 //==============================================================================
 	virtual unsigned char GetMouseState(int *x, int *y) = 0;
 	virtual bool GraphicInit(int argc, char **argv) = 0;
@@ -202,7 +202,7 @@ private:
 #ifdef SPHEGUI
 #include "SP_Gui.h"
 
-class CSpheGui: public CBaseGui    // 基于 SDL 图形接口
+class CSpheGui: public CBaseGui    // 基于 Sphe 图形接口
 {
 public:
 	CSpheGui();
@@ -220,7 +220,7 @@ public:
 	virtual bool WaitInputEvent(InputEvent *event, int timeout);
 
 	virtual void DrawSoundBar(int volume);                            // 显示音量
-	virtual void DrawRectangle(RECT rect, TColor color) ;              // 画框，color框的颜色
+	virtual void DrawRectangle(RECT rect, TColor color) ;             // 画框，color框的颜色
 
 	virtual void DrawFillRect(RECT rect, TColor color);
 	virtual void DrawLine(int x1, int y1, int x2, int y2);
